@@ -84,6 +84,10 @@ a.card:hover{border-color:var(--ink)}
 .thead h1{font-size:46px}
 .th-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;min-height:36px}.th-top .back{margin:0}
 .th-act{display:flex;gap:14px;align-items:center}
+.th-act .ib{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--sub);cursor:pointer;padding:0}.th-act .ib:hover{background:#F5F5F5;color:var(--ink)}.th-act .ib.del:hover{color:var(--live-ink);border-color:#F2C9C3;background:var(--live-soft)}
+.th-act{gap:8px}
+body.gonly>header,body.gonly>#ticker,body.gonly>footer{display:none}body.gonly>main{padding:16px 16px 40px}
+.go-h{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:10px}.go-h b{font-size:18px}.go-h span{color:var(--muted);font-size:14px}
 .tmenu{position:relative}.tmenu .dots{border:1px solid var(--line);background:#fff;width:36px;height:36px;border-radius:10px;font-size:18px;line-height:1;color:var(--sub);cursor:pointer}.tmenu .dots:hover{background:#F5F5F5;color:var(--ink)}
 .tmenu .pop{position:absolute;right:0;top:42px;z-index:20;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.10);padding:6px;min-width:180px}
 .tmenu .pop button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 12px;border-radius:8px;font:inherit;font-size:14px;color:var(--live-ink);cursor:pointer}.tmenu .pop button:hover{background:var(--live-soft)}
@@ -666,6 +670,13 @@ function renderTicker(on){const el=document.getElementById('ticker');const L=on?
   el.innerHTML=L.length?`<div class="tick-in"><span class="tick-live">● LIVE</span>${L.map(({t,m})=>`<a class="tick" href="#t-${t.id}"><b>СТОЛ ${m.res.table||'—'}</b><span>${esc(surname(pname(t,m.a)))}</span><span class="s">${m.res.sa}–${m.res.sb}</span><span>${esc(surname(pname(t,m.b)))}</span></a>`).join('')}</div>`:''}
 function seedOf(T,s){if(s.t!=='p')return'';const i=T.players.findIndex(p=>p.id===s.id);return i<0?'':'['+(i+1)+']'}
 
+const IC=(()=>{const w=p=>`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;return{
+  share:w('<path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/>'),
+  xls:w('<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5"/><path d="M9 12l6 6M15 12l-6 6"/>'),
+  open:w('<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'),
+  del:w('<path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/>')}})();
+function renderGridOnly(T){const b=build(T);CUR={T,b};document.body.classList.add('gonly');
+  return`<div class="go-h"><b>${esc(T.title)}</b><span>${fdate(T.date)}${T.format==='de'&&b.name?' · Сетка '+b.name:''}</span></div>${renderGridTab(T,b)}`}
 function render(){
   const h=location.hash.slice(1)||'home';
   const nav=document.getElementById('nav');
@@ -673,6 +684,8 @@ function render(){
   nav.innerHTML=`<a href="#home" class="${h==='home'||h.startsWith('t-')?'on':''}">Турниры</a><a href="${S.admin&&!me?'#admin':'#cabinet'}" class="cta">${me?'Кабинет клуба':S.admin?'Администратор':'Вход для клубов'}</a>`;
   renderTicker(h==='home');
   const app=document.getElementById('app');
+  document.body.classList.remove('gonly');
+  if(h.startsWith('g-')){const T=tById(h.slice(2));if(T){app.innerHTML=renderGridOnly(T);return}}
   if(h.startsWith('t-')){const T=tById(h.slice(2));if(T){app.innerHTML=renderT(T);renderRoster();return}}
   if(h==='cabinet'){app.innerHTML=renderCabinet();return}
   if(h==='admin'){app.innerHTML=renderAdmin();loadAdminList();return}
@@ -737,7 +750,7 @@ function renderT(T){
   const place=[c.city,c.address].filter(Boolean).map(esc).join(', ');
   const cl=[`<b>${esc(c.name)}</b>`,place,c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:'',c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:''].filter(Boolean);
   const side=`<div class="th-side"><b class="cn">${esc(c.name)}</b>${place?`<span>${place}</span>`:''}${c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:''}${c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:''}</div>`;
-  return`<div class="tband"><div class="th-top"><a class="back" href="#home">← Все турниры</a>${own?`<div class="th-act">${UI.confirm===cdel?`<span class="muted" style="font-size:13px">Удалить турнир?</span><button class="btn sm red" data-act="delT" data-id="${T.id}">Да, удалить</button><button class="btn sm ghost" data-act="cancelConfirm">Нет</button>`:`<div class="tmenu"><button class="dots" data-act="tmenu" aria-label="Ещё" title="Ещё">⋯</button>${UI.tmenu===T.id?`<div class="pop"><button data-act="askDel" data-id="${T.id}">Удалить турнир</button></div>`:''}</div>`}</div>`:''}</div>
+  return`<div class="tband"><div class="th-top"><a class="back" href="#home">← Все турниры</a><div class="th-act">${own&&UI.confirm===cdel?`<span class="muted" style="font-size:13px">Удалить турнир?</span><button class="btn sm red" data-act="delT" data-id="${T.id}">Да, удалить</button><button class="btn sm ghost" data-act="cancelConfirm">Нет</button>`:`<button class="ib" data-act="shareT" title="Поделиться" aria-label="Поделиться">${IC.share}</button><button class="ib" data-act="xlsT" title="Скачать в Excel" aria-label="Скачать в Excel">${IC.xls}</button><a class="ib" href="#g-${T.id}" target="_blank" rel="noopener" title="Открыть сетку в новом окне" aria-label="Открыть сетку в новом окне">${IC.open}</a>${own?`<button class="ib del" data-act="askDel" data-id="${T.id}" title="Удалить турнир" aria-label="Удалить турнир">${IC.del}</button>`:''}`}</div></div>
   <div class="th-main"><div class="th-l"><div class="th-over"><span class="dot ${st}"></span>${ST_LABEL[st]}<i></i>${esc(T.discipline)}</div><h1>${esc(T.title)}</h1>
   <div class="th-facts">${facts.map(f=>`<span>${f}</span>`).join('')}</div>
 </div>${side}</div>
@@ -1075,6 +1088,16 @@ const A={
   filter(el){UI.filter[el.dataset.k]=el.dataset.v;render()},
   tab(el){UI.tab[el.dataset.id]=el.dataset.tab;render()},
   print(){window.print()},
+  shareT(){const T=CUR&&CUR.T;if(!T)return;const url=location.origin+location.pathname+'#t-'+T.id;
+    if(navigator.share){navigator.share({title:T.title,url}).catch(()=>{});return}
+    (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>toast('Ссылка скопирована')).catch(()=>prompt('Ссылка на турнир',url))},
+  xlsT(){const T=CUR&&CUR.T;if(!T)return;const go=()=>{const b=build(T),st=stageMap(b),X=window.XLSX;
+      const ms=b.all.filter(m=>m.state!=='bye').sort((x,y)=>x.no-y.no).map(m=>{const r=m.res||{},d=m.state==='done';return{'№':m.no,'Стадия':st[m.id]||'','Стол':r.table||'','Игрок 1':m.a.t==='p'?pname(T,m.a):'','Счёт 1':d||m.state==='live'?r.sa:'','Счёт 2':d||m.state==='live'?r.sb:'','Игрок 2':m.b.t==='p'?pname(T,m.b):'','Победитель':d&&m.winner.t==='p'?pname(T,m.winner):''}});
+      const ps=T.players.map((p,i)=>({'Посев':i+1,'Игрок':p.name,'Г.р.':byear(p),'Город':p.city||'','Звание':p.rank||''}));
+      const wb=X.utils.book_new();X.utils.book_append_sheet(wb,X.utils.json_to_sheet(ms),'Ведомость');X.utils.book_append_sheet(wb,X.utils.json_to_sheet(ps),'Участники');
+      if(b.finished&&b.places)X.utils.book_append_sheet(wb,X.utils.json_to_sheet(b.places.flatMap(p=>p.ids.map(id=>({'Место':p.from===p.to?p.from:p.from+'–'+p.to,'Игрок':pname(T,P(id))})))),'Итоги');
+      X.writeFile(wb,(T.title||'турнир').replace(/[\\/:*?"<>|]/g,'').slice(0,80)+'.xlsx')};
+    if(window.XLSX)return go();toast('Готовлю файл…');const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';sc.onload=go;sc.onerror=()=>toast('Не удалось подготовить файл');document.head.appendChild(sc)},
   tmenu(el){const id=CUR&&CUR.T.id;UI.tmenu=UI.tmenu===id?null:id;render()},
   psort(el){const k=el.dataset.k,o=UI.psort||{k:'pos',d:1};UI.psort={k,d:o.k===k?-o.d:1};render()},
   zoom(el){const d=+el.dataset.d;setZoom(d?ZOOM+d*.1:1)},
