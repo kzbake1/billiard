@@ -11,6 +11,7 @@
 :root{--bg:#F1F1F1;--card:#fff;--ink:#111111;--muted:#6E6E6E;--sub:#4D4D4D;--line:#E4E4E4;--line2:#D0D0D0;--soft:#F0F0F0;--accent:#1667FF;--accent-ink:#0F4FD9;--accent-soft:#E6EEFF;--live:#D93A26;--live-ink:#C4321F;--live-soft:#FDECEA;--ok:#0B7A47;--ok-soft:#E3F3EA;--gold:#111111;--gold-bg:#111111}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.45}
+body{min-height:100vh;display:flex;flex-direction:column}body>main{flex:1 0 auto;width:100%;box-sizing:border-box}body>footer{width:100%;box-sizing:border-box;padding-top:20px!important}
 a{color:inherit}
 button,input,select,textarea{font:inherit;color:inherit}
 .osw{font-family:Inter,sans-serif;text-transform:uppercase}
@@ -252,7 +253,20 @@ details.more summary{cursor:pointer;color:var(--muted);font-weight:700;font-size
 .err{color:var(--live-ink);font-size:13px;font-weight:600;min-height:18px}
 #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:8px;font-weight:600;opacity:0;transition:.2s;z-index:60;pointer-events:none}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
-.tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+.ptab{--w:#6B3A1E;position:relative;aspect-ratio:2/1;border-radius:14px;padding:14px;box-sizing:border-box;
+  background:radial-gradient(circle at 12px 12px,#111 7px,transparent 8px),radial-gradient(circle at calc(100% - 12px) 12px,#111 7px,transparent 8px),radial-gradient(circle at 12px calc(100% - 12px),#111 7px,transparent 8px),radial-gradient(circle at calc(100% - 12px) calc(100% - 12px),#111 7px,transparent 8px),radial-gradient(circle at 50% 7px,#111 6px,transparent 7px),radial-gradient(circle at 50% calc(100% - 7px),#111 6px,transparent 7px),linear-gradient(180deg,#7A4524,#5A2F17);
+  box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.ptab .felt{height:100%;border-radius:4px;background:radial-gradient(ellipse at 50% 40%,#2E8A57,#1D6A40 75%);box-shadow:inset 0 0 0 2px #17573A,inset 0 0 18px rgba(0,0,0,.25);display:flex;flex-direction:column;justify-content:center;gap:6px;padding:10px 16px;box-sizing:border-box;color:#fff;position:relative}
+.ptab .felt::before{content:'';position:absolute;left:25%;top:50%;width:5px;height:5px;margin:-2.5px;border-radius:50%;background:rgba(255,255,255,.45)}
+.ptab .felt::after{content:'';position:absolute;left:25%;top:12%;bottom:12%;border-left:1px solid rgba(255,255,255,.25)}
+.ptab .pn{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.75);position:relative;z-index:1}
+.ptab .big{font-size:34px;font-weight:700;line-height:1;text-align:center;color:rgba(255,255,255,.9);position:relative;z-index:1}
+.ptab.busy .felt::before,.ptab.busy .felt::after{display:none}
+.ptab.busy .felt{justify-content:flex-start;padding-top:12px}
+.ptab .pl{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px;position:relative;z-index:1}.ptab .pl span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ptab .pl b{font-size:20px;font-weight:700}
+.ptab em{font-style:normal;text-align:center;color:rgba(255,255,255,.7);font-size:13px;position:relative;z-index:1}
+.ptab.busy{cursor:pointer;outline:2px solid var(--live);outline-offset:3px}
 .tblx{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;font-size:13px;min-height:100px}
 .tblx b{font-family:Inter,sans-serif;font-size:15px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
 .tblx.busy{border-color:var(--live);background:var(--live-soft)}.tblx.busy b{color:var(--live-ink)}.tblx[data-act]{cursor:pointer}
@@ -819,9 +833,10 @@ function renderGridTab(T,b){
 }
 function clubLive(clubId,exceptMid){const out=[];S.tournaments.filter(t=>t.clubId===clubId&&t.status!=='reg').forEach(t=>build(t).all.forEach(m=>{if((m.state==='live'||m.state==='call')&&m.res.table&&!(CUR&&t===CUR.T&&m.id===exceptMid))out.push({t,m})}));return out}
 function busyTables(clubId,exceptMid){return new Set(clubLive(clubId,exceptMid).map(x=>x.m.res.table))}
-function tablesBoard(T){const c=club(T.clubId);const n=c.tables||6;const live=clubLive(T.clubId);const map={};live.forEach(x=>map[x.m.res.table]=x);
-  return`<div class="sec"><div class="sec-h"><h2>Столы клуба</h2><span class="muted">свободно ${n-Object.keys(map).length} из ${n}</span></div><div class="tables">${Array.from({length:n},(_,i)=>i+1).map(k=>{const x=map[k];
-  return x?`<div class="tblx ${x.m.state==='call'?'call':'busy'}" ${x.t===T?`data-act="match" data-mid="${x.m.id}"`:''}><b>Стол ${k}${x.m.state==='call'?' · вызваны':''}</b><span>${esc(pname(x.t,x.m.a))}</span><span>${esc(pname(x.t,x.m.b))}</span><em>${x.m.state==='call'?'':x.m.res.sa+' : '+x.m.res.sb}${x.t===T?'':' <small>· '+esc(x.t.title)+'</small>'}</em></div>`:`<div class="tblx"><b>Стол ${k}</b><span class="muted">свободен</span></div>`}).join('')}</div></div>`}
+function tablesBoard(T){const c=club(T.clubId);const n=c.tables||6;const map={};clubLive(T.clubId).forEach(x=>{if(x.t===T)map[x.m.res.table]=x});
+  const busy=Object.keys(map).length;
+  return`<div class="sec"><div class="sec-h"><h2>Столы</h2><span class="muted">${busy?'играют за '+busy+' из '+n:'все '+n+' свободны'}</span></div><div class="tables">${Array.from({length:n},(_,i)=>i+1).map(k=>{const x=map[k];
+  return`<div class="ptab${x?' busy':''}" ${x?`data-act="match" data-mid="${x.m.id}"`:''}><div class="felt">${x?`<span class="pn">Стол ${k}</span><div class="pl"><span>${esc(pname(T,x.m.a))}</span><b>${x.m.res.sa}</b></div><div class="pl"><span>${esc(pname(T,x.m.b))}</span><b>${x.m.res.sb}</b></div>`:`<span class="big">${k}</span><em>свободен</em>`}</div></div>`}).join('')}</div></div>`}
 function renderTablesTab(T,b){
   const ready=b.all.filter(m=>m.state==='ready');
   return tablesBoard(T)+
