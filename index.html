@@ -706,7 +706,7 @@ function uniHTML(T,b){const f=flow(T);const L=b.lb.length;const pl=[];let p=b.K+
   const tag=no=>mk[no]?`<b class="mk ${mk[no].c}">${mk[no].n}</b>`:'№'+no;
   const capL=(m,i)=>{const a=[];if(i===L-1)a.push(f.w[m.no]?'победитель → '+tag(f.w[m.no]):'победитель → в олимпийку');if(f.full)a.push((i===L-1?'иначе':'проигравший —')+' '+pl[i]+' место');return a.join('<i></i>')};
   const R=b.rounds.length;
-  const capU=(m,i)=>{if(i<b.wb.length)return i>=1&&f.l[m.no]?'проигравший → '+tag(f.l[m.no]):'';const k=i-b.wb.length,n=b.rounds[k].matches.length;return k===R-1?'победитель — 1 место':'проигравший — '+(n>1?(n+1)+'–'+(2*n):'3–4')+' место'};
+  const capU=(m,i)=>{if(i<b.wb.length)return i>=1&&f.l[m.no]?tag(f.l[m.no])+' ← проигравший':'';const k=i-b.wb.length,n=b.rounds[k].matches.length;return k===R-1?'победитель — 1 место':'проигравший — '+(n>1?(n+1)+'–'+(2*n):'3–4')+' место'};
   const lbR=b.lb.map((rd,i)=>({title:'Нижняя · раунд '+(i+1),matches:rd.matches})),wbR=b.wb.map((rd,i)=>({title:'Верхняя · раунд '+(i+1),matches:rd.matches}));
   requestAnimationFrame(uniInit);
   return`<div class="uni" data-id="${T.id}">${bracketHTML(T,lbR,{cap:capL,cls:'mir',mk})}${bracketHTML(T,[...wbR,...b.rounds],{cap:capU,cls:'ub',po:b.wb.length,mk})}</div>`}
