@@ -680,7 +680,7 @@ function renderT(T){
 function mCard(T,m,mk){
   const r=m.res,showSc=m.state==='done'||m.state==='live';
   const cls=s=>{if(s.t==='tbd')return'tbd';if(m.state!=='done')return'';return m.winner.t==='p'&&m.winner.id===s.id?'win':'lose'};
-  const row=(s,sc)=>`<div class="row ${cls(s)}"><span class="n">${esc(s.t==='p'?sname(pname(T,s)):pname(T,s))}</span><span class="sc">${showSc?sc:''}</span></div>`;
+  const row=(s,sc)=>`<div class="row ${cls(s)}"><span class="n">${s.t==='tbd'?'&nbsp;':esc(s.t==='p'?sname(pname(T,s)):pname(T,s))}</span><span class="sc">${showSc?sc:''}</span></div>`;
   const tm=m.state==='done'&&r&&r.ts?new Date(r.ts).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}):'';
   const st={live:`<span class="mst live">● ${r&&r.table?'стол '+r.table:'играют'}</span>`,ready:'<span class="mst ok">● можно вызывать</span>',bye:'<span class="mst">проход</span>'}[m.state]||'';
   return`<div class="mw"><div class="m-meta"><span>${mk?`<b class="mk ${mk.c}">${mk.n}</b>`:''}№${m.no}${m.state==='done'&&r&&r.table?' · стол '+r.table:''}</span>${st||(tm?`<span>${tm}</span>`:'')}</div><div class="m s-${m.state}" data-act="match" data-mid="${m.id}">${row(m.a,r?r.sa:'')}${row(m.b,r?r.sb:'')}</div></div>`;
