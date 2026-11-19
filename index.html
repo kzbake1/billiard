@@ -88,7 +88,8 @@ a.card:hover{border-color:var(--ink)}
 .th-l h1{font-size:36px;line-height:1.1;margin:6px 0 0;letter-spacing:-.02em}
 .th-over{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sub)}.th-over i{width:3px;height:3px;border-radius:50%;background:#C4C4C4}
 .th-over .dot{width:8px;height:8px;border-radius:50%;background:#B5B5B5}.th-over .dot.live{background:var(--live);animation:pulse 1.4s infinite}.th-over .dot.done{background:var(--accent)}
-.th-side{flex:0 0 240px;display:flex;flex-direction:column;gap:4px;padding-left:24px;border-left:1px solid var(--line)}
+.th-side{flex:0 0 260px;display:flex;flex-direction:column;gap:3px;padding-left:24px;border-left:1px solid var(--line);font-size:14px;color:var(--sub)}
+.th-side b.cn{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:2px}.th-side a{color:var(--accent-ink);text-decoration:none}.th-side a:hover{text-decoration:underline}
 .th-side .lbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .th-side b{font-size:30px;font-weight:600;line-height:1.1;letter-spacing:-.02em}.th-side b small{font-size:15px;font-weight:500;color:var(--muted);letter-spacing:0}.th-side b.nm{font-size:20px}
 .th-side .mut{font-size:13px;color:var(--muted)}
@@ -702,17 +703,17 @@ function renderT(T){
   else if(tab==='people')body=renderPeople(T,b);
   else body=renderResult(T,b);
   const done=b.all.filter(m=>m.state==='done').length,tot=b.all.filter(m=>m.state!=='bye').length;
-  const fmt=FORMATS[T.format]+(T.format==='gp'?` ${T.groups.count}×${T.groups.advance}`:'')+(T.format==='de'&&b.name?' '+b.name:'');
+  const fmt=T.format==='de'?(b.name?'Сетка '+b.name:'Сетка на '+nextPow2(Math.max(2,T.players.length))+' · суперфинал'):FORMATS[T.format]+(T.format==='gp'?` ${T.groups.count}×${T.groups.advance}`:'');
   const n=T.players.length,pw=n%10===1&&n%100!==11?'игрок':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?'игрока':'игроков');
-  const facts=[fdate(T.date),fmt,'до '+T.raceTo+' побед',n+' '+pw];
+  const facts=[fdate(T.date),fmt];
   const champ=b.finished&&b.places&&b.places[0]&&b.places[0].ids[0]?pname(T,P(b.places[0].ids[0])):'';
-  const side=T.status==='reg'?`<div class="th-side"><span class="lbl">Набор игроков</span><b>${n}</b><span class="mut">заявлено</span></div>`:b.finished?`<div class="th-side"><span class="lbl">Победитель</span><b class="nm">${esc(champ)}</b><span class="mut">${tot} матчей сыграно</span></div>`:`<div class="th-side"><span class="lbl">Сыграно</span><b>${done}<small> из ${tot}</small></b><span class="bar"><i style="width:${tot?Math.round(done/tot*100):0}%"></i></span></div>`;
   const place=[c.city,c.address].filter(Boolean).map(esc).join(', ');
   const cl=[`<b>${esc(c.name)}</b>`,place,c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:'',c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:''].filter(Boolean);
+  const side=`<div class="th-side"><b class="cn">${esc(c.name)}</b>${place?`<span>${place}</span>`:''}${c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:''}${c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:''}</div>`;
   return`<div class="tband"><div class="th-top"><a class="back" href="#home">← Все турниры</a>${own?`<div class="th-act">${UI.confirm===cdel?`<span class="muted" style="font-size:13px">Удалить турнир?</span><button class="btn sm red" data-act="delT" data-id="${T.id}">Да, удалить</button><button class="btn sm ghost" data-act="cancelConfirm">Нет</button>`:`<button class="th-del" data-act="askDel" data-id="${T.id}">Удалить турнир</button>${T.status==='live'&&!b.finished?`<a class="btn blue" href="#pult-${T.id}">Открыть пульт</a>`:''}`}</div>`:''}</div>
   <div class="th-main"><div class="th-l"><div class="th-over"><span class="dot ${st}"></span>${ST_LABEL[st]}<i></i>${esc(T.discipline)}</div><h1>${esc(T.title)}</h1>
   <div class="th-facts">${facts.map(f=>`<span>${f}</span>`).join('')}</div>
-  <div class="th-club">${cl.map(f=>`<span>${f}</span>`).join('')}</div></div>${side}</div>
+</div>${side}</div>
   <div class="tabs">${tabs.map(t=>`<button class="${t[0]===tab?'on':''}" data-act="tab" data-id="${T.id}" data-tab="${t[0]}">${t[1]}${t[2]?`<span class="cnt">${t[2]}</span>`:''}</button>`).join('')}</div></div>
   ${body}`;
 }
