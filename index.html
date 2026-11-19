@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#ECECEC;--card:#fff;--ink:#111111;--muted:#6E6E6E;--sub:#4D4D4D;--line:#E4E4E4;--line2:#D0D0D0;--soft:#F0F0F0;--accent:#1667FF;--accent-ink:#0F4FD9;--accent-soft:#E6EEFF;--live:#1667FF;--live-ink:#0F4FD9;--live-soft:#E6EEFF;--gold:#111111;--gold-bg:#111111}
+:root{--bg:#ECECEC;--card:#fff;--ink:#111111;--muted:#6E6E6E;--sub:#4D4D4D;--line:#E4E4E4;--line2:#D0D0D0;--soft:#F0F0F0;--accent:#1667FF;--accent-ink:#0F4FD9;--accent-soft:#E6EEFF;--live:#D93A26;--live-ink:#C4321F;--live-soft:#FDECEA;--ok:#0B7A47;--ok-soft:#E3F3EA;--gold:#111111;--gold-bg:#111111}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.45}
 a{color:inherit}
@@ -118,13 +118,13 @@ a.card:hover{border-color:var(--ink)}
 .m .win .n{font-weight:700;color:var(--ink)}
 .m .lose .n,.m .lose .sc{color:#8C8C8C}
 .m .tbd .n{color:#A6A6A6;font-style:italic}
-.m.s-live{border-color:var(--live);box-shadow:0 0 0 3px rgba(22,103,255,.12)}
+.m.s-live{border-color:var(--live);box-shadow:0 0 0 3px rgba(217,58,38,.10)}
 .m.s-live .m-top{color:var(--live-ink);background:var(--live-soft)}
-.m.s-ready .m-top{color:var(--accent)}
+.m.s-ready{border-color:var(--ok)}.m.s-ready .m-top{color:var(--ok);background:var(--ok-soft)}
 .m.s-bye{opacity:.45;cursor:default}
 .final-box{max-width:260px}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
-.legend i{font-style:normal}.legend .r{color:var(--live-ink)}.legend .g{color:var(--accent)}
+.legend i{font-style:normal}.legend .r{color:var(--live-ink)}.legend .g{color:var(--ok)}
 /* tables */
 .groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px}
 .panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px}
@@ -197,8 +197,8 @@ footer button{border:0;background:none;color:var(--muted);text-decoration:underl
 .who{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
 @media(max-width:640px){.chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}.chip{white-space:nowrap}.top-in{gap:10px;padding:12px 16px}main{padding:22px 16px 60px}.logo small{display:none}nav.main{gap:12px}nav.main a{font-size:12px}.search{min-width:0;width:100%}}
 
-.feat-main .muted,.feat-main .facts div span{color:#9C9C9C}.feat-main .st.live{background:#1667FF;color:#fff}.feat-main .st.live::before{background:#fff}
-.st.live::before{background:var(--accent)}
+.feat-main .muted,.feat-main .facts div span{color:#9C9C9C}.feat-main .st.live{background:var(--live);color:#fff}.feat-main .st.live::before{background:#fff}
+.st.live::before{background:var(--live)}
 /* call state */
 .m.s-call{border-color:#111;box-shadow:0 0 0 3px rgba(17,17,17,.08)}
 .m.s-call .m-top{background:#111;color:#fff}
@@ -228,7 +228,7 @@ footer button{border:0;background:none;color:var(--muted);text-decoration:underl
 .ptile.live{border-color:var(--accent);background:var(--accent-soft)}.ptile.live i{color:var(--accent-ink)}
 .ptile.call{border-color:#111;background:#F2F2F2}.ptile.call i{color:#111}
 .pc-l{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.pc-l .lv{color:var(--accent-ink)}
+.pc-l .lv{color:var(--live-ink)}
 .pcall{background:#111;color:#fff;border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
 .pcall .pc-l{color:#B5B5B5}
 .pcall .btn.ghost{color:#fff;border-color:#4D4D4D}
@@ -353,7 +353,7 @@ function mk(ctx,id,a,b,meta){
   else if(a.t==='p'&&b.t==='p'){
     const ok=r&&r.a===a.id&&r.b===b.id;
     if(ok&&r.done){m.state='done';m.res=r;const aw=r.sa>r.sb;m.winner=aw?a:b;m.loser=aw?b:a}
-    else{m.state=ok&&r.live?'live':ok&&r.call?'call':'ready';if(ok&&(r.live||r.call))m.res=r;m.winner=TBD('Поб. №'+no);m.loser=TBD('Пр. №'+no)}
+    else{m.state=ok&&(r.live||r.call)?'live':'ready';if(ok&&(r.live||r.call))m.res=r;m.winner=TBD('Поб. №'+no);m.loser=TBD('Пр. №'+no)}
   } else {
     m.state='wait';m.winner=TBD('Поб. №'+no);
     m.loser=(a.t==='bye'||b.t==='bye')?BYE:TBD('Пр. №'+no);
@@ -649,7 +649,7 @@ function standingsHTML(T,g,K){
   return`<table class="tb"><thead><tr><th class="pos">#</th><th>Игрок</th><th class="c">И</th><th class="c">В</th><th class="c">П</th><th class="c">Партии</th><th class="c">±</th></tr></thead><tbody>
   ${g.standings.map((r,i)=>`<tr class="${K&&i<K?'q':''}"><td class="pos">${i+1}</td><td>${esc(pname(T,P(r.id)))}</td><td class="c">${r.pl}</td><td class="c"><b>${r.w}</b></td><td class="c">${r.l}</td><td class="c">${r.ff}:${r.fa}</td><td class="c">${r.ff-r.fa>0?'+':''}${r.ff-r.fa}</td></tr>`).join('')}</tbody></table>`;
 }
-const LEGEND=`<div class="legend"><i><span class="r">●</span> идёт</i><i><span style="color:#111">●</span> вызван к столу</i><i>[1] — номер посева</i></div>`;
+const LEGEND=`<div class="legend"><i><span class="r">●</span> играют</i><i><span class="g">●</span> можно вызывать</i><i>[1] — номер посева</i></div>`;
 function renderGridTab(T,b){
   if(T.format==='se')return`<div class="withside"><div class="wm"><div style="margin-bottom:14px">${LEGEND}</div>${bracketHTML(T,b.rounds)}</div>${sidePanels(T,b)}</div>`;
   if(T.format==='de'){const v=UI.de[T.id]||'wb';
@@ -808,9 +808,9 @@ function renderPult(T){
   <div class="pult">
   <div class="pult-main">
   <section><div class="sec-h"><h2>За столами</h2><span class="muted">свободно столов: ${free.length} из ${n}</span></div>
-  ${atT.length?`<div class="plive">${atT.map(m=>`<div class="plcard${m.state==='call'?' called':''}"><div class="pc-l" style="display:flex;justify-content:space-between;gap:8px"><span><span class="lv">${m.state==='call'?'Вызваны · стол '+m.res.table:'● Стол '+(m.res.table||'—')}</span> · до ${T.raceTo} побед</span>${m.state==='call'?`<button class="lnk" data-act="uncall" data-mid="${m.id}">отменить вызов</button>`:''}</div><div class="plgrid">${st(m,'a')}${st(m,'b')}</div></div>`).join('')}</div><p class="muted" style="font-size:13px;margin:10px 0 0">Нажимайте «+» за каждую выигранную партию. Кто набрал ${T.raceTo} — матч закрывается сам, стол освобождается.</p>`:`<div class="empty" style="padding:28px">${b.finished?'Турнир завершён. Итоги — на странице турнира.':'Пока никто не играет.<br>Нажмите «К столу» у матча из очереди.'}</div>`}</section>
+  ${atT.length?`<div class="plive">${atT.map(m=>`<div class="plcard"><div class="pc-l" style="display:flex;justify-content:space-between;gap:8px"><span><span class="lv">● Стол ${m.res.table||'—'}</span> · до ${T.raceTo} побед</span>${m.res.sa+m.res.sb===0?`<button class="lnk" data-act="uncall" data-mid="${m.id}">убрать со стола</button>`:''}</div><div class="plgrid">${st(m,'a')}${st(m,'b')}</div></div>`).join('')}</div><p class="muted" style="font-size:13px;margin:10px 0 0">Нажимайте «+» за каждую выигранную партию. Кто набрал ${T.raceTo} — матч закрывается сам, стол освобождается.</p>`:`<div class="empty" style="padding:28px">${b.finished?'Турнир завершён. Итоги — на странице турнира.':'Пока никто не играет.<br>Нажмите «К столу» у матча из очереди.'}</div>`}</section>
   </div>
-  <aside class="pult-side"><h2 style="margin-bottom:4px">Очередь</h2><p class="muted" style="margin:0 0 12px;font-size:14px">${!ready.length?'':free.length?'Одно нажатие — игроки вызваны к свободному столу.':'Все столы заняты — дождитесь окончания матча.'}</p>
+  <aside class="pult-side"><h2 style="margin-bottom:4px">Очередь</h2><p class="muted" style="margin:0 0 12px;font-size:14px">${!ready.length?'':free.length?'Одно нажатие — матч начинается за свободным столом.':'Все столы заняты — дождитесь окончания матча.'}</p>
   ${ready.length?ready.map(m=>`<div class="pq"><div style="font-weight:600;font-size:16px;margin-bottom:10px">${esc(pname(T,m.a))} — ${esc(pname(T,m.b))}</div><div class="pq-t">${free.length?`<button class="btn dark" data-act="callT" data-mid="${m.id}" data-t="${free[0]}">К столу ${free[0]}</button>${free.length>1?`<select class="tsel" aria-label="Другой стол" data-act="callSel" data-mid="${m.id}"><option value="">другой стол</option>${free.slice(1).map(k=>`<option value="${k}">Стол ${k}</option>`).join('')}</select>`:''}`:'<span class="muted" style="font-size:13px">нет свободных столов</span>'}</div></div>`).join(''):`<div class="empty" style="padding:24px">${b.finished?'Все матчи сыграны':'Следующие матчи появятся, когда закончатся идущие'}</div>`}
   </aside></div>
   ${UI.undo&&UI.undo.tid===T.id?`<div class="undo" role="status"><span>${esc(UI.undo.text)}</span><button class="btn light" data-act="undo">Отменить</button></div>`:''}`;
@@ -825,7 +825,7 @@ function openMatch(mid){
   if(m.state==='wait'||m.state==='bye'){openModal(head+`<p>${esc(pname(T,m.a))} — ${esc(pname(T,m.b))}</p><p class="muted">${m.state==='bye'?'Свободный проход: соперника нет, игрок проходит дальше без игры.':'Матч ждёт, пока определятся оба соперника.'}</p>`);return}
   const r=m.res||{};
   if(!own){openModal(head+`<div class="score"><span class="nm">${esc(pname(T,m.a))}</span><span style="font-size:22px;font-weight:800;text-align:center">${m.res?r.sa:'—'}</span></div><div class="score"><span class="nm">${esc(pname(T,m.b))}</span><span style="font-size:22px;font-weight:800;text-align:center">${m.res?r.sb:'—'}</span></div><p class="muted" style="font-size:13px">${m.state==='live'?`Идёт${r.table?' за столом '+r.table:''}. `:''}${m.state==='done'?'Матч завершён.':m.state==='ready'?'Ожидает вызова к столу.':''} Игра до ${T.raceTo} побед.</p>`);return}
-  if(m.state!=='done'){openModal(head+`<p style="margin-top:0"><b>${esc(pname(T,m.a))} — ${esc(pname(T,m.b))}</b></p><p class="muted">${m.state==='ready'?'Матч ждёт вызова к столу.':m.state==='call'?'Игроки вызваны к столу '+r.table+'.':'Идёт за столом '+(r.table||'—')+', счёт '+r.sa+' : '+r.sb+'.'} Вызов и счёт ведутся на пульте.</p><div class="acts"><a class="btn blue big" href="#pult-${T.id}">Открыть пульт</a></div>`);return}
+  if(m.state!=='done'){openModal(head+`<p style="margin-top:0"><b>${esc(pname(T,m.a))} — ${esc(pname(T,m.b))}</b></p><p class="muted">${m.state==='ready'?'Матч ждёт вызова к столу.':m.state==='call'?'Игроки вызваны к столу '+r.table+'.':'Идёт за столом '+(r.table||'—')+', счёт '+r.sa+' : '+r.sb+'.'} Столы и счёт ведутся на пульте.</p><div class="acts"><a class="btn blue big" href="#pult-${T.id}">Открыть пульт</a></div>`);return}
   openModal(head+`<p class="muted" style="margin-top:0;font-size:13px">Матч сыгран. Здесь можно исправить счёт, если ошиблись. Игра до ${T.raceTo} побед.</p>
   <div class="score"><span class="nm">${esc(pname(T,m.a))}</span><input id="sa" type="number" min="0" inputmode="numeric" value="${r.sa??''}"></div>
   <div class="score"><span class="nm">${esc(pname(T,m.b))}</span><input id="sb" type="number" min="0" inputmode="numeric" value="${r.sb??''}"></div>
@@ -840,7 +840,7 @@ function num(id){const v=document.getElementById(id).value.trim();return v===''?
 const A={
   pultOpen(el){go('pult-'+el.dataset.id)},
   callT(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m)return;const k=+el.dataset.t;if(busyTables(T.clubId).has(k)){toast('Стол уже занят');return}
-    T.results[m.id]={a:m.a.id,b:m.b.id,sa:0,sb:0,call:true,done:false,table:k,ts:Date.now()};save();render();toast(`Вызваны к столу ${k}`)},
+    T.results[m.id]={a:m.a.id,b:m.b.id,sa:0,sb:0,live:true,done:false,table:k,ts:Date.now()};save();render();toast(`Матч начат за столом ${k}`)},
   startM(el){const {T}=CUR;const r=T.results[el.dataset.mid];if(!r)return;r.call=false;r.live=true;r.ts=Date.now();save();render()},
   uncall(el){const {T}=CUR;delete T.results[el.dataset.mid];save();render()},
   sc(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];const k='s'+el.dataset.side;const prev=Object.assign({},r);if(r.call){r.call=false;r.live=true}
@@ -881,7 +881,7 @@ const A={
     if(Math.max(sa,sb)!==T.raceTo){e.textContent=`Победитель должен набрать ${T.raceTo}`;return}
     T.results[m.id]={a:m.a.id,b:m.b.id,sa,sb,done:true,table:tb,ts:Date.now()};save();closeModal();render();toast('Результат сохранён')},
   saveLive(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);const sa=num('sa')||0,sb=num('sb')||0,tb=num('tbl');if(!tb){document.getElementById('m-err').textContent='Выберите стол';return}
-    T.results[m.id]={a:m.a.id,b:m.b.id,sa,sb,call:true,done:false,table:tb,ts:Date.now()};save();closeModal();render();toast("Игроки вызваны к столу")},
+    T.results[m.id]={a:m.a.id,b:m.b.id,sa,sb,live:true,done:false,table:tb,ts:Date.now()};save();closeModal();render();toast("Игроки вызваны к столу")},
   clearRes(el){const {T}=CUR;delete T.results[el.dataset.mid];save();closeModal();render();toast('Результат сброшен')},
   askDel(el){UI.confirm='del-'+el.dataset.id;render()},
   cancelConfirm(){UI.confirm=null;render()},
