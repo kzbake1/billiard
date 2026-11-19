@@ -196,6 +196,7 @@ table.tb{width:100%;border-collapse:collapse;font-size:13.5px}
 .tb th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;font-weight:700;padding:6px;border-bottom:1px solid var(--line)}
 .tb td{padding:9px 6px;border-bottom:1px solid #EFEFEF}
 .tb td.c,.tb th.c{text-align:center}
+.tb th.srt button{border:0;background:none;padding:0;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:4px}.tb th.srt button:hover,.tb th.srt.on button{color:var(--ink)}.tb th.srt i{font-style:normal;width:8px}
 .tb td.r,.tb th.r{text-align:right}.tb td.mut{color:var(--muted);font-size:12.5px;white-space:nowrap}.tb td.sc{font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
 .sheet tbody tr:hover td{background:#FAFAFA}
 @media print{header,.topbar,.tabs,.th-top,.note,footer,.noprint,.toast{display:none!important}body{background:#fff}.tband{padding:0;margin-bottom:8px}.panel{border:0;padding:0}}
@@ -839,8 +840,12 @@ function renderSheet(T,b){const st=stageMap(b);const ms=b.all.filter(m=>m.state!
 const byear=p=>p.birth?p.birth.slice(0,4):'';
 function renderPeople(T,b){
   const own=isOwner(T),reg=T.status==='reg';const ed=own&&reg;
-  const rows=T.players.map((p,i)=>`<tr><td class="pos">${i+1}</td><td><b>${esc(p.name)}</b></td><td class="c">${byear(p)}</td><td>${esc(p.city||'')}</td><td>${esc(p.rank||'')}</td>${ed?`<td class="c"><button class="x" data-act="rmP" data-id="${p.id}" title="Убрать">×</button></td>`:''}</tr>`).join('');
-  const list=`<div class="panel"><h3>${reg?'Участники':'Участники и посев'} · ${T.players.length}</h3>${T.players.length?`<table class="tb"><thead><tr><th class="pos">#</th><th>Игрок</th><th class="c">Г.р.</th><th>Город</th><th>Звание</th>${ed?'<th></th>':''}</tr></thead><tbody>${rows}</tbody></table>`:'<div class="muted">Пока никого. Добавьте игроков справа.</div>'}</div>`;
+  const so=UI.psort||{k:'pos',d:1};const ri=r=>{const i=RANKS.indexOf(r);return i<0?-1:i};
+  const cmp={pos:(a,b)=>a.i-b.i,name:(a,b)=>a.p.name.localeCompare(b.p.name,'ru'),birth:(a,b)=>(byear(a.p)||'9999').localeCompare(byear(b.p)||'9999'),city:(a,b)=>(a.p.city||'').localeCompare(b.p.city||'','ru')||a.i-b.i,rank:(a,b)=>ri(b.p.rank)-ri(a.p.rank)||a.i-b.i};
+  const list0=T.players.map((p,i)=>({p,i})).sort((a,b)=>cmp[so.k](a,b)*so.d);
+  const th=(k,t,cl)=>`<th class="${cl||''} srt${so.k===k?' on':''}"><button data-act="psort" data-k="${k}">${t}<i>${so.k===k?(so.d>0?'↑':'↓'):''}</i></button></th>`;
+  const rows=list0.map(({p,i})=>`<tr><td class="pos">${i+1}</td><td><b>${esc(p.name)}</b></td><td class="c">${byear(p)}</td><td>${esc(p.city||'')}</td><td>${esc(p.rank||'')}</td>${ed?`<td class="c"><button class="x" data-act="rmP" data-id="${p.id}" title="Убрать">×</button></td>`:''}</tr>`).join('');
+  const list=`<div class="panel"><h3>${reg?'Участники':'Участники и посев'} · ${T.players.length}</h3>${T.players.length?`<table class="tb"><thead><tr>${th('pos','#','pos')}${th('name','Игрок')}${th('birth','Г.р.','c')}${th('city','Город')}${th('rank','Звание')}${ed?'<th></th>':''}</tr></thead><tbody>${rows}</tbody></table>`:'<div class="muted">Пока никого. Добавьте игроков справа.</div>'}</div>`;
   if(!ed)return(reg?`<div class="note">Состав формирует клуб. Сетка появится, когда организатор запустит турнир.</div>`:'')+list;
   const min=minPlayers(T);
   const side=`<div class="panel" style="margin-bottom:14px"><h3>Из базы клуба</h3><input id="rs-q" class="search" style="width:100%;min-width:0" placeholder="Поиск по фамилии"><div id="rs-list" class="mlist"></div></div>
@@ -1036,6 +1041,7 @@ const A={
   filter(el){UI.filter[el.dataset.k]=el.dataset.v;render()},
   tab(el){UI.tab[el.dataset.id]=el.dataset.tab;render()},
   print(){window.print()},
+  psort(el){const k=el.dataset.k,o=UI.psort||{k:'pos',d:1};UI.psort={k,d:o.k===k?-o.d:1};render()},
   zoom(el){const d=+el.dataset.d;setZoom(d?ZOOM+d*.1:1)},
   uniGo(el){const u=document.querySelector('.uni');if(!u)return;const v=el.dataset.v,ub=u.querySelector('.ub'),po=u.querySelector('.po-start');const X=e=>e.getBoundingClientRect().left-u.getBoundingClientRect().left+u.scrollLeft-20;u.scrollTo({left:v==='lb'?0:v==='wb'?X(ub):X(po),behavior:'smooth'})},
   deView(el){UI.de[el.dataset.id]=el.dataset.v;render()},
