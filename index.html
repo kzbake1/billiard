@@ -744,10 +744,10 @@ const UNI_X={};
 function uniInit(){const el=document.querySelector('.uni');if(!el)return;const k=el.dataset.id;if(UNI_X[k]==null){const ub=el.querySelector('.ub');UNI_X[k]=Math.max(0,ub.getBoundingClientRect().left-el.getBoundingClientRect().left+el.scrollLeft-130*ZOOM)}el.scrollLeft=UNI_X[k];el.onscroll=()=>{UNI_X[k]=el.scrollLeft}}
 function uniHTML(T,b){const f=flow(T);const L=b.lb.length;const pl=[];let p=b.K+1;for(let i=L-1;i>=0;i--){const n=b.lb[i].matches.length;pl[i]=n>1?p+'–'+(p+n-1):''+p;p+=n}
   const dests=new Set();b.wb.forEach((rd,i)=>{if(i>=1)rd.matches.forEach(m=>{if(f.l[m.no])dests.add(f.l[m.no])})});
-  const mk={};let q=dests.size;b.rounds[0].matches.forEach(m=>{mk[m.no]={n:++q,c:'b'}});
+  const mk={};
   const tag=no=>mk[no]?`<b class="mk ${mk[no].c}">${mk[no].n}</b>`:'№'+no;
   const ARL='<span class="ar">←</span>',ARR='<span class="ar">→</span>';
-  const capL=(m,i)=>i===L-1?(f.w[m.no]&&mk[f.w[m.no]]?tag(f.w[m.no])+' '+ARR:'в олимпийку '+ARR):'';
+  const capL=(m,i)=>i===L-1?(f.w[m.no]?'победитель на №'+f.w[m.no]:'победитель в олимпийку'):'';
   const R=b.rounds.length;
   const capU=(m,i)=>{if(i<b.wb.length)return i>=1&&f.l[m.no]?'проигравший на №'+f.l[m.no]:'';const k=i-b.wb.length;return k===R-1?'<b>Финал</b>':k===R-2?'<b>Полуфинал</b>':''};
   const poSub=k=>{const n=b.rounds[k].matches.length;return k===R-1?'':'проигравший — '+(n>1?(n+1)+'–'+(2*n):'3–4')+' место'};
