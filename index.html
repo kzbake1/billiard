@@ -274,6 +274,23 @@ footer button{border:0;background:none;color:var(--muted);text-decoration:underl
 .lnk{border:0;background:none;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:12px;padding:0;text-transform:none;letter-spacing:0;font-weight:500}
 .tsel{min-height:48px;border:1px solid var(--line2);border-radius:999px;padding:0 14px;background:#fff;color:var(--sub)}
 .contacts{display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:10px;font-size:14px;color:var(--sub)}.contacts b{font-weight:600;color:var(--ink)}.contacts a{color:var(--accent-ink)}
+.cab-hero{background:#111;color:#fff;border-radius:28px;padding:32px 36px;display:flex;gap:32px;flex-wrap:wrap;align-items:flex-end;margin-bottom:40px}
+.ch-main{flex:999 1 420px;min-width:0}
+.ch-top{display:flex;justify-content:space-between;align-items:center;color:#9C9C9C;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px}
+.ch-top .lnk{color:#9C9C9C;font-size:13px}
+.cab-hero h1{font-size:56px;margin:0 0 6px}.cab-hero p{margin:0;color:#B5B5B5}
+.ch-acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+.ch-ghost{background:transparent;border-color:#4D4D4D;color:#fff}
+.ch-stats{display:flex;gap:10px;flex:1 1 320px}
+.ch-stats div{flex:1;background:#1E1E1E;border-radius:20px;padding:16px 18px}
+.ch-stats b{display:block;font-size:34px;font-weight:500;letter-spacing:-.03em;line-height:1.1}.ch-stats span{color:#9C9C9C;font-size:13px}
+.steps3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.step3{text-align:left;background:#fff;border:1px solid var(--line);border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:8px;font:inherit;color:inherit}
+button.step3{cursor:pointer;border:2px solid var(--accent)}
+.step3 i{font-style:normal;width:36px;height:36px;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-weight:700;margin-bottom:6px}
+button.step3 i{background:var(--accent);color:#fff}
+.step3 b{font-size:18px;font-weight:600}.step3 span{color:var(--sub);font-size:14px}
+@media(max-width:640px){.cab-hero{padding:24px 20px}.cab-hero h1{font-size:36px}}
 </style>
 </head>
 <body>
@@ -682,11 +699,21 @@ function renderCabinet(){
     <div class="panel"><div class="field"><label>Почта</label><input id="lg-email" type="email" autocomplete="username"></div><div class="field"><label>Пароль</label><input id="lg-pass" type="password" autocomplete="current-password"></div><button class="btn blue big" data-act="login">Войти</button><div class="err" id="lg-err"></div></div></div>`;
   }
   const c=club(S.session);const mine=S.tournaments.filter(t=>t.clubId===c.id);
-  return`<div class="hero"><div><div class="who">Кабинет клуба</div><h1>${esc(c.name)}</h1><p>${esc(c.city)} · ${c.tables||6} столов</p></div><div style="display:flex;gap:8px"><button class="btn blue" data-act="newT">+ Новый турнир</button><button class="btn ghost" data-act="logout">Выйти</button></div></div>
-  ${mine.filter(t=>t.status==='live'&&!build(t).finished).map(t=>`<div class="feat-main" style="min-height:0;flex-direction:row;align-items:center;flex-wrap:wrap;padding:24px 28px;margin-bottom:24px"><div style="flex:1;min-width:260px"><span class="st live">Идёт сейчас</span><div style="font-size:24px;font-weight:500;letter-spacing:-.02em;margin-top:8px">${esc(t.title)}</div></div><a class="btn blue big" href="#pult-${t.id}">Открыть пульт</a><a class="btn big" style="background:transparent;border-color:#4D4D4D;color:#fff" href="#t-${t.id}">Страница</a></div>`).join('')}
-  <h2>Мои турниры</h2>${mine.length?`<div class="grid">${mine.map(tCard).join('')}</div>`:`<div class="empty">Турниров пока нет. Создайте первый — это займёт минуту.</div>`}
-  <div class="two" style="margin-top:34px"><div class="panel"><h3>Игроки клуба · ${(c.roster||[]).length}</h3>${(c.roster||[]).length?`<div style="max-height:420px;overflow:auto"><table class="tb"><thead><tr><th>Игрок</th><th class="c">Г.р.</th><th>Город</th><th>Звание</th></tr></thead><tbody>${[...c.roster].sort((a,b)=>a.name.localeCompare(b.name,'ru')).map(p=>`<tr><td><b>${esc(p.name)}</b></td><td class="c">${byear(p)}</td><td>${esc(p.city||'')}</td><td>${esc(p.rank||'')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="muted">База пополняется, когда вы добавляете игроков в турниры.</div>'}</div>
-  <details class="panel" ${c.address&&c.phone?'':'open'}><summary style="cursor:pointer;font-weight:600">Клуб: адрес, контакты, столы</summary>${c.address&&c.phone?'':'<p class="muted" style="font-size:13px;margin:10px 0 0">Заполните адрес и телефон — игроки и зрители увидят их на странице турнира.</p>'}<div style="height:14px"></div><div class="field"><label>Название</label><input id="cl-name" value="${esc(c.name)}"></div><div class="row2"><div class="field"><label>Город</label><input id="cl-city" value="${esc(c.city)}"></div><div class="field"><label>Столов в клубе</label><input id="cl-tables" type="number" min="1" max="60" value="${c.tables||6}"></div></div><div class="field"><label>Адрес</label><input id="cl-addr" maxlength="200" placeholder="Улица, дом, этаж" value="${esc(c.address||'')}"></div><div class="row2"><div class="field"><label>Телефон</label><input id="cl-phone" type="tel" maxlength="40" placeholder="+7 700 000 00 00" value="${esc(c.phone||'')}"></div><div class="field"><label>Instagram</label><input id="cl-insta" maxlength="60" placeholder="@club" value="${esc(c.instagram||'')}"></div></div><button class="btn" data-act="saveClub">Сохранить</button><div class="err" id="cl-err"></div></details></div>`;
+  const live=mine.filter(t=>t.status==='live'&&!build(t).finished);const noInfo=!c.address||!c.phone;const roster=c.roster||[];
+  const stat=(n,l)=>`<div><b>${n}</b><span>${l}</span></div>`;
+  const row=(k,v)=>`<div class="sr"><span>${k}</span><b class="${v?'':'muted'}">${v||'не указан'}</b></div>`;
+  const info=UI.clubEdit?`<h3>О клубе</h3><div class="field"><label>Название</label><input id="cl-name" value="${esc(c.name)}"></div><div class="row2"><div class="field"><label>Город</label><input id="cl-city" value="${esc(c.city)}"></div><div class="field"><label>Столов в клубе</label><input id="cl-tables" type="number" min="1" max="60" value="${c.tables||6}"></div></div><div class="field"><label>Адрес</label><input id="cl-addr" maxlength="200" placeholder="Улица, дом, этаж" value="${esc(c.address||'')}"></div><div class="row2"><div class="field"><label>Телефон</label><input id="cl-phone" type="tel" maxlength="40" placeholder="+7 700 000 00 00" value="${esc(c.phone||'')}"></div><div class="field"><label>Instagram</label><input id="cl-insta" maxlength="60" placeholder="@club" value="${esc(c.instagram||'')}"></div></div><div style="display:flex;gap:8px"><button class="btn blue" data-act="saveClub">Сохранить</button><button class="btn ghost" data-act="cancelClub">Отмена</button></div><div class="err" id="cl-err"></div>`
+   :`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h3 style="margin:0">О клубе</h3><button class="btn sm ghost" data-act="editClub">Изменить</button></div>${row('Адрес',esc(c.address||''))}${row('Телефон',esc(c.phone||''))}${row('Instagram',c.instagram?'@'+esc(c.instagram):'')}${row('Столов',c.tables||6)}${noInfo?`<p class="muted" style="font-size:13px;margin:12px 0 0">Адрес и телефон увидят игроки на странице турнира. <button class="lnk" style="font-size:13px;color:var(--accent-ink)" data-act="editClub">Заполнить</button></p>`:''}`;
+  return`<section class="cab-hero"><div class="ch-main"><div class="ch-top"><span>Кабинет клуба</span><button class="lnk" data-act="logout">Выйти</button></div>
+  <h1>${esc(c.name)}</h1><p>${esc(c.city)}${c.address?', '+esc(c.address):''}</p>
+  <div class="ch-acts">${live.length?`<a class="btn blue big" href="#pult-${live[0].id}">Открыть пульт · ${esc(live[0].title)}</a><button class="btn big ch-ghost" data-act="newT">+ Новый турнир</button>`:`<button class="btn blue big" data-act="newT">+ Новый турнир</button>`}</div></div>
+  <div class="ch-stats">${stat(mine.length,'турнир'+plural(mine.length))}${stat(roster.length,'игрок'+plural(roster.length)+' в базе')}${stat(c.tables||6,'стол'+plural(c.tables||6))}</div></section>
+  ${mine.length?`<h2>Мои турниры</h2><div class="grid">${mine.map(tCard).join('')}</div>`:`<h2>С чего начать</h2><div class="steps3">
+   <button class="step3" data-act="newT"><i>1</i><b>Создайте турнир</b><span>Дисциплина, дата и формат — три коротких шага.</span></button>
+   <div class="step3"><i>2</i><b>Добавьте игроков</b><span>Фамилия, имя, год рождения, звание. Игроки сохранятся в базе клуба.</span></div>
+   <div class="step3"><i>3</i><b>Ведите счёт на пульте</b><span>Нажимаете «+» за партию — сетка и сайт обновляются сами.</span></div></div>`}
+  <div class="two" style="margin-top:34px"><div class="panel"><h3>Игроки клуба · ${roster.length}</h3>${roster.length?`<div style="max-height:420px;overflow:auto"><table class="tb"><thead><tr><th>Игрок</th><th class="c">Г.р.</th><th>Город</th><th>Звание</th></tr></thead><tbody>${[...roster].sort((a,b)=>a.name.localeCompare(b.name,'ru')).map(p=>`<tr><td><b>${esc(p.name)}</b></td><td class="c">${byear(p)}</td><td>${esc(p.city||'')}</td><td>${esc(p.rank||'')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="muted">Здесь появятся все игроки, которых вы добавите в турниры. В следующий раз их можно будет выбрать из списка, а не вводить заново.</div>'}</div>
+  <div class="panel">${info}</div></div>`;
 }
 /* ============ wizard ============ */
 function newWiz(){const c=club(S.session);return{step:1,title:'',disc:DISC[0],date:new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10),race:4,format:'de',gc:4,ga:2,city:c.city,players:[],seed:'list',q:''}}
@@ -852,6 +879,8 @@ const A={
     await loadSession();if(S.session)go('cabinet');else if(S.admin)go('admin');else{e.textContent='К этой почте не привязан клуб — обратитесь к администратору';await sb.auth.signOut();await loadSession();el.disabled=false}},
   async logout(){await sb.auth.signOut();await loadSession();go('home')},
   reload(){location.reload()},
+  editClub(){UI.clubEdit=true;render();const i=document.getElementById('cl-addr');i&&i.focus()},
+  cancelClub(){UI.clubEdit=false;render()},
   async bootstrap(el){const v=id=>document.getElementById(id).value;const e=document.getElementById('bs-err');el.disabled=true;
     const r=await adminCall({action:'bootstrap',code:v('bs-code'),email:v('bs-email').trim(),password:v('bs-pass')});if(r.error){el.disabled=false;e.textContent=r.error;return}
     const l=await sb.auth.signInWithPassword({email:v('bs-email').trim(),password:v('bs-pass')});S.adminExists=true;if(!l.error)await loadSession();render();toast('Администратор создан')},
@@ -878,7 +907,7 @@ const A={
   rmP(el){const T=CUR.T;T.players=T.players.filter(p=>p.id!==el.dataset.id);save();render()},
   saveClub(){const c=club(S.session);const v=id=>document.getElementById(id).value.trim();const n=Math.floor(+v('cl-tables'));
     if(!v('cl-name')||!(n>=1&&n<=60)){document.getElementById('cl-err').textContent='Проверьте название и число столов (1–60)';return}
-    c.name=v('cl-name');c.city=v('cl-city');c.tables=n;c.address=v('cl-addr').slice(0,200);c.phone=v('cl-phone').slice(0,40);c.instagram=v('cl-insta').replace(/^@/,'').replace(/^https?:\/\/(www\.)?instagram\.com\//,'').replace(/\/.*$/,'').slice(0,60);save();render();toast('Настройки клуба сохранены')},
+    c.name=v('cl-name');c.city=v('cl-city');c.tables=n;c.address=v('cl-addr').slice(0,200);c.phone=v('cl-phone').slice(0,40);c.instagram=v('cl-insta').replace(/^@/,'').replace(/^https?:\/\/(www\.)?instagram\.com\//,'').replace(/\/.*$/,'').slice(0,60);UI.clubEdit=false;save();render();toast('Сохранено')},
   start(){const T=CUR.T;const e=document.getElementById('start-err');
     if(T.format==='gp'&&T.groups.advance>=Math.floor(T.players.length/T.groups.count)){e.textContent='Из группы выходит слишком много игроков для такого состава';return}
     if(T.players.length<minPlayers(T)){e.textContent='Мало участников';return}
