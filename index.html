@@ -343,9 +343,19 @@ footer button{border:0;background:none;color:var(--muted);text-decoration:underl
 .pm-tools.cf{gap:8px}.pm-tools.cf span{flex:1;color:var(--sub)}
 .pm-done{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 0 4px;text-align:center}.pm-done .mut{font-size:13px;color:var(--muted)}.pm-done b{font-size:19px;font-weight:600}.pm-done .sc{font-size:32px;font-weight:600;color:var(--ok)}
 #printbox{display:none}@media print{body.pp>*:not(#printbox){display:none!important}body.pp #printbox{display:block}}
-.sb{min-height:calc(100vh - 60px);display:flex;flex-direction:column;justify-content:center;gap:2vh;padding:0 4vw}.sb-top{display:flex;justify-content:space-between;font-size:clamp(14px,2.2vw,30px);color:var(--muted)}
-.sb-row{display:flex;justify-content:space-between;align-items:center;gap:4vw;background:#fff;border:1px solid var(--line2);border-radius:16px;padding:3vh 4vw}.sb-row span{font-size:clamp(22px,5.5vw,84px);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sb-row b{font-size:clamp(40px,11vw,170px);font-weight:600;line-height:1;font-variant-numeric:tabular-nums}.sb-row.w b{color:var(--ok)}
-.sb-st{font-size:clamp(13px,1.8vw,24px);color:var(--muted)}
+body.sbd{background:#0A0F0D}body.sbd>main{padding:0!important}
+.sb{min-height:100vh;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;gap:3vh;padding:4vh 5vw;color:#fff;background:radial-gradient(ellipse 80% 60% at 50% 55%,#123526 0%,#0C1A14 55%,#0A0F0D 100%)}
+.sb-head{display:flex;justify-content:space-between;align-items:flex-start;gap:3vw}.sb-head div{display:flex;flex-direction:column;gap:.6vh;min-width:0}.sb-head b{font-size:clamp(16px,2.4vw,38px);font-weight:600;letter-spacing:-.01em}.sb-head div span{font-size:clamp(11px,1.3vw,20px);color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.12em}
+.sb-chip{display:inline-flex;align-items:center;gap:.6em;font-size:clamp(11px,1.3vw,20px);text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:.55em 1.1em;white-space:nowrap}.sb-chip.live{color:#fff;border-color:rgba(255,90,70,.6);background:rgba(217,58,38,.18)}.sb-chip.live i{width:.6em;height:.6em;border-radius:50%;background:#FF5A46;animation:pulse 1.4s infinite}
+.sb-main{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:3vw}
+.sb-side{display:flex;flex-direction:column;gap:2.4vh;min-width:0}.sb-side.a{align-items:flex-start;text-align:left}.sb-side.b{align-items:flex-end;text-align:right}
+.sb-name{display:flex;flex-direction:column;gap:.4vh;min-width:0;max-width:100%}.sb-name b{font-size:clamp(22px,4.6vw,76px);font-weight:600;line-height:1.05;letter-spacing:-.015em;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis}.sb-name span{font-size:clamp(14px,2.2vw,36px);color:rgba(255,255,255,.6);font-weight:400}
+.sb-num{font-size:clamp(90px,24vw,400px);font-weight:600;line-height:.82;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.sb-pips{display:flex;gap:.7vw}.sb-side.b .sb-pips{flex-direction:row-reverse}.sb-pips i{width:clamp(10px,1.5vw,24px);height:clamp(10px,1.5vw,24px);border-radius:50%;border:2px solid rgba(255,255,255,.28);box-sizing:border-box}.sb-pips i.on{background:#F2C94C;border-color:#F2C94C;box-shadow:0 0 14px rgba(242,201,76,.5)}
+.sb-side.w .sb-num{color:#F2C94C}.sb-side.l{opacity:.5}
+.sb-mid{display:flex;flex-direction:column;align-items:center;gap:.8vh;padding:2.2vh 1.8vw;border:1px solid rgba(255,255,255,.16);border-radius:1.2vw;background:rgba(0,0,0,.25)}.sb-mid span{font-size:clamp(9px,1vw,16px);text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.5)}.sb-mid b{font-size:clamp(26px,5vw,84px);font-weight:600;line-height:1}
+.sb-foot{display:flex;justify-content:space-between;gap:3vw;padding-top:2.2vh;border-top:1px solid rgba(255,255,255,.14);font-size:clamp(11px,1.4vw,22px);color:rgba(255,255,255,.55)}
+@media(max-width:560px){.sb-foot{flex-direction:column;gap:6px}.sb-chip{padding:.5em .8em}}
 .plgrid{display:grid;grid-template-columns:minmax(0,1fr) 20px 40px 20px;gap:10px 8px;align-items:center;margin-top:10px}
 .pl-n{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pl-s{text-align:center;font-size:22px;font-weight:500;min-width:34px;display:inline-block}
@@ -698,7 +708,7 @@ function render(){RENDER_N++;
   nav.innerHTML=`<a href="#home" class="${h==='home'||h.startsWith('t-')?'on':''}">Турниры</a><a href="${S.admin&&!me?'#admin':'#cabinet'}" class="cta">${me?'Кабинет клуба':S.admin?'Администратор':'Вход для клубов'}</a>`;
   renderTicker(h==='home');
   const app=document.getElementById('app');
-  document.body.classList.remove('gonly');
+  document.body.classList.remove('gonly','sbd');
   if(h.startsWith('s-')){const x=h.slice(2),i=x.indexOf('-');const T=tById(x.slice(0,i));if(T){app.innerHTML=renderBoard(T,x.slice(i+1));return}}
   if(h.startsWith('g-')){const T=tById(h.slice(2));if(T){app.innerHTML=renderGridOnly(T);return}}
   if(h.startsWith('t-')){const T=tById(h.slice(2));if(T){app.innerHTML=renderT(T);renderRoster();return}}
@@ -1077,10 +1087,14 @@ function protoHTML(T,m){const r=m.res||{};const c=club(T.clubId);const stg=CUR&&
   <table style="width:100%;border-collapse:collapse;border-top:2px solid #111;border-bottom:1px solid #ccc"><tr>${f('Матч','№'+m.no)}${f('Стадия',esc(stg))}${f('Стол',r.table?'№'+r.table:'')}${f('Игра до',mrace(T,m)+' побед')}</tr><tr>${f('Начало',m.res&&mstart(r)?hhmm(mstart(r)):'')}${f('Окончание',d?hhmm(r.end||r.ts):'')}${f('Длительность',d?mdur(r):'')}${f('Победитель',d?esc(sname(pname(T,m.winner))):'')}</tr></table>
   <table style="width:100%;border-collapse:collapse;margin-top:10px">${pl(m.a,r.sa)}${pl(m.b,r.sb)}</table>
   <table style="width:100%;border-collapse:collapse"><tr>${sign('Подпись игрока')}${sign('Подпись игрока')}${sign('Судья')}</tr></table></div>`}
-function renderBoard(T,mid){const b=build(T);CUR={T,b};document.body.classList.add('gonly');const m=b.all.find(x=>x.id===mid);if(!m)return'<div class="muted">Матч не найден</div>';const r=m.res||{};
-  const st=m.state==='live'?(r.paused?'пауза':'<span style="color:var(--live)">● играют</span>'):m.state==='done'?'матч завершён':'ожидает начала';
-  const row=(s,sc)=>`<div class="sb-row${m.state==='done'&&m.winner&&m.winner.id===s.id?' w':''}"><span>${esc(pname(T,s))}</span><b>${m.res?sc:0}</b></div>`;
-  return`<div class="sb"><div class="sb-top"><span>${r.table?'Стол №'+r.table+' · ':''}Матч №${m.no}</span><span>игра до ${mrace(T,m)} побед</span></div>${row(m.a,r.sa)}${row(m.b,r.sb)}<div class="sb-st">${st} · ${esc(T.title)}</div></div>`}
+function renderBoard(T,mid){const b=build(T);CUR={T,b};document.body.classList.add('gonly','sbd');const m=b.all.find(x=>x.id===mid);if(!m)return'<div class="sb"><div class="sb-foot">Матч не найден</div></div>';const r=m.res||{};
+  const R=mrace(T,m),d=m.state==='done',stg=stageMap(b)[m.id]||'';const c=club(T.clubId);
+  const st=m.state==='live'?(r.paused?'<span class="sb-chip">пауза</span>':'<span class="sb-chip live"><i></i>идёт игра</span>'):d?'<span class="sb-chip">матч завершён</span>':'<span class="sb-chip">ожидает начала</span>';
+  const side=(s,sc,k)=>{const v=m.res?sc:0;const w=d&&m.winner&&m.winner.id===s.id,l=d&&!w;const nm=pname(T,s).split(' ');
+    return`<div class="sb-side ${k}${w?' w':''}${l?' l':''}"><div class="sb-name"><b>${esc(nm[0])}</b><span>${esc(nm.slice(1).join(' '))}</span></div><div class="sb-pips">${Array.from({length:R},(_,i)=>`<i class="${i<v?'on':''}"></i>`).join('')}</div><div class="sb-num">${v}</div></div>`};
+  return`<div class="sb"><div class="sb-head"><div><b>${esc(T.title)}</b><span>${esc([stg,T.discipline].filter(Boolean).join(' · '))}</span></div>${st}</div>
+  <div class="sb-main">${side(m.a,r.sa,'a')}<div class="sb-mid"><span>игра до</span><b>${R}</b><span>побед</span></div>${side(m.b,r.sb,'b')}</div>
+  <div class="sb-foot"><span>${r.table?'Стол №'+r.table+' · ':''}Матч №${m.no}${m.res&&mdur(r)?' · '+mdur(r):''}</span><span>${esc(c.name||'')} · kazbilliard.com</span></div></div>`}
 function refreshPult(){if(!UI.pm||!CUR||!document.getElementById('modal').classList.contains('open'))return;const m=CUR.b.all.find(x=>x.id===UI.pm);if(!m||m.state==='wait'){closeModal();return}openModal(pultHTML(CUR.T,m))}
 /* ============ modal ============ */
 function openModal(html){const m=document.getElementById('modal');m.innerHTML=`<div class="dlg">${html}</div>`;m.classList.add('open')}
