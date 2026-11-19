@@ -105,6 +105,18 @@ a.card:hover{border-color:var(--ink)}
 .pair{flex:1;display:flex;flex-direction:column;position:relative}
 .slot{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;padding:6px 0}
 .slot.hid{visibility:hidden}
+.sw{position:relative}
+.cap{position:absolute;left:2px;right:0;top:100%;margin-top:3px;font-size:11px;line-height:14px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.uni{position:relative;display:flex;align-items:stretch;gap:28px;overflow-x:auto;padding:4px 4px 18px}
+.uni .bracket{overflow:visible;flex:0 0 auto;padding:0}
+.uni .slot{padding:13px 0}
+.uni .mir{transform:scaleX(-1)}
+.uni .mir .round-title,.uni .mir .sw{transform:scaleX(-1)}
+.uni .mir .round:first-child .slot::before{content:'';position:absolute;left:-14px;top:50%;width:14px;border-top:2px solid var(--line2)}
+.uni .ub .round:first-child .slot::before{content:'';position:absolute;left:-14px;top:50%;width:14px;border-top:2px solid var(--line2)}
+.uni .po-start .round-title{color:var(--accent)}
+.uni-side>aside{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
+.uni-side>aside>.panel{flex:1 1 300px}
 .round.conn .slot::after{content:'';position:absolute;right:-14px;top:50%;width:14px;border-top:2px solid var(--line2)}
 .round.instub .slot::before{content:'';position:absolute;left:-14px;top:50%;width:14px;border-top:2px solid var(--line2)}
 .round.conn .pair.join::after{content:'';position:absolute;right:-14px;top:25%;bottom:25%;border-right:2px solid var(--line2)}
@@ -393,7 +405,7 @@ function buildDE(ctx,ids){
   } else lc=[losers[0][0]];
   if(K){const h=K/2,sh=h/2;const ps=[];const T=ctx.T;
     const perm=T.draw&&Array.isArray(T.poPerm)&&T.poPerm.length===h?T.poPerm:null;
-    for(let i=0;i<h;i++){ps.push(cur[i],T.draw?(perm?lc[perm[i]]:TBD('По жребию')):lc[(i+sh)%h])}
+    for(let i=0;i<h;i++){ps.push(cur[i],T.draw?(perm?lc[perm[i]]:TBD('По жребию')):lc[h===2&&Wr%2===0?i:i^1])}
     const se=buildSE(ctx,ps,'p');return{wb,lb,rounds:se.rounds,champ:se.champ,K,name:(compact?N*3/4:N)+'-'+K,draw:!!T.draw,drawn:!!perm,up:cur,low:lc}}
   const wbChamp=cur[0],lbChamp=lc[0];
   const gf=mk(ctx,'gf',wbChamp,lbChamp);let final=gf,gf2=null;
@@ -652,11 +664,11 @@ function mCard(T,m){
   const info={done:'Завершён',live:`● ${r&&r.table?'Стол '+r.table:'Идёт'}`,call:`Вызван · стол ${r&&r.table}`,ready:'Можно вызывать',wait:'Ожидает',bye:'Проход'}[m.state];
   return`<div class="m s-${m.state}" data-act="match" data-mid="${m.id}"><div class="m-top"><span>№${m.no}</span><span>${info}</span></div>${row(m.a,r?r.sa:'')}${row(m.b,r?r.sb:'')}</div>`;
 }
-function bracketHTML(T,rounds){
-  return`<div class="bracket">${rounds.map((rd,i)=>{const n=rd.matches.length,nx=rounds[i+1]?rounds[i+1].matches.length:0;const join=!!nx&&n===nx*2;const step=join?2:1;const groups=[];
+function bracketHTML(T,rounds,opt){opt=opt||{};
+  return`<div class="bracket${opt.cls?' '+opt.cls:''}">${rounds.map((rd,i)=>{const n=rd.matches.length,nx=rounds[i+1]?rounds[i+1].matches.length:0;const join=!!nx&&n===nx*2;const step=join?2:1;const groups=[];
     for(let k=0;k<n;k+=step)groups.push(rd.matches.slice(k,k+step));
     const hid=m=>m.a.t==='bye'&&m.b.t==='bye';
-    return`<div class="round${nx?' conn':''}${i>0?' instub':''}"><div class="round-title">${rd.title}</div><div class="round-body">${groups.map(g=>`<div class="pair${join&&!g.some(hid)?' join':''}">${g.map(m=>`<div class="slot${hid(m)?' hid':''}">${mCard(T,m)}</div>`).join('')}</div>`).join('')}</div></div>`}).join('')}</div>`;
+    return`<div class="round${nx?' conn':''}${i>0?' instub':''}${opt.po===i?' po-start':''}"><div class="round-title">${rd.title}</div><div class="round-body">${groups.map(g=>`<div class="pair${join&&!g.some(hid)?' join':''}">${g.map(m=>`<div class="slot${hid(m)?' hid':''}"><div class="sw">${mCard(T,m)}${opt.cap&&opt.cap(m,i)?`<div class="cap">${opt.cap(m,i)}</div>`:''}</div></div>`).join('')}</div>`).join('')}</div></div>`}).join('')}</div>`;
 }
 function sidePanels(T,b){
   const live=b.all.filter(m=>m.state==='live'),ready=b.all.filter(m=>m.state==='ready').slice(0,5);
@@ -671,9 +683,25 @@ function standingsHTML(T,g,K){
   return`<table class="tb"><thead><tr><th class="pos">#</th><th>Игрок</th><th class="c">И</th><th class="c">В</th><th class="c">П</th><th class="c">Партии</th><th class="c">±</th></tr></thead><tbody>
   ${g.standings.map((r,i)=>`<tr class="${K&&i<K?'q':''}"><td class="pos">${i+1}</td><td>${esc(pname(T,P(r.id)))}</td><td class="c">${r.pl}</td><td class="c"><b>${r.w}</b></td><td class="c">${r.l}</td><td class="c">${r.ff}:${r.fa}</td><td class="c">${r.ff-r.fa>0?'+':''}${r.ff-r.fa}</td></tr>`).join('')}</tbody></table>`;
 }
+const FLOW={};
+function flow(T){const key=T.id+'|'+T.players.map(p=>p.id).join(',')+'|'+T.playoff+'|'+(T.poPerm||'');if(FLOW[T.id]&&FLOW[T.id].key===key)return FLOW[T.id];
+  const b=build(Object.assign({},T,{results:{},status:'live'}));const w={},l={};
+  b.all.forEach(m=>[m.a,m.b].forEach(x=>{if(x.t!=='tbd')return;const k=/^(Поб|Пр)\. №(\d+)$/.exec(x.label||'');if(k)(k[1]==='Поб'?w:l)[k[2]]=m.no}));
+  return FLOW[T.id]={key,w,l,full:!b.all.some(m=>m.state==='bye')}}
+const UNI_X={};
+function uniInit(){const el=document.querySelector('.uni');if(!el)return;const k=el.dataset.id;if(UNI_X[k]==null){const ub=el.querySelector('.ub');UNI_X[k]=Math.max(0,ub.offsetLeft-130)}el.scrollLeft=UNI_X[k];el.onscroll=()=>{UNI_X[k]=el.scrollLeft}}
+function uniHTML(T,b){const f=flow(T);const L=b.lb.length;const pl=[];let p=b.K+1;for(let i=L-1;i>=0;i--){const n=b.lb[i].matches.length;pl[i]=n>1?p+'–'+(p+n-1):''+p;p+=n}
+  const capL=(m,i)=>{const a=[];if(i===L-1)a.push(f.w[m.no]?'поб. → №'+f.w[m.no]:'поб. → в олимпийку');if(f.full)a.push('пр. — '+pl[i]+' место');return a.join(' · ')};
+  const capU=(m,i)=>i<b.wb.length&&f.l[m.no]?'пр. → №'+f.l[m.no]+' нижней':'';
+  const lbR=b.lb.map((rd,i)=>({title:'Нижняя · раунд '+(i+1),matches:rd.matches})),wbR=b.wb.map((rd,i)=>({title:'Верхняя · раунд '+(i+1),matches:rd.matches}));
+  requestAnimationFrame(uniInit);
+  return`<div class="uni" data-id="${T.id}">${bracketHTML(T,lbR,{cap:capL,cls:'mir'})}${bracketHTML(T,[...wbR,...b.rounds],{cap:capU,cls:'ub',po:b.wb.length})}</div>`}
 const LEGEND=`<div class="legend"><i><span class="r">●</span> играют</i><i><span class="g">●</span> можно вызывать</i><i>[1] — номер посева</i></div>`;
 function renderGridTab(T,b){
   if(T.format==='se')return`<div class="withside"><div class="wm"><div style="margin-bottom:14px">${LEGEND}</div>${bracketHTML(T,b.rounds)}</div>${sidePanels(T,b)}</div>`;
+  if(T.format==='de'&&b.K){
+    const seg=`<div class="seg">${[['lb','← Нижняя сетка'],['wb','Верхняя сетка'],['gf','Олимпийка · '+b.K+' →']].map(([k,l])=>`<button data-act="uniGo" data-v="${k}">${l}</button>`).join('')}</div>`;
+    return`<div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px">${seg}${LEGEND}</div><p class="muted" style="margin:0 0 12px;font-size:13px">Сетка ${b.name}. Проигравший в верхней сетке уходит влево, в нижнюю; второе поражение — выбывание. ${b.K/2} из верхней и ${b.K/2} из нижней выходят в олимпийку — она справа.${b.draw?(b.drawn?' Пары олимпийки определены жеребьёвкой.':' Пары олимпийки определит жеребьёвка.'):''}</p>${uniHTML(T,b)}<div class="uni-side">${sidePanels(T,b)}</div>`}
   if(T.format==='de'){const v=UI.de[T.id]||'wb';
     const seg=`<div class="seg">${[['wb','Верхняя сетка'],['lb','Нижняя сетка'],['gf',b.K?'Олимпийка · '+b.K:'Финал']].map(([k,l])=>`<button class="${k===v?'on':''}" data-act="deView" data-id="${T.id}" data-v="${k}">${l}</button>`).join('')}</div>`;
     let inner;
@@ -773,7 +801,7 @@ function renderCreate(){
     <div class="field"><label>Игра до побед</label><div class="stepper sm"><button class="pbtn" aria-label="Меньше" data-act="wRace" data-d="-1">−</button><span class="pl-s">${w.race}</span><button class="pbtn plus" aria-label="Больше" data-act="wRace" data-d="1">+</button></div></div></div>
     <div class="field" style="margin-bottom:0"><label>Формат</label><div class="fpills">${Object.keys(FORMATS).map(k=>`<button class="${w.format===k?'on':''}" aria-pressed="${w.format===k}" data-act="wFmt" data-v="${k}">${FORMATS[k]}</button>`).join('')}</div>
     ${w.format==='de'?`<div class="po"><span>Выход в олимпийку</span><div class="fpills sm">${[['auto','Авто'],[4,'с 4'],[8,'с 8'],[16,'с 16'],[0,'нет, суперфинал']].map(([k,l])=>`<button class="${String(w.playoff)===String(k)?'on':''}" data-act="wPo" data-v="${k}">${l}</button>`).join('')}</div></div>`:''}
-    <p class="wz-hint">${w.format==='de'?(String(w.playoff)==='0'?'Классика: верхняя и нижняя сетки до конца, в суперфинале встречаются их победители.':`Играют до двух поражений, пока не останется ${w.playoff==='auto'?'4 или 8':w.playoff} игроков: половина из верхней сетки, половина из нижней. Дальше — олимпийка, до первого поражения; пары в ней определяет жеребьёвка.${deName(n,w.playoff)?' Сетка '+deName(n,w.playoff)+'.':''}`):FORMAT_DESC[w.format]+'.'} На ${n} игроков — ${w.format==='de'&&String(w.playoff)!=='0'?'':'до '}${fmtMatches(w.format,n,w.gc,w.playoff)} матчей.</p></div>
+    <p class="wz-hint">${w.format==='de'?(String(w.playoff)==='0'?'Классика: верхняя и нижняя сетки до конца, в суперфинале встречаются их победители.':`Играют до двух поражений, пока не останется ${w.playoff==='auto'?'4 или 8':w.playoff} игроков: половина из верхней сетки, половина из нижней. Дальше — олимпийка, до первого поражения.${deName(n,w.playoff)?' Сетка '+deName(n,w.playoff)+'.':''}`):FORMAT_DESC[w.format]+'.'} На ${n} игроков — ${w.format==='de'&&String(w.playoff)!=='0'?'':'до '}${fmtMatches(w.format,n,w.gc,w.playoff)} матчей.</p></div>
     ${w.format==='gp'?`<div class="wz-row" style="grid-template-columns:1fr 1fr;margin-top:6px"><div class="field"><label>Групп</label><div class="stepper sm"><button class="pbtn" data-act="wNum" data-k="gc" data-d="-1">−</button><span class="pl-s">${w.gc}</span><button class="pbtn plus" data-act="wNum" data-k="gc" data-d="1">+</button></div></div><div class="field"><label>Выходят из группы</label><div class="stepper sm"><button class="pbtn" data-act="wNum" data-k="ga" data-d="-1">−</button><span class="pl-s">${w.ga}</span><button class="pbtn plus" data-act="wNum" data-k="ga" data-d="1">+</button></div></div></div>`:''}
     <div class="err" id="w-err"></div>
     <button class="btn blue big wz-next" data-act="wNext">Далее: добавить игроков →</button></div></div>`;
@@ -815,7 +843,7 @@ async function loadAdminList(){
   if(r.error){el2.innerHTML=`<div class="err">${esc(r.error)}</div>`;return}
   el2.innerHTML=r.clubs.length?r.clubs.map(c=>`<div style="padding:12px 0;border-bottom:1px solid var(--soft)"><b>${esc(c.name)}</b> <span class="muted">· ${esc(c.city)} · ${c.tables} столов</span><div class="muted" style="font-size:13px;margin-bottom:8px">${esc(c.email)}</div><div style="display:flex;gap:8px"><input id="pw-${c.id}" placeholder="Новый пароль" autocomplete="off" style="flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 14px"><button class="btn sm ghost" data-act="setPass" data-id="${c.id}">Сменить</button></div></div>`).join(''):'<div class="muted">Клубов пока нет. Создайте первый справа.</div>';
 }
-function wizMake(status){const w=UI.wiz;const T={id:uid(),title:w.title.trim(),clubId:S.session,city:w.city,discipline:w.disc,format:w.format,playoff:w.format==='de'?w.playoff:undefined,draw:w.format==='de'?true:undefined,raceTo:w.race,date:w.date,status,players:w.players.map(pub),applications:[],results:{},seedMode:w.seed,groups:{count:w.gc,advance:w.ga},createdAt:Date.now()};S.tournaments.unshift(T);UI.wiz=null;save();return T}
+function wizMake(status){const w=UI.wiz;const T={id:uid(),title:w.title.trim(),clubId:S.session,city:w.city,discipline:w.disc,format:w.format,playoff:w.format==='de'?w.playoff:undefined,raceTo:w.race,date:w.date,status,players:w.players.map(pub),applications:[],results:{},seedMode:w.seed,groups:{count:w.gc,advance:w.ga},createdAt:Date.now()};S.tournaments.unshift(T);UI.wiz=null;save();return T}
 /* ============ pult ============ */
 function renderPult(T){
   const b=build(T);CUR={T,b};const c=club(T.clubId);const n=c.tables||6;
@@ -897,6 +925,7 @@ const A={
     UI.tab[T.id]='grid';go('t-'+T.id);toast('Сетка построена')},
   filter(el){UI.filter[el.dataset.k]=el.dataset.v;render()},
   tab(el){UI.tab[el.dataset.id]=el.dataset.tab;render()},
+  uniGo(el){const u=document.querySelector('.uni');if(!u)return;const v=el.dataset.v,ub=u.querySelector('.ub'),po=u.querySelector('.po-start');u.scrollTo({left:v==='lb'?0:v==='wb'?ub.offsetLeft-20:po.offsetLeft-20,behavior:'smooth'})},
   deView(el){UI.de[el.dataset.id]=el.dataset.v;render()},
   match(el){if(el.classList.contains('hid'))return;openMatch(el.dataset.mid)},
   close(){closeModal()},
