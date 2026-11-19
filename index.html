@@ -544,7 +544,7 @@ function renderHome(){
     <aside class="feat-side"><div style="display:flex;justify-content:space-between;align-items:baseline"><h3 style="margin:0">${lm.length?'Сейчас за столами':'Ожидают вызова'}</h3><span class="muted" style="font-size:13px">${lm.length?lm.length+' из '+(c.tables||'—'):''}</span></div>
     ${list.map(m=>`<a class="lm" href="#t-${T.id}"><div class="lt"><span>${m.res&&m.res.table?'Стол '+m.res.table+' · ':''}№${m.no}</span>${m.state==='live'?'<em>● live</em>':''}</div><div class="lg"><span>${esc(pname(T,m.a))}</span><b>${m.res?m.res.sa:''}</b><span>${esc(pname(T,m.b))}</span><b>${m.res?m.res.sb:''}</b></div></a>`).join('')||'<div class="muted">Пока нет матчей</div>'}</aside></section>`}
   return`${feat}<div class="hero"><h2 style="margin:0;font-size:34px">Турниры</h2>
-  <input id="q" class="search" placeholder="Поиск: турнир, клуб, город" value="${esc(f.q)}"></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><input id="q" class="search" placeholder="Поиск: турнир, клуб, город" value="${esc(f.q)}">${S.session?`<button class="btn blue big" data-act="newT">+ Новый турнир</button>`:''}</div></div>
   <div class="chips">${chip('status','all','Все')}${chip('status','live','Идут')}${chip('status','reg','Скоро')}${chip('status','done','Завершены')}</div>
   <div class="grid" id="grid"></div>`;
 }
@@ -561,7 +561,7 @@ function renderGrid(){
   const order={live:0,reg:1,done:2};
   const list=S.tournaments.map(T=>({T,st:tStatus(T)})).filter(({T,st})=>(f.status==='all'||st===f.status)&&(f.disc==='all'||T.discipline===f.disc)&&
     (!q||(T.title+' '+club(T.clubId).name+' '+T.city).toLowerCase().includes(q))).sort((a,b)=>order[a.st]-order[b.st]||(a.T.date<b.T.date?1:-1));
-  g.innerHTML=list.length?list.map(x=>tCard(x.T)).join(''):`<div class="empty" style="grid-column:1/-1">${S.tournaments.length?'Ничего не найдено':'Турниров пока нет. Они появятся здесь, когда клубы их создадут.'}</div>`;
+  g.innerHTML=list.length?list.map(x=>tCard(x.T)).join(''):`<div class="empty" style="grid-column:1/-1">${S.tournaments.length?'Ничего не найдено':S.session?'Турниров пока нет.<br><br><button class="btn blue big" data-act="newT">+ Создать первый турнир</button>':'Турниров пока нет. Они появятся здесь, когда клубы их создадут.<br><br><a class="btn dark" href="#cabinet">Вы клуб? Войдите, чтобы создать турнир</a>'}</div>`;
 }
 
 /* ============ tournament page ============ */
