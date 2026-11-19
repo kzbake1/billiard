@@ -122,6 +122,7 @@ a.card:hover{border-color:var(--ink)}
 .zoomer button{border:0;background:none;height:34px;min-width:34px;padding:0 8px;font:inherit;font-size:16px;color:var(--ink);cursor:pointer}.zoomer button:hover{background:#F2F2F2}
 .zoomer .zv{font-size:12px;font-weight:600;min-width:50px;color:var(--sub);border-left:1px solid var(--line);border-right:1px solid var(--line)}
 .bracket,.uni{touch-action:pan-x pan-y}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .cap{position:absolute;left:2px;right:0;top:100%;margin-top:3px;font-size:11px;line-height:14px;color:#939393;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .uni{position:relative;overflow-x:auto;padding:4px 4px 18px}
 .uni-in{display:flex;align-items:stretch;gap:28px;width:max-content}
@@ -718,14 +719,21 @@ function standingsHTML(T,g,K){
 }
 let ZOOM=1;try{ZOOM=Math.min(1.5,Math.max(.4,+localStorage.getItem('kb-zoom')||1))}catch(e){}
 function zoomCtl(){return`<div class="zoomer"><button data-act="zoom" data-d="-1" aria-label="Уменьшить">−</button><button class="zv" data-act="zoom" data-d="0" title="Сбросить масштаб">${Math.round(ZOOM*100)}%</button><button data-act="zoom" data-d="1" aria-label="Увеличить">+</button></div>`}
-function setZoom(z){z=Math.round(Math.min(1.5,Math.max(.4,z))*100)/100;if(z===ZOOM)return;const r=z/ZOOM;ZOOM=z;document.querySelectorAll('.zm').forEach(e=>{const p=e.parentElement,w=p.clientWidth/2,x=p.scrollLeft;e.style.zoom=z;p.scrollLeft=Math.max(0,(x+w)*r-w)});document.querySelectorAll('.zoomer .zv').forEach(e=>e.textContent=Math.round(z*100)+'%');try{localStorage.setItem('kb-zoom',z)}catch(e){}}
+function setZoom(z,cx,cy){z=Math.round(Math.min(1.5,Math.max(.4,z))*100)/100;if(z===ZOOM)return;const r=z/ZOOM;ZOOM=z;
+  document.querySelectorAll('.zm').forEach(e=>{const p=e.parentElement,pr=p.getBoundingClientRect(),er=e.getBoundingClientRect();
+    const fx=cx==null?pr.left+p.clientWidth/2:cx,dx=fx-er.left,dy=cy==null?0:cy-er.top;
+    e.style.zoom=z;const e2=e.getBoundingClientRect();p.scrollLeft+=e2.left+dx*r-fx;if(cy!=null)window.scrollBy(0,e2.top+dy*r-cy)});
+  document.querySelectorAll('.zoomer .zv').forEach(e=>e.textContent=Math.round(z*100)+'%');try{localStorage.setItem('kb-zoom',z)}catch(e){}}
 (function(){const inB=e=>e.target&&e.target.closest&&e.target.closest('.bracket,.uni');
-  document.addEventListener('wheel',e=>{if(!(e.ctrlKey||e.metaKey)||!inB(e))return;e.preventDefault();setZoom(ZOOM*Math.exp(-e.deltaY*.01))},{passive:false});
-  let d0=0,z0=1;const dist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
-  document.addEventListener('touchstart',e=>{if(e.touches.length===2&&inB(e)){d0=dist(e.touches);z0=ZOOM}else d0=0},{passive:true});
-  document.addEventListener('touchmove',e=>{if(d0&&e.touches.length===2){e.preventDefault();setZoom(z0*dist(e.touches)/d0)}},{passive:false});
-  document.addEventListener('touchend',()=>{d0=0},{passive:true});
-  let g0=1;document.addEventListener('gesturestart',e=>{if(inB(e)){e.preventDefault();g0=ZOOM}});document.addEventListener('gesturechange',e=>{if(inB(e)){e.preventDefault();setZoom(g0*e.scale)}});
+  document.addEventListener('wheel',e=>{if(!(e.ctrlKey||e.metaKey)||!inB(e))return;e.preventDefault();setZoom(ZOOM*Math.exp(-e.deltaY*.01),e.clientX,e.clientY)},{passive:false});
+  let P=null,touch=false;const dist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+  const end=()=>{if(!P)return;const p=P;P=null;p.el.style.transform='';p.el.style.transformOrigin='';p.el.style.willChange='';setZoom(p.z0*p.k,p.cx,p.cy)};
+  document.addEventListener('touchstart',e=>{touch=true;const b=inB(e);if(e.touches.length===2&&b){const el=b.classList.contains('zm')?b:(b.querySelector('.zm')||b.closest('.zm'));if(!el)return;
+      const t=e.touches,cx=(t[0].clientX+t[1].clientX)/2,cy=(t[0].clientY+t[1].clientY)/2,r=el.getBoundingClientRect();
+      P={el,d0:dist(t),z0:ZOOM,k:1,cx,cy};el.style.transformOrigin=((cx-r.left)/r.width*100)+'% '+((cy-r.top)/r.height*100)+'%';el.style.willChange='transform'}else end()},{passive:true});
+  document.addEventListener('touchmove',e=>{if(P&&e.touches.length===2){e.preventDefault();P.k=Math.min(1.5,Math.max(.4,P.z0*dist(e.touches)/P.d0))/P.z0;P.el.style.transform='scale('+P.k+')'}},{passive:false});
+  document.addEventListener('touchend',end,{passive:true});document.addEventListener('touchcancel',end,{passive:true});
+  let g0=1;document.addEventListener('gesturestart',e=>{if(touch){if(inB(e))e.preventDefault();return}if(inB(e)){e.preventDefault();g0=ZOOM}});document.addEventListener('gesturechange',e=>{if(touch){if(inB(e))e.preventDefault();return}if(inB(e)){e.preventDefault();setZoom(g0*e.scale,e.clientX,e.clientY)}});
 })();
 const FLOW={};
 function flow(T){const key=T.id+'|'+T.players.map(p=>p.id).join(',')+'|'+T.playoff+'|'+(T.poPerm||'');if(FLOW[T.id]&&FLOW[T.id].key===key)return FLOW[T.id];
