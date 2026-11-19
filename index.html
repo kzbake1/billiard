@@ -273,6 +273,7 @@ footer button{border:0;background:none;color:var(--muted);text-decoration:underl
 .plcard.called{border:2px solid #111}.plcard.called .lv{color:#111}
 .lnk{border:0;background:none;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:12px;padding:0;text-transform:none;letter-spacing:0;font-weight:500}
 .tsel{min-height:48px;border:1px solid var(--line2);border-radius:999px;padding:0 14px;background:#fff;color:var(--sub)}
+.contacts{display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:10px;font-size:14px;color:var(--sub)}.contacts b{font-weight:600;color:var(--ink)}.contacts a{color:var(--accent-ink)}
 </style>
 </head>
 <body>
@@ -416,7 +417,7 @@ async function doSave(){
     if(SNAP.t[T.id]===undefined)jobs.push(sb.from('tournament').insert({id:T.id,club_id:T.clubId,data:tData(T)}).then(r=>{if(!r.error){SNAP.t[T.id]=j;SNAP.own[T.id]=1;OWN_TS[T.id]=Date.now()}return r}));
     else if(SNAP.t[T.id]!==j)jobs.push(sb.from('tournament').update({data:tData(T)}).eq('id',T.id).then(r=>{if(!r.error){SNAP.t[T.id]=j;OWN_TS[T.id]=Date.now()}return r}))}
   for(const id of Object.keys(SNAP.own)){if(!S.tournaments.some(t=>t.id===id))jobs.push(sb.from('tournament').update({deleted_at:new Date().toISOString()}).eq('id',id).then(r=>{if(!r.error){delete SNAP.own[id];delete SNAP.t[id]}return r}))}
-  if(me){const cj=JSON.stringify([me.name,me.city,me.tables]);if(SNAP.club!==cj)jobs.push(sb.from('club').update({name:me.name,city:me.city,tables:me.tables}).eq('id',me.id).then(r=>{if(!r.error)SNAP.club=cj;return r}));
+  if(me){const cj=JSON.stringify([me.name,me.city,me.tables,me.address,me.phone,me.instagram]);if(SNAP.club!==cj)jobs.push(sb.from('club').update({name:me.name,city:me.city,tables:me.tables,address:me.address||'',phone:me.phone||'',instagram:me.instagram||''}).eq('id',me.id).then(r=>{if(!r.error)SNAP.club=cj;return r}));
     const rj=JSON.stringify(me.roster||[]);if(SNAP.roster!==rj)jobs.push(sb.from('club_private').update({roster:me.roster||[]}).eq('club_id',me.id).then(r=>{if(!r.error)SNAP.roster=rj;return r}))}
   const res=await Promise.all(jobs);if(res.some(r=>r&&r.error)){console.error(res.filter(r=>r&&r.error).map(r=>r.error));toast('Не сохранилось — проверьте интернет и повторите')}
 }
@@ -427,11 +428,11 @@ async function loadSession(){
   const [mc,ad]=await Promise.all([sb.rpc('my_club'),sb.rpc('is_admin')]);
   S.admin=!!ad.data;
   if(mc.data){const c=S.clubs.find(x=>x.id===mc.data);if(c){S.session=c.id;const r=await sb.from('club_private').select('roster').eq('club_id',c.id).maybeSingle();c.roster=(r.data&&r.data.roster)||[];
-    SNAP.club=JSON.stringify([c.name,c.city,c.tables]);SNAP.roster=JSON.stringify(c.roster)}}
+    SNAP.club=JSON.stringify([c.name,c.city,c.tables,c.address,c.phone,c.instagram]);SNAP.roster=JSON.stringify(c.roster)}}
   SNAP.own={};S.tournaments.forEach(T=>{if(T.clubId===S.session)SNAP.own[T.id]=1});
 }
 async function load(){
-  const [c,t,ae]=await Promise.all([sb.from('club').select('id,name,city,tables').is('deleted_at',null).order('created_at'),sb.from('tournament').select('id,club_id,data').is('deleted_at',null),sb.rpc('admin_exists')]);
+  const [c,t,ae]=await Promise.all([sb.from('club').select('id,name,city,tables,address,phone,instagram').is('deleted_at',null).order('created_at'),sb.from('tournament').select('id,club_id,data').is('deleted_at',null),sb.rpc('admin_exists')]);
   if(c.error||t.error)throw (c.error||t.error);
   S.clubs=c.data.map(x=>Object.assign({roster:[]},x));S.tournaments=t.data.map(tFromRow);S.adminExists=ae.data!==false;
   SNAP.t={};S.tournaments.forEach(T=>SNAP.t[T.id]=JSON.stringify(tData(T)));
@@ -580,6 +581,7 @@ function renderT(T){
   <div class="thead"><div style="min-width:0"><div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap"><span class="st ${st}">${ST_LABEL[st]}</span><span style="color:var(--accent);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">${esc(T.discipline)}</span></div>
   <h1>${esc(T.title)}</h1>
   <div class="muted">${fdate(T.date)} · ${esc(T.city)}, ${esc(c.name)}</div>
+  ${c.address||c.phone||c.instagram?`<div class="contacts">${c.address?`<span><b>Адрес:</b> ${esc(c.city?c.city+', ':'')}${esc(c.address)}</span>`:''}${c.phone?`<span><b>Телефон:</b> <a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a></span>`:''}${c.instagram?`<span><b>Instagram:</b> <a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a></span>`:''}</div>`:''}
   ${own?`<div style="display:flex;gap:8px;align-items:center;margin-top:12px">${UI.confirm===cdel?`<span class="muted" style="font-size:13px">Удалить турнир?</span><button class="btn sm red" data-act="delT" data-id="${T.id}">Да, удалить</button><button class="btn sm ghost" data-act="cancelConfirm">Нет</button>`:`${T.status==='live'&&!b.finished?`<a class="btn blue" href="#pult-${T.id}">Открыть пульт</a>`:''}<button class="btn sm ghost" data-act="askDel" data-id="${T.id}">Удалить</button>`}</div>`:''}</div>
   <div class="fgrid"><div><span>Формат</span><b>${FORMATS[T.format]}${T.format==='gp'?` · ${T.groups.count}×${T.groups.advance}`:''}</b></div><div><span>Игра</span><b>до ${T.raceTo} побед</b></div><div><span>Игроков</span><b>${T.players.length}</b></div><div><span>${T.status==='reg'?'Столов':'Сыграно'}</span><b>${T.status==='reg'?(c.tables||'—'):done+' из '+tot}</b></div></div></div>
   <div class="tabs">${tabs.map(t=>`<button class="${t[0]===tab?'on':''}" data-act="tab" data-id="${T.id}" data-tab="${t[0]}">${t[1]}${t[2]?`<span class="cnt">${t[2]}</span>`:''}</button>`).join('')}</div></div>
@@ -684,7 +686,7 @@ function renderCabinet(){
   ${mine.filter(t=>t.status==='live'&&!build(t).finished).map(t=>`<div class="feat-main" style="min-height:0;flex-direction:row;align-items:center;flex-wrap:wrap;padding:24px 28px;margin-bottom:24px"><div style="flex:1;min-width:260px"><span class="st live">Идёт сейчас</span><div style="font-size:24px;font-weight:500;letter-spacing:-.02em;margin-top:8px">${esc(t.title)}</div></div><a class="btn blue big" href="#pult-${t.id}">Открыть пульт</a><a class="btn big" style="background:transparent;border-color:#4D4D4D;color:#fff" href="#t-${t.id}">Страница</a></div>`).join('')}
   <h2>Мои турниры</h2>${mine.length?`<div class="grid">${mine.map(tCard).join('')}</div>`:`<div class="empty">Турниров пока нет. Создайте первый — это займёт минуту.</div>`}
   <div class="two" style="margin-top:34px"><div class="panel"><h3>Игроки клуба · ${(c.roster||[]).length}</h3>${(c.roster||[]).length?`<div style="max-height:420px;overflow:auto"><table class="tb"><thead><tr><th>Игрок</th><th class="c">Г.р.</th><th>Город</th><th>Звание</th></tr></thead><tbody>${[...c.roster].sort((a,b)=>a.name.localeCompare(b.name,'ru')).map(p=>`<tr><td><b>${esc(p.name)}</b></td><td class="c">${byear(p)}</td><td>${esc(p.city||'')}</td><td>${esc(p.rank||'')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="muted">База пополняется, когда вы добавляете игроков в турниры.</div>'}</div>
-  <details class="panel"><summary style="cursor:pointer;font-weight:600">Настройки клуба: название, город, столы</summary><div style="height:14px"></div><div class="field"><label>Название</label><input id="cl-name" value="${esc(c.name)}"></div><div class="row2"><div class="field"><label>Город</label><input id="cl-city" value="${esc(c.city)}"></div><div class="field"><label>Столов в клубе</label><input id="cl-tables" type="number" min="1" max="60" value="${c.tables||6}"></div></div><button class="btn" data-act="saveClub">Сохранить</button><div class="err" id="cl-err"></div></details></div>`;
+  <details class="panel" ${c.address&&c.phone?'':'open'}><summary style="cursor:pointer;font-weight:600">Клуб: адрес, контакты, столы</summary>${c.address&&c.phone?'':'<p class="muted" style="font-size:13px;margin:10px 0 0">Заполните адрес и телефон — игроки и зрители увидят их на странице турнира.</p>'}<div style="height:14px"></div><div class="field"><label>Название</label><input id="cl-name" value="${esc(c.name)}"></div><div class="row2"><div class="field"><label>Город</label><input id="cl-city" value="${esc(c.city)}"></div><div class="field"><label>Столов в клубе</label><input id="cl-tables" type="number" min="1" max="60" value="${c.tables||6}"></div></div><div class="field"><label>Адрес</label><input id="cl-addr" maxlength="200" placeholder="Улица, дом, этаж" value="${esc(c.address||'')}"></div><div class="row2"><div class="field"><label>Телефон</label><input id="cl-phone" type="tel" maxlength="40" placeholder="+7 700 000 00 00" value="${esc(c.phone||'')}"></div><div class="field"><label>Instagram</label><input id="cl-insta" maxlength="60" placeholder="@club" value="${esc(c.instagram||'')}"></div></div><button class="btn" data-act="saveClub">Сохранить</button><div class="err" id="cl-err"></div></details></div>`;
 }
 /* ============ wizard ============ */
 function newWiz(){const c=club(S.session);return{step:1,title:'',disc:DISC[0],date:new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10),race:4,format:'de',gc:4,ga:2,city:c.city,players:[],seed:'list',q:''}}
@@ -876,7 +878,7 @@ const A={
   rmP(el){const T=CUR.T;T.players=T.players.filter(p=>p.id!==el.dataset.id);save();render()},
   saveClub(){const c=club(S.session);const v=id=>document.getElementById(id).value.trim();const n=Math.floor(+v('cl-tables'));
     if(!v('cl-name')||!(n>=1&&n<=60)){document.getElementById('cl-err').textContent='Проверьте название и число столов (1–60)';return}
-    c.name=v('cl-name');c.city=v('cl-city');c.tables=n;save();render();toast('Настройки клуба сохранены')},
+    c.name=v('cl-name');c.city=v('cl-city');c.tables=n;c.address=v('cl-addr').slice(0,200);c.phone=v('cl-phone').slice(0,40);c.instagram=v('cl-insta').replace(/^@/,'').replace(/^https?:\/\/(www\.)?instagram\.com\//,'').replace(/\/.*$/,'').slice(0,60);save();render();toast('Настройки клуба сохранены')},
   start(){const T=CUR.T;const e=document.getElementById('start-err');
     if(T.format==='gp'&&T.groups.advance>=Math.floor(T.players.length/T.groups.count)){e.textContent='Из группы выходит слишком много игроков для такого состава';return}
     if(T.players.length<minPlayers(T)){e.textContent='Мало участников';return}
