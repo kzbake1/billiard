@@ -109,17 +109,18 @@ a.card:hover{border-color:var(--ink)}
 /* bracket */
 .bracket{display:flex;gap:28px;overflow-x:auto;padding:4px 4px 18px}
 .round{display:flex;flex-direction:column;flex:0 0 212px}
+.round-title small{display:block;margin-top:3px;font-size:11px;font-weight:400;letter-spacing:0;text-transform:none;color:#939393;white-space:nowrap}
 .round-title{font-family:Inter,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:6px}
 .round-body{flex:1;display:flex;flex-direction:column}
 .pair{flex:1;display:flex;flex-direction:column;position:relative}
-.slot{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;padding:12px 0}
+.slot{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;padding:18px 0}
 .round-body{padding-top:8px}
 .slot.hid{visibility:hidden}
 .sw{position:relative}
 .cap{position:absolute;left:2px;right:0;top:100%;margin-top:3px;font-size:11px;line-height:14px;color:#939393;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .uni{position:relative;display:flex;align-items:stretch;gap:28px;overflow-x:auto;padding:4px 4px 18px}
 .uni .bracket{overflow:visible;flex:0 0 auto;padding:0}
-.uni .slot{padding:20px 0}
+.uni .slot{padding:26px 0}
 .uni .mir{transform:scaleX(-1)}
 .uni .mir .round-title,.uni .mir .sw{transform:scaleX(-1)}
 .uni .mir .round:first-child .slot::before{content:'';position:absolute;left:-14px;top:50%;width:14px;border-top:1px solid var(--line2)}
@@ -141,14 +142,14 @@ a.card:hover{border-color:var(--ink)}
 .mst.live{color:var(--live-ink);font-weight:600}.mst.ok{color:var(--ok);font-weight:600}
 .mk{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:5px;color:#fff;font-size:10px;font-weight:700;line-height:1;font-style:normal}.mk.g{background:var(--ok)}.mk.b{background:var(--accent)}
 .cap{display:flex;align-items:center;gap:5px}.cap i{width:6px}.cap b:not(.mk){color:var(--ink);font-weight:600}
-.capd .slot{padding:20px 0}
+.capd .slot{padding:26px 0}
 .final-box .mw{margin-top:22px}
 .m .seed{color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
 .m .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);font-weight:400}
 .m .sc{font-family:Inter,sans-serif;font-weight:600;font-size:14.5px;text-align:right;font-variant-numeric:tabular-nums}
 .m .win .sc{color:var(--ok)}.m .lose .sc{color:var(--live-ink)}
 .m .tbd .n{color:#A6A6A6;font-style:italic}
-.m.s-live{border-color:var(--live);box-shadow:0 0 0 3px rgba(217,58,38,.10)}
+.m.s-live{border-color:var(--live)}
 .m.s-live .m-top{color:var(--live-ink);background:var(--live-soft)}
 .m.s-ready{border-color:var(--ok)}.m.s-ready .m-top{color:var(--ok);background:var(--ok-soft)}
 .m.s-bye{opacity:.45;cursor:default}
@@ -683,13 +684,13 @@ function mCard(T,m,mk){
   const row=(s,sc)=>`<div class="row ${cls(s)}"><span class="n">${s.t==='tbd'?'&nbsp;':esc(s.t==='p'?sname(pname(T,s)):pname(T,s))}</span><span class="sc">${showSc?sc:''}</span></div>`;
   const tm=m.state==='done'&&r&&r.ts?new Date(r.ts).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}):'';
   const st={live:`<span class="mst live">● ${r&&r.table?'стол '+r.table:'играют'}</span>`,ready:'<span class="mst ok">● можно вызывать</span>',bye:'<span class="mst">проход</span>'}[m.state]||'';
-  return`<div class="mw"><div class="m-meta"><span>${mk?`<b class="mk ${mk.c}">${mk.n}</b>`:''}№${m.no}${m.state==='done'&&r&&r.table?' · стол '+r.table:''}</span>${st||(tm?`<span>${tm}</span>`:'')}</div><div class="m s-${m.state}" data-act="match" data-mid="${m.id}">${row(m.a,r?r.sa:'')}${row(m.b,r?r.sb:'')}</div></div>`;
+  return`<div class="mw"><div class="m-meta"><span>${mk?`<b class="mk ${mk.c}">${mk.n}</b>`:''}№${m.no}${m.state==='done'&&r&&r.table?' · стол '+r.table:''}</span>${st}</div><div class="m s-${m.state}" data-act="match" data-mid="${m.id}">${row(m.a,r?r.sa:'')}${row(m.b,r?r.sb:'')}</div></div>`;
 }
 function bracketHTML(T,rounds,opt){opt=opt||{};
   return`<div class="bracket${opt.cls?' '+opt.cls:''}">${rounds.map((rd,i)=>{const n=rd.matches.length,nx=rounds[i+1]?rounds[i+1].matches.length:0;const join=!!nx&&n===nx*2;const step=join?2:1;const groups=[];
     for(let k=0;k<n;k+=step)groups.push(rd.matches.slice(k,k+step));
     const hid=m=>m.a.t==='bye'&&m.b.t==='bye';
-    return`<div class="round${nx?' conn':''}${i>0?' instub':''}${opt.po===i?' po-start':''}"><div class="round-title">${rd.title}</div><div class="round-body">${groups.map(g=>`<div class="pair${join&&!g.some(hid)?' join':''}">${g.map(m=>`<div class="slot${hid(m)?' hid':''}"><div class="sw">${mCard(T,m,opt.mk&&opt.mk[m.no])}${opt.cap&&opt.cap(m,i)?`<div class="cap">${opt.cap(m,i)}</div>`:''}</div></div>`).join('')}</div>`).join('')}</div></div>`}).join('')}</div>`;
+    return`<div class="round${nx?' conn':''}${i>0?' instub':''}${opt.po===i?' po-start':''}"><div class="round-title">${rd.title}<small>${rd.sub||'&nbsp;'}</small></div><div class="round-body">${groups.map(g=>`<div class="pair${join&&!g.some(hid)?' join':''}">${g.map(m=>`<div class="slot${hid(m)?' hid':''}"><div class="sw">${mCard(T,m,opt.mk&&opt.mk[m.no])}${opt.cap&&opt.cap(m,i)?`<div class="cap">${opt.cap(m,i)}</div>`:''}</div></div>`).join('')}</div>`).join('')}</div></div>`}).join('')}</div>`;
 }
 function sidePanels(T,b){
   const live=b.all.filter(m=>m.state==='live'),ready=b.all.filter(m=>m.state==='ready').slice(0,5);
@@ -715,12 +716,14 @@ function uniHTML(T,b){const f=flow(T);const L=b.lb.length;const pl=[];let p=b.K+
   const dests=new Set();b.wb.forEach((rd,i)=>{if(i>=1)rd.matches.forEach(m=>{if(f.l[m.no])dests.add(f.l[m.no])})});
   const mk={};let q=0;b.lb.forEach(rd=>rd.matches.forEach(m=>{if(dests.has(m.no))mk[m.no]={n:++q,c:'g'}}));b.rounds[0].matches.forEach(m=>{mk[m.no]={n:++q,c:'b'}});
   const tag=no=>mk[no]?`<b class="mk ${mk[no].c}">${mk[no].n}</b>`:'№'+no;
-  const capL=(m,i)=>{const a=[];if(i===L-1)a.push(f.w[m.no]?'победитель → '+tag(f.w[m.no]):'победитель → в олимпийку');if(f.full)a.push((i===L-1?'иначе':'проигравший —')+' '+pl[i]+' место');return a.join('<i></i>')};
+  const ARL='<span class="ar">←</span>',ARR='<span class="ar">→</span>';
+  const capL=(m,i)=>i===L-1?(f.w[m.no]&&mk[f.w[m.no]]?tag(f.w[m.no])+' '+ARR:'в олимпийку '+ARR):'';
   const R=b.rounds.length;
-  const capU=(m,i)=>{if(i<b.wb.length)return i>=1&&f.l[m.no]?tag(f.l[m.no])+' ← проигравший':'';const k=i-b.wb.length,n=b.rounds[k].matches.length;return k===R-1?'<b>Финал</b><i></i>победитель — 1 место':(k===R-2?'<b>Полуфинал</b><i></i>':'')+'проигравший — '+(n>1?(n+1)+'–'+(2*n):'3–4')+' место'};
-  const lbR=b.lb.map((rd,i)=>({title:'Нижняя · раунд '+(i+1),matches:rd.matches})),wbR=b.wb.map((rd,i)=>({title:'Верхняя · раунд '+(i+1),matches:rd.matches}));
+  const capU=(m,i)=>{if(i<b.wb.length)return i>=1&&f.l[m.no]?tag(f.l[m.no])+' '+ARL:'';const k=i-b.wb.length;return k===R-1?'<b>Финал</b>':k===R-2?'<b>Полуфинал</b>':''};
+  const poSub=k=>{const n=b.rounds[k].matches.length;return k===R-1?'':'проигравший — '+(n>1?(n+1)+'–'+(2*n):'3–4')+' место'};
+  const lbR=b.lb.map((rd,i)=>({title:'Нижняя · раунд '+(i+1),sub:f.full?'проигравший — '+pl[i]+' место':'',matches:rd.matches})),wbR=b.wb.map((rd,i)=>({title:'Верхняя · раунд '+(i+1),matches:rd.matches}));
   requestAnimationFrame(uniInit);
-  return`<div class="uni" data-id="${T.id}">${bracketHTML(T,lbR,{cap:capL,cls:'mir',mk})}${bracketHTML(T,[...wbR,...b.rounds],{cap:capU,cls:'ub',po:b.wb.length,mk})}</div>`}
+  return`<div class="uni" data-id="${T.id}">${bracketHTML(T,lbR,{cap:capL,cls:'mir',mk})}${bracketHTML(T,[...wbR,...b.rounds.map((rd,k)=>({title:rd.title,sub:poSub(k),matches:rd.matches}))],{cap:capU,cls:'ub',po:b.wb.length,mk})}</div>`}
 const capSE=rounds=>({cls:'capd',cap:(m,i)=>i===rounds.length-1?'<b>Финал</b>':i===rounds.length-2?'<b>Полуфинал</b>':''});
 const LEGEND=`<div class="legend"><i><span class="r">●</span> играют</i><i><span class="g">●</span> можно вызывать</i></div>`;
 function renderGridTab(T,b){
