@@ -103,13 +103,14 @@ a.card:hover{border-color:var(--ink)}
 .round-title{font-family:Inter,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:6px}
 .round-body{flex:1;display:flex;flex-direction:column}
 .pair{flex:1;display:flex;flex-direction:column;position:relative}
-.slot{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;padding:6px 0}
+.slot{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;padding:12px 0}
+.round-body{padding-top:8px}
 .slot.hid{visibility:hidden}
 .sw{position:relative}
 .cap{position:absolute;left:2px;right:0;top:100%;margin-top:3px;font-size:11px;line-height:14px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .uni{position:relative;display:flex;align-items:stretch;gap:28px;overflow-x:auto;padding:4px 4px 18px}
 .uni .bracket{overflow:visible;flex:0 0 auto;padding:0}
-.uni .slot{padding:13px 0}
+.uni .slot{padding:20px 0}
 .uni .mir{transform:scaleX(-1)}
 .uni .mir .round-title,.uni .mir .sw{transform:scaleX(-1)}
 .uni .mir .round:first-child .slot::before{content:'';position:absolute;left:-14px;top:50%;width:14px;border-top:2px solid var(--line2)}
@@ -123,7 +124,15 @@ a.card:hover{border-color:var(--ink)}
 .m{background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden;cursor:pointer;transition:border-color .15s}
 .m:hover{border-color:var(--ink)}
 .m-top{display:flex;justify-content:space-between;padding:5px 11px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:#F6F6F6;border-bottom:1px solid var(--line)}
-.m .row{display:grid;grid-template-columns:26px minmax(0,1fr) 28px;align-items:center;gap:4px;padding:6px 11px;font-size:13.5px}
+.m .row{display:grid;grid-template-columns:minmax(0,1fr) 28px;align-items:center;gap:6px;padding:8px 12px;font-size:14.5px}
+.m .row+.row{border-top:1px solid #F0F0F0}
+.mw{position:relative}
+.m-meta{position:absolute;left:2px;right:2px;bottom:100%;margin-bottom:3px;display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:11px;line-height:14px;color:var(--sub);white-space:nowrap}
+.m-meta>span:first-child{display:inline-flex;align-items:center;gap:5px}
+.mst.live{color:var(--live-ink);font-weight:600}.mst.ok{color:var(--ok);font-weight:600}
+.mk{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:5px;color:#fff;font-size:10px;font-weight:700;line-height:1;font-style:normal}.mk.g{background:var(--ok)}.mk.b{background:var(--accent)}
+.cap{display:flex;align-items:center;gap:5px}.cap i{width:8px}
+.final-box .mw{margin-top:22px}
 .m .seed{color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
 .m .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#2B2B2B}
 .m .sc{font-family:Inter,sans-serif;font-weight:600;font-size:18px;text-align:right;font-variant-numeric:tabular-nums}
@@ -657,18 +666,19 @@ function renderT(T){
   <div class="tabs">${tabs.map(t=>`<button class="${t[0]===tab?'on':''}" data-act="tab" data-id="${T.id}" data-tab="${t[0]}">${t[1]}${t[2]?`<span class="cnt">${t[2]}</span>`:''}</button>`).join('')}</div></div>
   ${body}`;
 }
-function mCard(T,m){
+function mCard(T,m,mk){
   const r=m.res,showSc=m.state==='done'||m.state==='live';
   const cls=s=>{if(s.t==='tbd')return'tbd';if(m.state!=='done')return'';return m.winner.t==='p'&&m.winner.id===s.id?'win':'lose'};
-  const row=(s,sc)=>`<div class="row ${cls(s)}"><span class="seed">${seedOf(T,s)}</span><span class="n">${esc(s.t==='p'?sname(pname(T,s)):pname(T,s))}</span><span class="sc">${showSc?sc:''}</span></div>`;
-  const info={done:'Завершён',live:`● ${r&&r.table?'Стол '+r.table:'Идёт'}`,call:`Вызван · стол ${r&&r.table}`,ready:'Можно вызывать',wait:'Ожидает',bye:'Проход'}[m.state];
-  return`<div class="m s-${m.state}" data-act="match" data-mid="${m.id}"><div class="m-top"><span>№${m.no}</span><span>${info}</span></div>${row(m.a,r?r.sa:'')}${row(m.b,r?r.sb:'')}</div>`;
+  const row=(s,sc)=>`<div class="row ${cls(s)}"><span class="n">${esc(s.t==='p'?sname(pname(T,s)):pname(T,s))}</span><span class="sc">${showSc?sc:''}</span></div>`;
+  const tm=m.state==='done'&&r&&r.ts?new Date(r.ts).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}):'';
+  const st={live:`<span class="mst live">● ${r&&r.table?'стол '+r.table:'играют'}</span>`,ready:'<span class="mst ok">● можно вызывать</span>',bye:'<span class="mst">проход</span>'}[m.state]||'';
+  return`<div class="mw"><div class="m-meta"><span>${mk?`<b class="mk ${mk.c}">${mk.n}</b>`:''}№${m.no}${tm?' · '+tm:''}</span>${st}</div><div class="m s-${m.state}" data-act="match" data-mid="${m.id}">${row(m.a,r?r.sa:'')}${row(m.b,r?r.sb:'')}</div></div>`;
 }
 function bracketHTML(T,rounds,opt){opt=opt||{};
   return`<div class="bracket${opt.cls?' '+opt.cls:''}">${rounds.map((rd,i)=>{const n=rd.matches.length,nx=rounds[i+1]?rounds[i+1].matches.length:0;const join=!!nx&&n===nx*2;const step=join?2:1;const groups=[];
     for(let k=0;k<n;k+=step)groups.push(rd.matches.slice(k,k+step));
     const hid=m=>m.a.t==='bye'&&m.b.t==='bye';
-    return`<div class="round${nx?' conn':''}${i>0?' instub':''}${opt.po===i?' po-start':''}"><div class="round-title">${rd.title}</div><div class="round-body">${groups.map(g=>`<div class="pair${join&&!g.some(hid)?' join':''}">${g.map(m=>`<div class="slot${hid(m)?' hid':''}"><div class="sw">${mCard(T,m)}${opt.cap&&opt.cap(m,i)?`<div class="cap">${opt.cap(m,i)}</div>`:''}</div></div>`).join('')}</div>`).join('')}</div></div>`}).join('')}</div>`;
+    return`<div class="round${nx?' conn':''}${i>0?' instub':''}${opt.po===i?' po-start':''}"><div class="round-title">${rd.title}</div><div class="round-body">${groups.map(g=>`<div class="pair${join&&!g.some(hid)?' join':''}">${g.map(m=>`<div class="slot${hid(m)?' hid':''}"><div class="sw">${mCard(T,m,opt.mk&&opt.mk[m.no])}${opt.cap&&opt.cap(m,i)?`<div class="cap">${opt.cap(m,i)}</div>`:''}</div></div>`).join('')}</div>`).join('')}</div></div>`}).join('')}</div>`;
 }
 function sidePanels(T,b){
   const live=b.all.filter(m=>m.state==='live'),ready=b.all.filter(m=>m.state==='ready').slice(0,5);
@@ -691,17 +701,21 @@ function flow(T){const key=T.id+'|'+T.players.map(p=>p.id).join(',')+'|'+T.playo
 const UNI_X={};
 function uniInit(){const el=document.querySelector('.uni');if(!el)return;const k=el.dataset.id;if(UNI_X[k]==null){const ub=el.querySelector('.ub');UNI_X[k]=Math.max(0,ub.offsetLeft-130)}el.scrollLeft=UNI_X[k];el.onscroll=()=>{UNI_X[k]=el.scrollLeft}}
 function uniHTML(T,b){const f=flow(T);const L=b.lb.length;const pl=[];let p=b.K+1;for(let i=L-1;i>=0;i--){const n=b.lb[i].matches.length;pl[i]=n>1?p+'–'+(p+n-1):''+p;p+=n}
-  const capL=(m,i)=>{const a=[];if(i===L-1)a.push(f.w[m.no]?'поб. → №'+f.w[m.no]:'поб. → в олимпийку');if(f.full)a.push('пр. — '+pl[i]+' место');return a.join(' · ')};
-  const capU=(m,i)=>i<b.wb.length&&f.l[m.no]?'пр. → №'+f.l[m.no]+' нижней':'';
+  const dests=new Set();b.wb.forEach((rd,i)=>{if(i>=1)rd.matches.forEach(m=>{if(f.l[m.no])dests.add(f.l[m.no])})});
+  const mk={};let q=0;b.lb.forEach(rd=>rd.matches.forEach(m=>{if(dests.has(m.no))mk[m.no]={n:++q,c:'g'}}));b.rounds[0].matches.forEach(m=>{mk[m.no]={n:++q,c:'b'}});
+  const tag=no=>mk[no]?`<b class="mk ${mk[no].c}">${mk[no].n}</b>`:'№'+no;
+  const capL=(m,i)=>{const a=[];if(i===L-1)a.push(f.w[m.no]?'победитель → '+tag(f.w[m.no]):'победитель → в олимпийку');if(f.full)a.push((i===L-1?'иначе':'проигравший —')+' '+pl[i]+' место');return a.join('<i></i>')};
+  const R=b.rounds.length;
+  const capU=(m,i)=>{if(i<b.wb.length)return i>=1&&f.l[m.no]?'проигравший → '+tag(f.l[m.no]):'';const k=i-b.wb.length,n=b.rounds[k].matches.length;return k===R-1?'победитель — 1 место':'проигравший — '+(n>1?(n+1)+'–'+(2*n):'3–4')+' место'};
   const lbR=b.lb.map((rd,i)=>({title:'Нижняя · раунд '+(i+1),matches:rd.matches})),wbR=b.wb.map((rd,i)=>({title:'Верхняя · раунд '+(i+1),matches:rd.matches}));
   requestAnimationFrame(uniInit);
-  return`<div class="uni" data-id="${T.id}">${bracketHTML(T,lbR,{cap:capL,cls:'mir'})}${bracketHTML(T,[...wbR,...b.rounds],{cap:capU,cls:'ub',po:b.wb.length})}</div>`}
-const LEGEND=`<div class="legend"><i><span class="r">●</span> играют</i><i><span class="g">●</span> можно вызывать</i><i>[1] — номер посева</i></div>`;
+  return`<div class="uni" data-id="${T.id}">${bracketHTML(T,lbR,{cap:capL,cls:'mir',mk})}${bracketHTML(T,[...wbR,...b.rounds],{cap:capU,cls:'ub',po:b.wb.length,mk})}</div>`}
+const LEGEND=`<div class="legend"><i><span class="r">●</span> играют</i><i><span class="g">●</span> можно вызывать</i></div>`;
 function renderGridTab(T,b){
   if(T.format==='se')return`<div class="withside"><div class="wm"><div style="margin-bottom:14px">${LEGEND}</div>${bracketHTML(T,b.rounds)}</div>${sidePanels(T,b)}</div>`;
   if(T.format==='de'&&b.K){
     const seg=`<div class="seg">${[['lb','← Нижняя сетка'],['wb','Верхняя сетка'],['gf','Олимпийка · '+b.K+' →']].map(([k,l])=>`<button data-act="uniGo" data-v="${k}">${l}</button>`).join('')}</div>`;
-    return`<div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px">${seg}${LEGEND}</div><p class="muted" style="margin:0 0 12px;font-size:13px">Сетка ${b.name}. Проигравший в верхней сетке уходит влево, в нижнюю; второе поражение — выбывание. ${b.K/2} из верхней и ${b.K/2} из нижней выходят в олимпийку — она справа.${b.draw?(b.drawn?' Пары олимпийки определены жеребьёвкой.':' Пары олимпийки определит жеребьёвка.'):''}</p>${uniHTML(T,b)}<div class="uni-side">${sidePanels(T,b)}</div>`}
+    return`<div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px">${seg}${LEGEND}</div><p class="muted" style="margin:0 0 12px;font-size:13px">Сетка ${b.name}. Проигравший в верхней сетке уходит влево, в нижнюю; второе поражение — выбывание. ${b.K/2} из верхней и ${b.K/2} из нижней выходят в олимпийку — она справа. <b class="mk g">1</b> — место в нижней сетке, <b class="mk b">5</b> — место в олимпийке: номер под матчем показывает, куда идёт игрок.${b.draw?(b.drawn?' Пары олимпийки определены жеребьёвкой.':' Пары олимпийки определит жеребьёвка.'):''}</p>${uniHTML(T,b)}<div class="uni-side">${sidePanels(T,b)}</div>`}
   if(T.format==='de'){const v=UI.de[T.id]||'wb';
     const seg=`<div class="seg">${[['wb','Верхняя сетка'],['lb','Нижняя сетка'],['gf',b.K?'Олимпийка · '+b.K:'Финал']].map(([k,l])=>`<button class="${k===v?'on':''}" data-act="deView" data-id="${T.id}" data-v="${k}">${l}</button>`).join('')}</div>`;
     let inner;
