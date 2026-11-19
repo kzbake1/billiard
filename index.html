@@ -396,23 +396,18 @@ body.sbd{background:#0A0F0D}body.sbd>main{padding:0!important}
 .lnk{border:0;background:none;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:12px;padding:0;text-transform:none;letter-spacing:0;font-weight:500}
 .tsel{min-height:48px;border:1px solid var(--line2);border-radius:10px;padding:0 14px;background:#fff;color:var(--sub)}
 .contacts{display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:10px;font-size:14px;color:var(--sub)}.contacts b{font-weight:600;color:var(--ink)}.contacts a{color:var(--accent-ink)}
-.cab-hero{background:#111;color:#fff;border-radius:16px;padding:32px 36px;display:flex;gap:32px;flex-wrap:wrap;align-items:flex-end;margin-bottom:40px}
-.ch-main{flex:999 1 420px;min-width:0}
-.ch-top{display:flex;justify-content:space-between;align-items:center;color:#9C9C9C;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px}
-.ch-top .lnk{color:#9C9C9C;font-size:13px}
-.cab-hero h1{font-size:56px;margin:0 0 6px}.cab-hero p{margin:0;color:#B5B5B5}
-.ch-acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
-.ch-ghost{background:transparent;border-color:#4D4D4D;color:#fff}
-.ch-stats{display:flex;gap:10px;flex:1 1 320px}
-.ch-stats div{flex:1;background:#1E1E1E;border-radius:12px;padding:16px 18px}
-.ch-stats b{display:block;font-size:34px;font-weight:500;letter-spacing:-.03em;line-height:1.1}.ch-stats span{color:#9C9C9C;font-size:13px}
+.cab-hero{background:#fff;border:1px solid var(--line);border-radius:16px;padding:28px 32px;display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;margin-bottom:36px}
+.ch-main{min-width:0;flex:1 1 320px}.ch-over{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sub);margin-bottom:6px}
+.cab-hero h1{font-size:34px;margin:0 0 6px;letter-spacing:-.02em}.cab-hero p{margin:0;font-size:15px;color:var(--ink)}
+.cab-hero .ch-st{margin-top:6px;font-size:14px;color:var(--muted);display:flex;flex-wrap:wrap}.ch-st span+span::before{content:'·';margin:0 9px;color:#B5B5B5}
+.ch-acts{display:flex;gap:8px;align-items:center}
 .steps3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
 .step3{text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:8px;font:inherit;color:inherit}
 button.step3{cursor:pointer;border:2px solid var(--accent)}
 .step3 i{font-style:normal;width:36px;height:36px;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-weight:700;margin-bottom:6px}
 button.step3 i{background:var(--accent);color:#fff}
 .step3 b{font-size:18px;font-weight:600}.step3 span{color:var(--sub);font-size:14px}
-@media(max-width:640px){.cab-hero{padding:24px 20px}.cab-hero h1{font-size:36px}}
+@media(max-width:640px){.cab-hero{padding:22px 20px}.cab-hero h1{font-size:26px}}
 .wz{max-width:680px;margin:0 auto}.wz.wide{max-width:1040px}
 .wz-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}
 .wz-head h1{font-size:30px;margin:0 0 2px}
@@ -957,10 +952,10 @@ function renderCabinet(){
   const row=(k,v)=>`<div class="sr"><span>${k}</span><b class="${v?'':'muted'}">${v||'не указан'}</b></div>`;
   const info=UI.clubEdit?`<h3>О клубе</h3><div class="field"><label>Название</label><input id="cl-name" value="${esc(c.name)}"></div><div class="row2"><div class="field"><label>Город</label><input id="cl-city" value="${esc(c.city)}"></div><div class="field"><label>Столов в клубе</label><input id="cl-tables" type="number" min="1" max="60" value="${c.tables||6}"></div></div><div class="field"><label>Адрес</label><input id="cl-addr" maxlength="200" placeholder="Улица, дом, этаж" value="${esc(c.address||'')}"></div><div class="row2"><div class="field"><label>Телефон</label><input id="cl-phone" type="tel" maxlength="40" placeholder="+7 700 000 00 00" value="${esc(c.phone||'')}"></div><div class="field"><label>Instagram</label><input id="cl-insta" maxlength="60" placeholder="@club" value="${esc(c.instagram||'')}"></div></div><div style="display:flex;gap:8px"><button class="btn blue" data-act="saveClub">Сохранить</button><button class="btn ghost" data-act="cancelClub">Отмена</button></div><div class="err" id="cl-err"></div>`
    :`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h3 style="margin:0">О клубе</h3><button class="btn sm ghost" data-act="editClub">Изменить</button></div>${row('Адрес',esc(c.address||''))}${row('Телефон',esc(c.phone||''))}${row('Instagram',c.instagram?'@'+esc(c.instagram):'')}${row('Столов',c.tables||6)}${noInfo?`<p class="muted" style="font-size:13px;margin:12px 0 0">Адрес и телефон увидят игроки на странице турнира. <button class="lnk" style="font-size:13px;color:var(--accent-ink)" data-act="editClub">Заполнить</button></p>`:''}`;
-  return`<section class="cab-hero"><div class="ch-main"><div class="ch-top"><span>Кабинет клуба</span><button class="lnk" data-act="logout">Выйти</button></div>
+  return`<section class="cab-hero"><div class="ch-main"><div class="ch-over">Кабинет клуба</div>
   <h1>${esc(c.name)}</h1><p>${esc(c.city)}${c.address?', '+esc(c.address):''}</p>
-  <div class="ch-acts">${live.length?`<a class="btn blue big" href="#t-${live[0].id}">Идёт · ${esc(live[0].title)}</a><button class="btn big ch-ghost" data-act="newT">+ Новый турнир</button>`:`<button class="btn blue big" data-act="newT">+ Новый турнир</button>`}</div></div>
-  <div class="ch-stats">${stat(mine.length,'турнир'+plural(mine.length))}${stat(roster.length,'игрок'+plural(roster.length)+' в базе')}${stat(c.tables||6,'стол'+plural(c.tables||6))}</div></section>
+  <p class="ch-st"><span>${mine.length} турнир${plural(mine.length)}</span><span>${roster.length} игрок${plural(roster.length)}</span><span>${c.tables||6} стол${plural(c.tables||6)}</span></p></div>
+  <div class="ch-acts"><button class="btn blue" data-act="newT">+ Новый турнир</button><button class="btn ghost" data-act="logout">Выйти</button></div></section>
   ${mine.length?`<h2>Мои турниры</h2><div class="grid">${mine.map(tCard).join('')}</div>`:`<h2>С чего начать</h2><div class="steps3">
    <button class="step3" data-act="newT"><i>1</i><b>Создайте турнир</b><span>Дисциплина, дата и формат — три коротких шага.</span></button>
    <div class="step3"><i>2</i><b>Добавьте игроков</b><span>Фамилия, имя, год рождения, звание. Игроки сохранятся в базе клуба.</span></div>
