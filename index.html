@@ -270,6 +270,9 @@ footer button{border:0;background:none;color:var(--muted);text-decoration:underl
 .wp .num{color:var(--muted);font-weight:700;font-size:13px}
 .wp .x{width:44px;height:44px;font-size:16px}.wp .x[disabled]{opacity:.25}
 .wiz-bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px max(32px,calc((100% - 1360px)/2 + 32px));display:flex;justify-content:space-between;align-items:center;z-index:30}
+.plcard.called{border:2px solid #111}.plcard.called .lv{color:#111}
+.lnk{border:0;background:none;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:12px;padding:0;text-transform:none;letter-spacing:0;font-weight:500}
+.tsel{min-height:48px;border:1px solid var(--line2);border-radius:999px;padding:0 14px;background:#fff;color:var(--sub)}
 </style>
 </head>
 <body>
@@ -514,6 +517,7 @@ function render(){
   const nav=document.getElementById('nav');
   const me=S.session?club(S.session):null;
   nav.innerHTML=`<a href="#home" class="${h==='home'||h.startsWith('t-')?'on':''}">Турниры</a><a href="${S.admin&&!me?'#admin':'#cabinet'}" class="cta">${me?'Кабинет клуба':S.admin?'Администратор':'Вход для клубов'}</a>`;
+  if(me){const lt=S.tournaments.find(t=>t.clubId===me.id&&t.status==='live'&&!build(t).finished);if(lt&&h!=='pult-'+lt.id)nav.insertAdjacentHTML('beforeend',`<a href="#pult-${lt.id}" class="cta" style="background:var(--accent)">Пульт</a>`)}
   renderTicker(h==='home');
   const app=document.getElementById('app');
   if(h.startsWith('t-')){const T=tById(h.slice(2));if(T){app.innerHTML=renderT(T);renderRoster();return}}
@@ -541,8 +545,7 @@ function renderHome(){
     ${list.map(m=>`<a class="lm" href="#t-${T.id}"><div class="lt"><span>${m.res&&m.res.table?'Стол '+m.res.table+' · ':''}№${m.no}</span>${m.state==='live'?'<em>● live</em>':''}</div><div class="lg"><span>${esc(pname(T,m.a))}</span><b>${m.res?m.res.sa:''}</b><span>${esc(pname(T,m.b))}</span><b>${m.res?m.res.sb:''}</b></div></a>`).join('')||'<div class="muted">Пока нет матчей</div>'}</aside></section>`}
   return`${feat}<div class="hero"><h2 style="margin:0;font-size:34px">Турниры</h2>
   <input id="q" class="search" placeholder="Поиск: турнир, клуб, город" value="${esc(f.q)}"></div>
-  <div class="chips">${chip('status','all','Все')}${chip('status','live','Идут')}${chip('status','reg','Скоро')}${chip('status','done','Завершены')}
-  <span style="width:10px"></span>${chip('disc','all','Все дисциплины')}${discs.map(d=>chip('disc',d,esc(d))).join('')}</div>
+  <div class="chips">${chip('status','all','Все')}${chip('status','live','Идут')}${chip('status','reg','Скоро')}${chip('status','done','Завершены')}</div>
   <div class="grid" id="grid"></div>`;
 }
 function tCard(T){
@@ -564,7 +567,7 @@ function renderGrid(){
 /* ============ tournament page ============ */
 function renderT(T){
   const b=build(T);CUR={T,b};const st=tStatus(T,b);const c=club(T.clubId);const own=isOwner(T);
-  const tabs=T.status==='reg'?[['people','Участники',T.players.length]]:[['grid','Сетка'],['matches','Матчи',b.all.filter(m=>m.state==='live').length||''],['people','Участники',T.players.length],['result','Итоги']];
+  const tabs=T.status==='reg'?[['people','Участники',T.players.length]]:[...(b.finished?[['result','Итоги']]:[]),['grid','Сетка'],['matches','Матчи',b.all.filter(m=>m.state==='live').length||''],['people','Участники',T.players.length]];
   let tab=UI.tab[T.id];if(!tabs.some(t=>t[0]===tab))tab=tabs[0][0];
   const cdel='del-'+T.id;
   let body='';
@@ -681,10 +684,10 @@ function renderCabinet(){
   ${mine.filter(t=>t.status==='live'&&!build(t).finished).map(t=>`<div class="feat-main" style="min-height:0;flex-direction:row;align-items:center;flex-wrap:wrap;padding:24px 28px;margin-bottom:24px"><div style="flex:1;min-width:260px"><span class="st live">Идёт сейчас</span><div style="font-size:24px;font-weight:500;letter-spacing:-.02em;margin-top:8px">${esc(t.title)}</div></div><a class="btn blue big" href="#pult-${t.id}">Открыть пульт</a><a class="btn big" style="background:transparent;border-color:#4D4D4D;color:#fff" href="#t-${t.id}">Страница</a></div>`).join('')}
   <h2>Мои турниры</h2>${mine.length?`<div class="grid">${mine.map(tCard).join('')}</div>`:`<div class="empty">Турниров пока нет. Создайте первый — это займёт минуту.</div>`}
   <div class="two" style="margin-top:34px"><div class="panel"><h3>Игроки клуба · ${(c.roster||[]).length}</h3>${(c.roster||[]).length?`<div style="max-height:420px;overflow:auto"><table class="tb"><thead><tr><th>Игрок</th><th class="c">Г.р.</th><th>Город</th><th>Звание</th></tr></thead><tbody>${[...c.roster].sort((a,b)=>a.name.localeCompare(b.name,'ru')).map(p=>`<tr><td><b>${esc(p.name)}</b></td><td class="c">${byear(p)}</td><td>${esc(p.city||'')}</td><td>${esc(p.rank||'')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="muted">База пополняется, когда вы добавляете игроков в турниры.</div>'}</div>
-  <div class="panel"><h3>Настройки клуба</h3><div class="field"><label>Название</label><input id="cl-name" value="${esc(c.name)}"></div><div class="row2"><div class="field"><label>Город</label><input id="cl-city" value="${esc(c.city)}"></div><div class="field"><label>Столов в клубе</label><input id="cl-tables" type="number" min="1" max="60" value="${c.tables||6}"></div></div><button class="btn" data-act="saveClub">Сохранить</button><div class="err" id="cl-err"></div></div></div>`;
+  <details class="panel"><summary style="cursor:pointer;font-weight:600">Настройки клуба: название, город, столы</summary><div style="height:14px"></div><div class="field"><label>Название</label><input id="cl-name" value="${esc(c.name)}"></div><div class="row2"><div class="field"><label>Город</label><input id="cl-city" value="${esc(c.city)}"></div><div class="field"><label>Столов в клубе</label><input id="cl-tables" type="number" min="1" max="60" value="${c.tables||6}"></div></div><button class="btn" data-act="saveClub">Сохранить</button><div class="err" id="cl-err"></div></details></div>`;
 }
 /* ============ wizard ============ */
-function newWiz(){const c=club(S.session);return{step:1,title:'',disc:DISC[0],date:'2026-12-05',race:4,format:'de',gc:4,ga:2,city:c.city,players:[],seed:'list',q:''}}
+function newWiz(){const c=club(S.session);return{step:1,title:'',disc:DISC[0],date:new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10),race:4,format:'de',gc:4,ga:2,city:c.city,players:[],seed:'list',q:''}}
 function wizTour(){const w=UI.wiz;return{format:w.format,groups:{count:w.gc,advance:w.ga}}}
 function fmtMatches(f,n,gc){n=Math.max(n,2);if(f==='se')return n-1;if(f==='de')return 2*n-2;if(f==='rr')return n*(n-1)/2;const g=Math.ceil(n/gc);return gc*g*(g-1)/2+ (gc*2-1)}
 function renderCreate(){
@@ -693,11 +696,11 @@ function renderCreate(){
   let body='';
   if(w.step===1){
     body=`<h1>Основное</h1><p class="muted lead">Название и дату увидят зрители. Всё можно поменять до запуска сетки.</p>
-    <div class="field"><label>Название</label><input class="big" data-w="title" value="${esc(w.title)}" placeholder="Например: Кубок клуба · декабрь"></div>
+    <div class="field"><label>Название</label><input class="big" data-w="title" value="${esc(w.title)}" placeholder="Можно не заполнять — назовём по дисциплине и дате"></div>
     <div class="field"><label>Дисциплина</label><div class="chips" style="margin:0">${DISC.map(d=>`<button class="chip ${w.disc===d?'on':''}" data-act="wDisc" data-v="${esc(d)}">${d}</button>`).join('')}</div></div>
     <div class="row2"><div class="field"><label>Дата начала</label><input class="big" type="date" data-w="date" value="${w.date}"></div>
     <div class="field"><label>Игра до … побед</label><div class="stepper"><button class="pbtn" aria-label="Меньше" data-act="wRace" data-d="-1">−</button><span class="pl-s">${w.race}</span><button class="pbtn plus" aria-label="Больше" data-act="wRace" data-d="1">+</button><span class="muted" style="font-size:13px">обычно 3–5 в пирамиде, 7–9 в пуле</span></div></div></div>
-    <div class="field"><label>Город</label><input class="big" data-w="city" value="${esc(w.city)}"></div>`;
+`;
   } else if(w.step===2){
     const n=w.players.length||16;
     body=`<h1>Формат</h1><p class="muted lead">Как игроки выбывают. Внизу карточки — сколько выйдет матчей на ${n} игроков.</p>
@@ -754,7 +757,7 @@ function renderPult(T){
   if(!isOwner(T))return`<div class="empty">Пульт доступен только клубу-организатору. <a href="#cabinet">Войти</a></div>`;
   const occ=clubLive(T.clubId);const map={};occ.forEach(x=>map[x.m.res.table]=x);
   const free=Array.from({length:n},(_,i)=>i+1).filter(k=>!map[k]);
-  const calls=b.all.filter(m=>m.state==='call'),lives=b.all.filter(m=>m.state==='live'),ready=b.all.filter(m=>m.state==='ready');
+  const atT=b.all.filter(m=>m.state==='call'||m.state==='live').sort((x,y)=>(x.res.table||99)-(y.res.table||99)),ready=b.all.filter(m=>m.state==='ready');
   const done=b.all.filter(m=>m.state==='done').length,tot=b.all.filter(m=>m.state!=='bye').length;
   const tile=k=>{const x=map[k];if(!x)return`<div class="ptile"><b>Стол ${k}</b><span class="pt-big muted">Свободен</span></div>`;
     const isCall=x.m.state==='call';const other=x.t!==T;
@@ -763,13 +766,11 @@ function renderPult(T){
   return`<div class="pult-top"><a class="back" href="#t-${T.id}">← Страница турнира</a><div style="min-width:0"><h2 style="margin:0">${esc(T.title)}</h2><div class="muted" style="font-size:14px">${esc(T.discipline)} · до ${T.raceTo} побед · сыграно ${done} из ${tot}</div></div></div>
   <div class="pult">
   <div class="pult-main">
-  <section><div class="sec-h"><h2>Столы</h2><span class="muted">${free.length} свободно · ${occ.filter(x=>x.m.state==='call').length} вызвано · ${occ.filter(x=>x.m.state==='live').length} играют</span></div>
-  <div class="ptiles">${Array.from({length:n},(_,i)=>tile(i+1)).join('')}</div></section>
-  ${calls.length?`<section><h2>Вызваны к столу</h2>${calls.map(m=>`<div class="pcall"><div style="flex:1;min-width:0"><div class="pc-l">Стол ${m.res.table} · №${m.no}</div><div style="font-weight:600;font-size:17px">${esc(pname(T,m.a))} — ${esc(pname(T,m.b))}</div></div><button class="btn blue big" data-act="startM" data-mid="${m.id}">Начали игру</button><button class="btn ghost big" data-act="uncall" data-mid="${m.id}">Отменить</button></div>`).join('')}</section>`:''}
-  <section><h2>Идут сейчас</h2>${lives.length?`<div class="plive">${lives.map(m=>`<div class="plcard"><div class="pc-l"><span class="lv">● Стол ${m.res.table||'—'}</span> · №${m.no} · до ${T.raceTo}</div><div class="plgrid">${st(m,'a')}${st(m,'b')}</div></div>`).join('')}</div><p class="muted" style="font-size:13px;margin:10px 0 0">Кто набрал ${T.raceTo} — матч закрывается сам, победитель уходит по сетке, стол освобождается.</p>`:`<div class="empty" style="padding:24px">Сейчас никто не играет. Вызовите матч из очереди справа.</div>`}</section>
+  <section><div class="sec-h"><h2>За столами</h2><span class="muted">свободно столов: ${free.length} из ${n}</span></div>
+  ${atT.length?`<div class="plive">${atT.map(m=>`<div class="plcard${m.state==='call'?' called':''}"><div class="pc-l" style="display:flex;justify-content:space-between;gap:8px"><span><span class="lv">${m.state==='call'?'Вызваны · стол '+m.res.table:'● Стол '+(m.res.table||'—')}</span> · до ${T.raceTo}</span>${m.state==='call'?`<button class="lnk" data-act="uncall" data-mid="${m.id}">отменить вызов</button>`:''}</div><div class="plgrid">${st(m,'a')}${st(m,'b')}</div></div>`).join('')}</div><p class="muted" style="font-size:13px;margin:10px 0 0">Нажимайте «+» за каждую выигранную партию. Кто набрал ${T.raceTo} — матч закрывается сам, стол освобождается.</p>`:`<div class="empty" style="padding:28px">${b.finished?'Турнир завершён. Итоги — на странице турнира.':'Пока никто не играет.<br>Нажмите «К столу» у матча из очереди.'}</div>`}</section>
   </div>
-  <aside class="pult-side"><h2 style="margin-bottom:4px">Очередь</h2><p class="muted" style="margin:0 0 12px;font-size:14px">${free.length?'Нажмите свободный стол — игроки вызваны.':'Все столы заняты — дождитесь окончания матча.'}</p>
-  ${ready.length?ready.map(m=>`<div class="pq"><div class="pc-l">№${m.no}</div><div style="font-weight:600;font-size:16px;margin-bottom:10px">${esc(pname(T,m.a))} — ${esc(pname(T,m.b))}</div><div class="pq-t">${free.map(k=>`<button class="btn dark" data-act="callT" data-mid="${m.id}" data-t="${k}">Стол ${k}</button>`).join('')||'<span class="muted" style="font-size:13px">нет свободных столов</span>'}</div></div>`).join(''):`<div class="empty" style="padding:24px">${b.finished?'Турнир завершён':'Ждут результатов идущих матчей'}</div>`}
+  <aside class="pult-side"><h2 style="margin-bottom:4px">Очередь</h2><p class="muted" style="margin:0 0 12px;font-size:14px">${!ready.length?'':free.length?'Одно нажатие — игроки вызваны к свободному столу.':'Все столы заняты — дождитесь окончания матча.'}</p>
+  ${ready.length?ready.map(m=>`<div class="pq"><div style="font-weight:600;font-size:16px;margin-bottom:10px">${esc(pname(T,m.a))} — ${esc(pname(T,m.b))}</div><div class="pq-t">${free.length?`<button class="btn dark" data-act="callT" data-mid="${m.id}" data-t="${free[0]}">К столу ${free[0]}</button>${free.length>1?`<select class="tsel" aria-label="Другой стол" data-act="callSel" data-mid="${m.id}"><option value="">другой стол</option>${free.slice(1).map(k=>`<option value="${k}">Стол ${k}</option>`).join('')}</select>`:''}`:'<span class="muted" style="font-size:13px">нет свободных столов</span>'}</div></div>`).join(''):`<div class="empty" style="padding:24px">${b.finished?'Все матчи сыграны':'Следующие матчи появятся, когда закончатся идущие'}</div>`}
   </aside></div>
   ${UI.undo&&UI.undo.tid===T.id?`<div class="undo" role="status"><span>${esc(UI.undo.text)}</span><button class="btn light" data-act="undo">Отменить</button></div>`:''}`;
 }
@@ -783,14 +784,14 @@ function openMatch(mid){
   if(m.state==='wait'||m.state==='bye'){openModal(head+`<p>${esc(pname(T,m.a))} — ${esc(pname(T,m.b))}</p><p class="muted">${m.state==='bye'?'Свободный проход: соперника нет, игрок проходит дальше без игры.':'Матч ждёт, пока определятся оба соперника.'}</p>`);return}
   const r=m.res||{};
   if(!own){openModal(head+`<div class="score"><span class="nm">${esc(pname(T,m.a))}</span><span style="font-size:22px;font-weight:800;text-align:center">${m.res?r.sa:'—'}</span></div><div class="score"><span class="nm">${esc(pname(T,m.b))}</span><span style="font-size:22px;font-weight:800;text-align:center">${m.res?r.sb:'—'}</span></div><p class="muted" style="font-size:13px">${m.state==='live'?`Идёт${r.table?' за столом '+r.table:''}. `:''}${m.state==='done'?'Матч завершён.':m.state==='ready'?'Ожидает вызова к столу.':''} Игра до ${T.raceTo} побед.</p>`);return}
-  openModal(head+`<p class="muted" style="margin-top:0;font-size:13px">Игра до ${T.raceTo} побед</p>
+  if(m.state!=='done'){openModal(head+`<p style="margin-top:0"><b>${esc(pname(T,m.a))} — ${esc(pname(T,m.b))}</b></p><p class="muted">${m.state==='ready'?'Матч ждёт вызова к столу.':m.state==='call'?'Игроки вызваны к столу '+r.table+'.':'Идёт за столом '+(r.table||'—')+', счёт '+r.sa+' : '+r.sb+'.'} Вызов и счёт ведутся на пульте.</p><div class="acts"><a class="btn blue big" href="#pult-${T.id}">Открыть пульт</a></div>`);return}
+  openModal(head+`<p class="muted" style="margin-top:0;font-size:13px">Матч сыгран. Здесь можно исправить счёт, если ошиблись. Игра до ${T.raceTo} побед.</p>
   <div class="score"><span class="nm">${esc(pname(T,m.a))}</span><input id="sa" type="number" min="0" inputmode="numeric" value="${r.sa??''}"></div>
   <div class="score"><span class="nm">${esc(pname(T,m.b))}</span><input id="sb" type="number" min="0" inputmode="numeric" value="${r.sb??''}"></div>
-  <div class="field" style="margin-top:12px"><label>Стол</label><select id="tbl"><option value="">— выберите —</option>${(()=>{const busy=busyTables(T.clubId,m.id);return Array.from({length:club(T.clubId).tables||6},(_,i)=>i+1).map(n=>`<option value="${n}" ${r.table==n?'selected':''} ${busy.has(n)?'disabled':''}>Стол ${n}${busy.has(n)?' — занят':''}</option>`).join('')})()}</select></div>
+  <input type="hidden" id="tbl" value="${r.table??''}">
   <div class="err" id="m-err"></div>
-  <div class="acts"><button class="btn green" data-act="saveRes" data-mid="${m.id}">Сохранить результат</button><button class="btn ghost" data-act="saveLive" data-mid="${m.id}">Вызвать за стол</button>${m.res?`<button class="btn ghost" data-act="clearRes" data-mid="${m.id}">Сбросить</button>`:''}</div>
-  ${m.state==='done'?'<p class="muted" style="font-size:12px;margin-bottom:0">Если поменять победителя, следующие матчи с его участием сбросятся.</p>':''}`);
-  setTimeout(()=>{const i=document.getElementById('sa');i&&i.focus()},30);
+  <div class="acts"><button class="btn blue" data-act="saveRes" data-mid="${m.id}">Сохранить счёт</button><button class="btn ghost" data-act="clearRes" data-mid="${m.id}">Переиграть матч</button></div>
+  <p class="muted" style="font-size:12px;margin-bottom:0">Если победитель изменится, следующие матчи с его участием сбросятся.</p>`);
 }
 
 /* ============ actions ============ */
@@ -801,7 +802,7 @@ const A={
     T.results[m.id]={a:m.a.id,b:m.b.id,sa:0,sb:0,call:true,done:false,table:k,ts:Date.now()};save();render();toast(`Вызваны к столу ${k}`)},
   startM(el){const {T}=CUR;const r=T.results[el.dataset.mid];if(!r)return;r.call=false;r.live=true;r.ts=Date.now();save();render()},
   uncall(el){const {T}=CUR;delete T.results[el.dataset.mid];save();render()},
-  sc(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];const k='s'+el.dataset.side;const prev=Object.assign({},r);
+  sc(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];const k='s'+el.dataset.side;const prev=Object.assign({},r);if(r.call){r.call=false;r.live=true}
     r[k]=Math.max(0,Math.min(T.raceTo,r[k]+(+el.dataset.d)));
     if(r[k]===T.raceTo&&r.sa!==r.sb){r.done=true;r.live=false;r.ts=Date.now();const w=r.sa>r.sb?m.a:m.b;
       UI.undo={tid:T.id,mid:m.id,prev,text:`Матч №${m.no} завершён · ${sname(pname(T,w))} ${Math.max(r.sa,r.sb)}:${Math.min(r.sa,r.sb)}`};clearTimeout(A._u);A._u=setTimeout(()=>{UI.undo=null;if(location.hash==='#pult-'+T.id)render()},8000)}
@@ -813,7 +814,7 @@ const A={
   wNum(el){const w=UI.wiz,k=el.dataset.k;w[k]=Math.max(k==='gc'?2:1,Math.min(16,w[k]+(+el.dataset.d)));render()},
   wFmt(el){UI.wiz.format=el.dataset.v;render()},
   wSeed(el){UI.wiz.seed=el.dataset.v;render()},
-  wNext(){const w=UI.wiz;if(w.step===1&&!w.title.trim()){document.getElementById('w-err').textContent='Введите название турнира';return}w.step++;render();window.scrollTo(0,0)},
+  wNext(){const w=UI.wiz;if(w.step===1&&!w.title.trim())w.title=w.disc+' · '+fdate(w.date).replace(/ \d{4}$/,'');w.step++;render();window.scrollTo(0,0)},
   wBack(){UI.wiz.step--;render();window.scrollTo(0,0)},
   wAddR(el){const w=UI.wiz;const p=club(S.session).roster.find(x=>x.id===el.dataset.id);if(p)w.players.push(Object.assign({},p));render();const q=document.getElementById('wq');q&&q.focus()},
   wAddP(){const w=UI.wiz,c=club(S.session);const v=id=>document.getElementById(id).value.trim();const e=document.getElementById('wn-err');
@@ -885,13 +886,14 @@ const A={
 document.addEventListener('click',e=>{
   if(e.target.id==='modal'){closeModal();return}
   const el=e.target.closest('[data-act]');if(!el)return;const a=el.dataset.act;
-  if(a==='fmt'||a==='seedMode')return;
+  if(a==='fmt'||a==='seedMode'||a==='callSel')return;
   if(A[a]){e.preventDefault();A[a](el)}
 });
 document.addEventListener('change',e=>{
   const a=e.target.dataset&&e.target.dataset.act;
   if(a==='fmt')A.fmt();
   if(a==='seedMode'){CUR.T.seedMode=e.target.value;save()}
+  if(a==='callSel'&&e.target.value){A.callT({dataset:{mid:e.target.dataset.mid,t:e.target.value}})}
 });
 document.addEventListener('input',e=>{if(e.target.id==='q'){UI.filter.q=e.target.value;renderGrid()}if(e.target.id==='rs-q')renderRoster();if(e.target.id==='wq'&&UI.wiz){UI.wiz.q=e.target.value;renderWizRoster()}if(e.target.dataset&&e.target.dataset.w&&UI.wiz){UI.wiz[e.target.dataset.w]=e.target.value;const t=document.getElementById('ws-title');if(t&&e.target.dataset.w==='title')t.textContent=e.target.value||'Без названия'}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='Enter'&&e.target.id==='lg-pass'){const b=document.querySelector('[data-act=login]');b&&b.click()}if(e.key==='Enter'&&document.getElementById('sa')&&document.getElementById('modal').classList.contains('open')){const b=document.querySelector('[data-act=saveRes]');b&&b.click()}});
