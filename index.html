@@ -627,7 +627,7 @@ function render(){
   const nav=document.getElementById('nav');
   const me=S.session?club(S.session):null;
   nav.innerHTML=`<a href="#home" class="${h==='home'||h.startsWith('t-')?'on':''}">Турниры</a><a href="${S.admin&&!me?'#admin':'#cabinet'}" class="cta">${me?'Кабинет клуба':S.admin?'Администратор':'Вход для клубов'}</a>`;
-  if(me){const lt=S.tournaments.find(t=>t.clubId===me.id&&t.status==='live'&&!build(t).finished);if(lt&&h!=='pult-'+lt.id)nav.insertAdjacentHTML('beforeend',`<a href="#pult-${lt.id}" class="cta" style="background:var(--accent)">Пульт</a>`)}
+  if(me){const lt=S.tournaments.find(t=>t.clubId===me.id&&t.status==='live'&&!build(t).finished);if(lt&&h!=='pult-'+lt.id&&!h.startsWith('t-'))nav.insertAdjacentHTML('beforeend',`<a href="#pult-${lt.id}" class="cta" style="background:var(--accent)">Пульт</a>`)}
   renderTicker(h==='home');
   const app=document.getElementById('app');
   if(h.startsWith('t-')){const T=tById(h.slice(2));if(T){app.innerHTML=renderT(T);renderRoster();return}}
@@ -805,7 +805,7 @@ function tablesBoard(T){const c=club(T.clubId);const n=c.tables||6;const live=cl
   return x?`<div class="tblx ${x.m.state==='call'?'call':'busy'}" ${x.t===T?`data-act="match" data-mid="${x.m.id}"`:''}><b>Стол ${k}${x.m.state==='call'?' · вызваны':''}</b><span>${esc(pname(x.t,x.m.a))}</span><span>${esc(pname(x.t,x.m.b))}</span><em>${x.m.state==='call'?'':x.m.res.sa+' : '+x.m.res.sb}${x.t===T?'':' <small>· '+esc(x.t.title)+'</small>'}</em></div>`:`<div class="tblx"><b>Стол ${k}</b><span class="muted">свободен</span></div>`}).join('')}</div></div>`}
 function renderTablesTab(T,b){
   const ready=b.all.filter(m=>m.state==='ready');
-  return (isOwner(T)&&!b.finished?`<div class="note" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span>Вызывать к столу и вести счёт — на пульте.</span><a class="btn blue" href="#pult-${T.id}">Открыть пульт</a></div>`:'')+tablesBoard(T)+
+  return tablesBoard(T)+
     (b.finished?'':`<div class="sec"><div class="sec-h"><h2>Ждут свободного стола</h2><span class="muted">${ready.length}</span></div>${ready.length?`<div class="mlist" style="max-width:720px">${ready.map(m=>mRow(T,m)).join('')}</div>`:'<div class="muted">Очереди нет</div>'}</div>`);
 }
 function stageMap(b){const st={};const put=(arr,f)=>(arr||[]).forEach((rd,i)=>(rd.matches||[]).forEach(m=>{st[m.id]=f(rd,i)}));
