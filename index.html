@@ -168,7 +168,8 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .m.s-live .m-top{color:var(--live-ink);background:var(--live-soft)}
 .m.s-ready{border-color:var(--ok);background:#F2FAF5}
 .m.s-live .row+.row,.m.s-ready .row+.row{border-top-color:rgba(0,0,0,.07)}.m.s-ready .m-top{color:var(--ok);background:var(--ok-soft)}
-.m.s-bye{opacity:.45;cursor:default}
+.m.s-bye{cursor:default}
+.m .row.wo .n{color:#B5B5B5}
 .final-box{max-width:260px}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
 .legend i{font-style:normal}.legend .r{color:var(--live-ink)}.legend .g{color:var(--ok)}
@@ -696,16 +697,16 @@ function renderT(T){
 }
 function mCard(T,m,mk){
   const r=m.res,showSc=m.state==='done'||m.state==='live';
-  const cls=s=>{if(s.t==='tbd')return'tbd';if(m.state!=='done')return'';return m.winner.t==='p'&&m.winner.id===s.id?'win':'lose'};
-  const row=(s,sc)=>`<div class="row ${cls(s)}"${s.t==='p'?` data-pid="${s.id}"`:''}><span class="n">${s.t==='tbd'?'&nbsp;':esc(s.t==='p'?sname(pname(T,s)):pname(T,s))}</span><span class="sc">${showSc?sc:''}</span></div>`;
+  const cls=s=>{if(s.t==='tbd')return'tbd';if(s.t==='bye')return'wo';if(m.state!=='done')return'';return m.winner.t==='p'&&m.winner.id===s.id?'win':'lose'};
+  const row=(s,sc)=>`<div class="row ${cls(s)}"${s.t==='p'?` data-pid="${s.id}"`:''}><span class="n">${s.t==='tbd'?'&nbsp;':s.t==='bye'?'Walk Over':esc(s.t==='p'?sname(pname(T,s)):pname(T,s))}</span><span class="sc">${showSc?sc:''}</span></div>`;
   const tm=m.state==='done'&&r&&r.ts?new Date(r.ts).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}):'';
-  const st={live:`<span class="mst live">● играют</span>`,ready:'<span class="mst ok">● можно вызывать</span>',bye:'<span class="mst">проход</span>'}[m.state]||'';
+  const st={live:`<span class="mst live">● играют</span>`,ready:'<span class="mst ok">● можно вызывать</span>',bye:''}[m.state]||'';
   return`<div class="mw"><div class="m-meta"><span>${mk?`<b class="mk ${mk.c}">${mk.n}</b>`:'№'+m.no}${(m.state==='done'||m.state==='live')&&r&&r.table?' · стол '+r.table:''}</span>${st}</div><div class="m s-${m.state}" data-act="match" data-mid="${m.id}">${row(m.a,r?r.sa:'')}${row(m.b,r?r.sb:'')}</div></div>`;
 }
 function bracketHTML(T,rounds,opt){opt=opt||{};
   const rs=rounds.map((rd,i)=>{const n=rd.matches.length,nx=rounds[i+1]?rounds[i+1].matches.length:0;const join=!!nx&&n===nx*2;const step=join?2:1;const groups=[];
     for(let k=0;k<n;k+=step)groups.push(rd.matches.slice(k,k+step));
-    const hid=m=>m.a.t==='bye'&&m.b.t==='bye';
+    const hid=m=>false;
     return`<div class="round${nx?' conn':''}${i>0?' instub':''}${opt.po===i?' po-start':''}"><div class="round-title">${rd.title}<small>${rd.sub||'&nbsp;'}</small></div><div class="round-body">${groups.map(g=>`<div class="pair${join&&!g.some(hid)?' join':''}">${g.map(m=>`<div class="slot${hid(m)?' hid':''}"><div class="sw">${mCard(T,m,opt.mk&&opt.mk[m.no])}${opt.cap&&opt.cap(m,i)?`<div class="cap">${opt.cap(m,i)}</div>`:''}</div></div>`).join('')}</div>`).join('')}</div></div>`}).join('');
   const inU=opt.cls==='mir'||opt.cls==='ub';
   return inU?`<div class="bracket ${opt.cls}">${rs}</div>`:`<div class="bracket${opt.cls?' '+opt.cls:''}"><div class="bk-in zm" style="zoom:${ZOOM}">${rs}</div></div>`;
