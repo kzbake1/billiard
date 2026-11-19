@@ -1094,24 +1094,47 @@ const A={
   shareT(){const T=CUR&&CUR.T;if(!T)return;const url=location.origin+location.pathname+'#t-'+T.id;
     if(navigator.share){navigator.share({title:T.title,url}).catch(()=>{});return}
     (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>toast('Ссылка скопирована')).catch(()=>prompt('Ссылка на турнир',url))},
-  xlsT(){const T=CUR&&CUR.T;if(!T)return;const go=()=>{const b=build(T),st=stageMap(b),X=window.XLSX;
-      const ms=b.all.filter(m=>m.state!=='bye').sort((x,y)=>x.no-y.no).map(m=>{const r=m.res||{},d=m.state==='done';return{'№':m.no,'Стадия':st[m.id]||'','Стол':r.table||'','Игрок 1':m.a.t==='p'?pname(T,m.a):'','Счёт 1':d||m.state==='live'?r.sa:'','Счёт 2':d||m.state==='live'?r.sb:'','Игрок 2':m.b.t==='p'?pname(T,m.b):'','Победитель':d&&m.winner.t==='p'?pname(T,m.winner):''}});
-      const ps=T.players.map((p,i)=>({'Посев':i+1,'Игрок':p.name,'Г.р.':byear(p),'Город':p.city||'','Звание':p.rank||''}));
-      const wb=X.utils.book_new();
-      const blocks=[];const R=(arr,f)=>(arr||[]).map((rd,i)=>({title:f(rd,i),matches:rd.matches}));
-      if(T.format==='de'&&b.K)blocks.push(['',[...R(b.lb,(rd,i)=>'Нижняя · раунд '+(i+1)).reverse(),...R(b.wb,(rd,i)=>'Верхняя · раунд '+(i+1)),...R(b.rounds,rd=>rd.title)]]);
-      else if(T.format==='de'){blocks.push(['Верхняя сетка',R(b.wb,rd=>rd.title)]);blocks.push(['Нижняя сетка',R(b.lb,rd=>rd.title)]);blocks.push(['Суперфинал',[{title:'Суперфинал',matches:[b.gf,b.gf2].filter(Boolean)}]])}
-      else if(b.rounds&&b.rounds.length&&T.format!=='rr')blocks.push([T.format==='gp'?'Плей-офф':'',R(b.rounds,rd=>rd.title)]);
-      if(blocks.length){const g=[];const put=(r,c,v)=>{while(g.length<=r)g.push([]);g[r][c]=v};let top=0,maxC=0;
-        blocks.forEach(([name,rs])=>{rs=rs.filter(x=>x.matches.length);if(!rs.length)return;if(name){put(top,0,name);top+=1}
-          const H=Math.max(...rs.map(x=>x.matches.length))*3;rs.forEach((rd,ci)=>{const c=ci*3;put(top,c,rd.title);const n=rd.matches.length,bl=H/n;
-            rd.matches.forEach((m,i)=>{const r0=top+1+Math.floor(i*bl+(bl-2)/2);const rr=m.res||{},sh=m.state==='done'||m.state==='live';const nm=x=>x.t==='p'?sname(pname(T,x)):x.t==='bye'?'—':'';
-              put(r0,c,'№'+m.no+'  '+nm(m.a));put(r0,c+1,sh?rr.sa:'');put(r0+1,c,(m.state==='live'?'● ':'')+nm(m.b));put(r0+1,c+1,sh?rr.sb:'')});maxC=Math.max(maxC,c+2)});top+=H+3});
-        const ws=X.utils.aoa_to_sheet(g.map(r=>Array.from({length:maxC+1},(_,i)=>r[i]===undefined?'':r[i])));ws['!cols']=Array.from({length:maxC+1},(_,i)=>({wch:i%3===0?24:i%3===1?4:2}));X.utils.book_append_sheet(wb,ws,'Сетка')}
-      X.utils.book_append_sheet(wb,X.utils.json_to_sheet(ms),'Ведомость');X.utils.book_append_sheet(wb,X.utils.json_to_sheet(ps),'Участники');
-      if(b.finished&&b.places)X.utils.book_append_sheet(wb,X.utils.json_to_sheet(b.places.flatMap(p=>p.ids.map(id=>({'Место':p.from===p.to?p.from:p.from+'–'+p.to,'Игрок':pname(T,P(id))})))),'Итоги');
-      X.writeFile(wb,(T.title||'турнир').replace(/[\\/:*?"<>|]/g,'').slice(0,80)+'.xlsx')};
-    if(window.XLSX)return go();toast('Готовлю файл…');const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';sc.onload=go;sc.onerror=()=>toast('Не удалось подготовить файл');document.head.appendChild(sc)},
+  xlsT(){const T=CUR&&CUR.T;if(!T)return;const go=async()=>{try{const b=build(T),st=stageMap(b),f=flow(T),wb=new ExcelJS.Workbook();
+      const GR='FF9A9A9A',LN={style:'thin',color:{argb:'FFBDBDBD'}},CN={style:'thin',color:{argb:'FF9A9A9A'}};
+      const R=(arr,t,k)=>(arr||[]).map((rd,i)=>({title:t(rd,i),matches:rd.matches,k,i}));
+      const blocks=[];
+      if(T.format==='de'&&b.K)blocks.push({name:'',L:R(b.lb,(rd,i)=>'Нижняя · раунд '+(i+1),'l').reverse(),Rt:[...R(b.wb,(rd,i)=>'Верхняя · раунд '+(i+1),'w'),...R(b.rounds,rd=>rd.title,'p')]});
+      else if(T.format==='de'){blocks.push({name:'Верхняя сетка',L:[],Rt:R(b.wb,rd=>rd.title,'w')});blocks.push({name:'Нижняя сетка',L:[],Rt:R(b.lb,rd=>rd.title,'l')});blocks.push({name:'Суперфинал',L:[],Rt:[{title:'Суперфинал',matches:[b.gf,b.gf2].filter(Boolean),k:'p',i:0}]})}
+      else if(b.rounds&&b.rounds.length&&T.format!=='rr')blocks.push({name:T.format==='gp'?'Плей-офф':'',L:[],Rt:R(b.rounds,rd=>rd.title,'p')});
+      if(blocks.length){const ws=wb.addWorksheet('Сетка',{views:[{showGridLines:false}],pageSetup:{orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:1,paperSize:9}});let top=1,maxC=0;
+        const cell=(r,c)=>ws.getCell(r,c);const bd=(r,c,side,v)=>{const x=cell(r,c);x.border=Object.assign({},x.border||{},{[side]:v})};
+        const hd=ws.getRow(1);const t0=ws.getCell(1,1);
+        blocks.forEach(B=>{const rs=[...B.L,...B.Rt].filter(x=>x.matches.length);if(!rs.length)return;
+          if(B.name){const x=cell(top,1);x.value=B.name;x.font={bold:true,size:12};top+=1}
+          const H=Math.max(...rs.map(x=>x.matches.length))*5;const pos=rs.map((rd,ci)=>{const c=1+ci*4,n=rd.matches.length,bl=H/n;return{rd,c,rows:rd.matches.map((m,i)=>top+2+Math.floor(i*bl+(bl-4)/2))}});
+          const nL=B.L.filter(x=>x.matches.length).length;
+          pos.forEach((P_,ci)=>{const {rd,c,rows}=P_;const h=cell(top,c);h.value=rd.title.toUpperCase();h.font={bold:true,size:9,color:{argb:rd.k==='p'&&rd.i===0&&b.K?'FF1667FF':'FF111111'}};bd(top,c,'bottom',LN);bd(top,c+1,'bottom',LN);
+            const last=rd.k==='p'?rd.i===(b.rounds||[]).length-1:false,semi=rd.k==='p'&&rd.i===(b.rounds||[]).length-2;
+            rd.matches.forEach((m,i)=>{const r0=rows[i],rr=m.res||{},d=m.state==='done',sh=d||m.state==='live';
+              const meta=cell(r0,c);meta.value='№'+m.no+(sh&&rr.table?' · стол '+rr.table:'')+(m.state==='live'?' · играют':m.state==='ready'?' · можно вызывать':'');meta.font={size:8,color:{argb:m.state==='live'?'FFC4321F':m.state==='ready'?'FF0B7A47':GR}};
+              const fill=m.state==='live'?'FFFEF0EE':m.state==='ready'?'FFEAF7EF':'FFFFFFFF';
+              [[m.a,'sa'],[m.b,'sb']].forEach(([x,k],j)=>{const r=r0+1+j;const n=cell(r,c),s=cell(r,c+1);n.value=x.t==='p'?sname(pname(T,x)):x.t==='bye'?'—':'';n.font={size:11,color:{argb:x.t==='bye'?'FFB5B5B5':'FF111111'}};
+                s.value=sh?rr[k]:'';const win=d&&m.winner.t==='p'&&m.winner.id===x.id;s.font={size:11,bold:true,color:{argb:d?(win?'FF0B7A47':'FFC4321F'):'FF111111'}};s.alignment={horizontal:'center'};
+                [n,s].forEach(z=>{z.fill={type:'pattern',pattern:'solid',fgColor:{argb:fill}}});
+                n.border={top:LN,bottom:LN,left:LN};s.border={top:LN,bottom:LN,right:LN}});
+              let cap='';if(rd.k==='w'&&rd.i>=1&&f.l[m.no])cap='проигравший на №'+f.l[m.no];else if(rd.k==='l'&&b.K&&rd.i===b.lb.length-1&&f.w[m.no])cap='победитель на №'+f.w[m.no];else if(last&&rd.k==='p')cap='Финал';else if(semi)cap='Полуфинал';
+              if(cap){const x=cell(r0+3,c);x.value=cap;x.font={size:8,bold:cap==='Финал'||cap==='Полуфинал',color:{argb:cap==='Финал'||cap==='Полуфинал'?'FF111111':GR}}}});
+            maxC=Math.max(maxC,c+3)});
+          // connectors
+          const link=(S,D,left)=>{const n=S.rows.length,nx=D.rows.length;if(!nx)return;const cA=left?D.c+3:S.c+2,cB=left?D.c+2:S.c+3;
+            if(n===nx*2)for(let j=0;j<nx;j++){const a=S.rows[2*j]+1,z=S.rows[2*j+1]+1,mid=D.rows[j]+1;bd(a,cA,'bottom',CN);bd(z,cA,'bottom',CN);for(let r=a+1;r<=z;r++)bd(r,cA,left?'left':'right',CN);bd(mid,cB,'bottom',CN)}
+            else if(n===nx)for(let j=0;j<n;j++){bd(S.rows[j]+1,cA,'bottom',CN);bd(D.rows[j]+1,cB,'bottom',CN)}};
+          for(let i=nL-1;i>0;i--)link(pos[i],pos[i-1],true);
+          for(let i=nL;i<pos.length-1;i++)link(pos[i],pos[i+1],false);
+          top+=H+4});
+        for(let c=1;c<=maxC;c++)ws.getColumn(c).width=(c-1)%4===0?22:(c-1)%4===1?4:2.5}
+      const ms=b.all.filter(m=>m.state!=='bye').sort((x,y)=>x.no-y.no);
+      const w2=wb.addWorksheet('Ведомость');w2.columns=[{header:'№',width:6},{header:'Стадия',width:20},{header:'Стол',width:6},{header:'Игрок 1',width:26},{header:'Счёт 1',width:8},{header:'Счёт 2',width:8},{header:'Игрок 2',width:26},{header:'Победитель',width:26}];
+      ms.forEach(m=>{const r=m.res||{},d=m.state==='done',sh=d||m.state==='live';w2.addRow([m.no,st[m.id]||'',r.table||'',m.a.t==='p'?pname(T,m.a):'',sh?r.sa:'',sh?r.sb:'',m.b.t==='p'?pname(T,m.b):'',d&&m.winner.t==='p'?pname(T,m.winner):''])});w2.getRow(1).font={bold:true};
+      const w3=wb.addWorksheet('Участники');w3.columns=[{header:'Посев',width:7},{header:'Игрок',width:28},{header:'Г.р.',width:7},{header:'Город',width:16},{header:'Звание',width:12}];T.players.forEach((p,i)=>w3.addRow([i+1,p.name,byear(p),p.city||'',p.rank||'']));w3.getRow(1).font={bold:true};
+      if(b.finished&&b.places){const w4=wb.addWorksheet('Итоги');w4.columns=[{header:'Место',width:9},{header:'Игрок',width:28}];b.places.forEach(p=>p.ids.forEach(id=>w4.addRow([p.from===p.to?String(p.from):p.from+'–'+p.to,pname(T,P(id))])));w4.getRow(1).font={bold:true}}
+      const buf=await wb.xlsx.writeBuffer();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));a.download=(T.title||'турнир').replace(/[\\/:*?"<>|]/g,'').slice(0,80)+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000)}catch(e){console.error(e);toast('Не удалось собрать файл')}};
+    if(window.ExcelJS)return go();toast('Готовлю файл…');const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';sc.onload=go;sc.onerror=()=>toast('Не удалось подготовить файл');document.head.appendChild(sc)},
   tmenu(el){const id=CUR&&CUR.T.id;UI.tmenu=UI.tmenu===id?null:id;render()},
   psort(el){const k=el.dataset.k,o=UI.psort||{k:'pos',d:1};UI.psort={k,d:o.k===k?-o.d:1};render()},
   zoom(el){const d=+el.dataset.d;setZoom(d?ZOOM+d*.1:1)},
