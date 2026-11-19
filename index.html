@@ -81,14 +81,29 @@ a.card:hover{border-color:var(--ink)}
 .tband{background:#fff;border:0;border-radius:16px;padding:30px 32px 0;margin-bottom:24px}
 .thead{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:flex-end}
 .thead h1{font-size:46px}
-.th-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;min-height:36px}.th-top .back{margin:0}
+.th-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;min-height:36px}.th-top .back{margin:0}
 .th-act{display:flex;gap:14px;align-items:center}
 .th-del{border:0;background:none;padding:0;font:inherit;font-size:13px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px}.th-del:hover{color:var(--live-ink)}
-.th-title{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.th-title h1{font-size:34px;margin:0}
-.th-facts,.th-club{display:flex;flex-wrap:wrap;margin-top:10px;font-size:15px;color:var(--ink)}
+.th-main{display:flex;justify-content:space-between;align-items:flex-end;gap:32px;flex-wrap:wrap}.th-l{min-width:0;flex:1 1 520px}
+.th-l h1{font-size:36px;line-height:1.1;margin:6px 0 0;letter-spacing:-.02em}
+.th-over{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sub)}.th-over i{width:3px;height:3px;border-radius:50%;background:#C4C4C4}
+.th-over .dot{width:8px;height:8px;border-radius:50%;background:#B5B5B5}.th-over .dot.live{background:var(--live);animation:pulse 1.4s infinite}.th-over .dot.done{background:var(--accent)}
+.th-side{flex:0 0 240px;display:flex;flex-direction:column;gap:4px;padding-left:24px;border-left:1px solid var(--line)}
+.th-side .lbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.th-side b{font-size:30px;font-weight:600;line-height:1.1;letter-spacing:-.02em}.th-side b small{font-size:15px;font-weight:500;color:var(--muted);letter-spacing:0}.th-side b.nm{font-size:20px}
+.th-side .mut{font-size:13px;color:var(--muted)}
+.th-side .bar{display:block;height:4px;border-radius:4px;background:#EDEDED;overflow:hidden;margin-top:8px}.th-side .bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
+@media(max-width:760px){.th-side{flex:1 1 100%;padding:14px 0 0;border-left:0;border-top:1px solid var(--line)}.th-l h1{font-size:26px}}
+.th-facts,.th-club{display:flex;flex-wrap:wrap;margin-top:12px;font-size:15px;color:var(--ink)}
 .th-club{margin-top:6px;font-size:14px;color:var(--muted)}.th-club b{font-weight:600;color:var(--sub)}.th-club a{color:var(--accent-ink)}
 .th-facts span+span::before,.th-club span+span::before{content:'·';margin:0 9px;color:#B5B5B5}
-.tband .tabs{margin-top:22px}
+.tband .tabs{margin:26px -32px 0;padding:0 32px;gap:28px;border-top:1px solid var(--line)}
+.tband .tabs button{background:none;border-radius:0;padding:16px 0 15px;font-size:15px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tband .tabs button:hover{color:var(--ink)}
+.tband .tabs button.on{background:none;color:var(--ink);font-weight:600;border-bottom-color:var(--ink)}
+.tband .tabs .cnt{background:#F0F0F0;color:var(--sub);padding:1px 7px;font-weight:600}
+.tband .tabs button.on .cnt{background:var(--ink);color:#fff}
+@media(max-width:640px){.tband .tabs{margin:20px -18px 0;padding:0 18px;gap:22px}}
 @media(max-width:640px){.th-title h1{font-size:26px}}
 .fgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .fgrid div{background:#fff;padding:12px 18px}.fgrid span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}.fgrid b{font-weight:700;white-space:nowrap}
@@ -689,13 +704,15 @@ function renderT(T){
   const done=b.all.filter(m=>m.state==='done').length,tot=b.all.filter(m=>m.state!=='bye').length;
   const fmt=FORMATS[T.format]+(T.format==='gp'?` ${T.groups.count}×${T.groups.advance}`:'')+(T.format==='de'&&b.name?' '+b.name:'');
   const n=T.players.length,pw=n%10===1&&n%100!==11?'игрок':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?'игрока':'игроков');
-  const facts=[fdate(T.date),esc(T.discipline),fmt,'до '+T.raceTo+' побед',n+' '+pw];if(T.status!=='reg'&&!b.finished)facts.push('сыграно '+done+' из '+tot);
+  const facts=[fdate(T.date),fmt,'до '+T.raceTo+' побед',n+' '+pw];
+  const champ=b.finished&&b.places&&b.places[0]&&b.places[0].ids[0]?pname(T,P(b.places[0].ids[0])):'';
+  const side=T.status==='reg'?`<div class="th-side"><span class="lbl">Набор игроков</span><b>${n}</b><span class="mut">заявлено</span></div>`:b.finished?`<div class="th-side"><span class="lbl">Победитель</span><b class="nm">${esc(champ)}</b><span class="mut">${tot} матчей сыграно</span></div>`:`<div class="th-side"><span class="lbl">Сыграно</span><b>${done}<small> из ${tot}</small></b><span class="bar"><i style="width:${tot?Math.round(done/tot*100):0}%"></i></span></div>`;
   const place=[c.city,c.address].filter(Boolean).map(esc).join(', ');
   const cl=[`<b>${esc(c.name)}</b>`,place,c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:'',c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:''].filter(Boolean);
   return`<div class="tband"><div class="th-top"><a class="back" href="#home">← Все турниры</a>${own?`<div class="th-act">${UI.confirm===cdel?`<span class="muted" style="font-size:13px">Удалить турнир?</span><button class="btn sm red" data-act="delT" data-id="${T.id}">Да, удалить</button><button class="btn sm ghost" data-act="cancelConfirm">Нет</button>`:`<button class="th-del" data-act="askDel" data-id="${T.id}">Удалить турнир</button>${T.status==='live'&&!b.finished?`<a class="btn blue" href="#pult-${T.id}">Открыть пульт</a>`:''}`}</div>`:''}</div>
-  <div class="th-title"><h1>${esc(T.title)}</h1><span class="st ${st}">${ST_LABEL[st]}</span></div>
+  <div class="th-main"><div class="th-l"><div class="th-over"><span class="dot ${st}"></span>${ST_LABEL[st]}<i></i>${esc(T.discipline)}</div><h1>${esc(T.title)}</h1>
   <div class="th-facts">${facts.map(f=>`<span>${f}</span>`).join('')}</div>
-  <div class="th-club">${cl.map(f=>`<span>${f}</span>`).join('')}</div>
+  <div class="th-club">${cl.map(f=>`<span>${f}</span>`).join('')}</div></div>${side}</div>
   <div class="tabs">${tabs.map(t=>`<button class="${t[0]===tab?'on':''}" data-act="tab" data-id="${T.id}" data-tab="${t[0]}">${t[1]}${t[2]?`<span class="cnt">${t[2]}</span>`:''}</button>`).join('')}</div></div>
   ${body}`;
 }
