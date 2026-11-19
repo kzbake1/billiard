@@ -116,7 +116,12 @@ a.card:hover{border-color:var(--ink)}
 .slot{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;padding:18px 0}
 .round-body{padding-top:8px}
 .slot.hid{visibility:hidden}
-.sw{position:relative}
+.sw{position:relative;transition:opacity .12s}
+.zm.hl .sw:not(.hlm){opacity:.35}
+.m .row.hlr{background:var(--accent-soft)}.m .row.hlr .n{font-weight:600;color:var(--accent-ink)}
+.round.conn .slot.hlo::after,.round.instub .slot.hli::before{border-top-color:var(--accent);border-top-width:2px;margin-top:-.5px}
+.round.conn .pair.join.hlt::before{border-color:var(--accent);border-width:2px 2px 0 0}
+.round.conn .pair.join.hlb::after{border-color:var(--accent);border-width:0 2px 2px 0}
 .lz{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 .zoomer{display:inline-flex;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .zoomer button{border:0;background:none;height:34px;min-width:34px;padding:0 8px;font:inherit;font-size:16px;color:var(--ink);cursor:pointer}.zoomer button:hover{background:#F2F2F2}
@@ -692,7 +697,7 @@ function renderT(T){
 function mCard(T,m,mk){
   const r=m.res,showSc=m.state==='done'||m.state==='live';
   const cls=s=>{if(s.t==='tbd')return'tbd';if(m.state!=='done')return'';return m.winner.t==='p'&&m.winner.id===s.id?'win':'lose'};
-  const row=(s,sc)=>`<div class="row ${cls(s)}"><span class="n">${s.t==='tbd'?'&nbsp;':esc(s.t==='p'?sname(pname(T,s)):pname(T,s))}</span><span class="sc">${showSc?sc:''}</span></div>`;
+  const row=(s,sc)=>`<div class="row ${cls(s)}"${s.t==='p'?` data-pid="${s.id}"`:''}><span class="n">${s.t==='tbd'?'&nbsp;':esc(s.t==='p'?sname(pname(T,s)):pname(T,s))}</span><span class="sc">${showSc?sc:''}</span></div>`;
   const tm=m.state==='done'&&r&&r.ts?new Date(r.ts).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}):'';
   const st={live:`<span class="mst live">● играют</span>`,ready:'<span class="mst ok">● можно вызывать</span>',bye:'<span class="mst">проход</span>'}[m.state]||'';
   return`<div class="mw"><div class="m-meta"><span>${mk?`<b class="mk ${mk.c}">${mk.n}</b>`:'№'+m.no}${(m.state==='done'||m.state==='live')&&r&&r.table?' · стол '+r.table:''}</span>${st}</div><div class="m s-${m.state}" data-act="match" data-mid="${m.id}">${row(m.a,r?r.sa:'')}${row(m.b,r?r.sb:'')}</div></div>`;
@@ -735,6 +740,19 @@ function setZoom(z,cx,cy){z=Math.round(Math.min(1.5,Math.max(.4,z))*100)/100;if(
   document.addEventListener('touchmove',e=>{if(P&&e.touches.length===2){e.preventDefault();P.k=Math.min(1.5,Math.max(.4,P.z0*dist(e.touches)/P.d0))/P.z0;P.el.style.transform='scale('+P.k+')'}},{passive:false});
   document.addEventListener('touchend',end,{passive:true});document.addEventListener('touchcancel',end,{passive:true});
   let g0=1;document.addEventListener('gesturestart',e=>{if(touch){if(inB(e))e.preventDefault();return}if(inB(e)){e.preventDefault();g0=ZOOM}});document.addEventListener('gesturechange',e=>{if(touch){if(inB(e))e.preventDefault();return}if(inB(e)){e.preventDefault();setZoom(g0*e.scale,e.clientX,e.clientY)}});
+})();
+let HL=null;
+function hlPlayer(pid){if(pid===HL)return;HL=pid;
+  document.querySelectorAll('.zm').forEach(root=>{root.classList.toggle('hl',!!pid);
+    root.querySelectorAll('.hlr,.hlm,.hlo,.hli,.hlt,.hlb').forEach(e=>e.classList.remove('hlr','hlm','hlo','hli','hlt','hlb'));
+    if(!pid)return;const sel='.row[data-pid="'+pid+'"]';
+    root.querySelectorAll(sel).forEach(row=>{row.classList.add('hlr');const sw=row.closest('.sw');if(!sw)return;sw.classList.add('hlm');
+      const slot=sw.parentElement,pair=slot.parentElement,round=slot.closest('.round');if(!round)return;
+      if(row.classList.contains('win')&&round.classList.contains('conn')){if(pair.classList.contains('join'))pair.classList.add(slot===pair.firstElementChild?'hlt':'hlb');else slot.classList.add('hlo')}
+      const prev=round.previousElementSibling;if(prev&&round.classList.contains('instub')&&prev.querySelector('.win'+sel))slot.classList.add('hli')})})}
+(function(){const hov=()=>!window.matchMedia||window.matchMedia('(hover:hover)').matches;const rowOf=e=>e.target&&e.target.closest&&e.target.closest('.zm .m .row[data-pid]');
+  document.addEventListener('mouseover',e=>{if(!hov())return;const r=rowOf(e);hlPlayer(r?r.dataset.pid:null)});
+  document.addEventListener('click',e=>{if(hov())return;const n=e.target.closest&&e.target.closest('.zm .m .row[data-pid] .n');if(n){e.stopPropagation();e.preventDefault();const p=n.parentElement.dataset.pid;hlPlayer(HL===p?null:p)}else if(HL&&!(e.target.closest&&e.target.closest('.zoomer')))hlPlayer(null)},true);
 })();
 const FLOW={};
 function flow(T){const key=T.id+'|'+T.players.map(p=>p.id).join(',')+'|'+T.playoff+'|'+(T.poPerm||'');if(FLOW[T.id]&&FLOW[T.id].key===key)return FLOW[T.id];
