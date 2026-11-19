@@ -84,6 +84,9 @@ a.card:hover{border-color:var(--ink)}
 .thead h1{font-size:46px}
 .th-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;min-height:36px}.th-top .back{margin:0}
 .th-act{display:flex;gap:14px;align-items:center}
+.tmenu{position:relative}.tmenu .dots{border:1px solid var(--line);background:#fff;width:36px;height:36px;border-radius:10px;font-size:18px;line-height:1;color:var(--sub);cursor:pointer}.tmenu .dots:hover{background:#F5F5F5;color:var(--ink)}
+.tmenu .pop{position:absolute;right:0;top:42px;z-index:20;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.10);padding:6px;min-width:180px}
+.tmenu .pop button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 12px;border-radius:8px;font:inherit;font-size:14px;color:var(--live-ink);cursor:pointer}.tmenu .pop button:hover{background:var(--live-soft)}
 .th-del{border:0;background:none;padding:0;font:inherit;font-size:13px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px}.th-del:hover{color:var(--live-ink)}
 .th-main{display:flex;justify-content:space-between;align-items:flex-end;gap:32px;flex-wrap:wrap}.th-l{min-width:0;flex:1 1 520px}
 .th-l h1{font-size:36px;line-height:1.1;margin:6px 0 0;letter-spacing:-.02em}
@@ -725,7 +728,7 @@ function renderT(T){
   const place=[c.city,c.address].filter(Boolean).map(esc).join(', ');
   const cl=[`<b>${esc(c.name)}</b>`,place,c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:'',c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:''].filter(Boolean);
   const side=`<div class="th-side"><b class="cn">${esc(c.name)}</b>${place?`<span>${place}</span>`:''}${c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:''}${c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:''}</div>`;
-  return`<div class="tband"><div class="th-top"><a class="back" href="#home">← Все турниры</a>${own?`<div class="th-act">${UI.confirm===cdel?`<span class="muted" style="font-size:13px">Удалить турнир?</span><button class="btn sm red" data-act="delT" data-id="${T.id}">Да, удалить</button><button class="btn sm ghost" data-act="cancelConfirm">Нет</button>`:`<button class="th-del" data-act="askDel" data-id="${T.id}">Удалить турнир</button>${T.status==='live'&&!b.finished?`<a class="btn blue" href="#pult-${T.id}">Открыть пульт</a>`:''}`}</div>`:''}</div>
+  return`<div class="tband"><div class="th-top"><a class="back" href="#home">← Все турниры</a>${own?`<div class="th-act">${UI.confirm===cdel?`<span class="muted" style="font-size:13px">Удалить турнир?</span><button class="btn sm red" data-act="delT" data-id="${T.id}">Да, удалить</button><button class="btn sm ghost" data-act="cancelConfirm">Нет</button>`:`<div class="tmenu"><button class="dots" data-act="tmenu" aria-label="Ещё" title="Ещё">⋯</button>${UI.tmenu===T.id?`<div class="pop"><button data-act="askDel" data-id="${T.id}">Удалить турнир</button></div>`:''}</div>`}</div>`:''}</div>
   <div class="th-main"><div class="th-l"><div class="th-over"><span class="dot ${st}"></span>${ST_LABEL[st]}<i></i>${esc(T.discipline)}</div><h1>${esc(T.title)}</h1>
   <div class="th-facts">${facts.map(f=>`<span>${f}</span>`).join('')}</div>
 </div>${side}</div>
@@ -1056,6 +1059,7 @@ const A={
   filter(el){UI.filter[el.dataset.k]=el.dataset.v;render()},
   tab(el){UI.tab[el.dataset.id]=el.dataset.tab;render()},
   print(){window.print()},
+  tmenu(el){const id=CUR&&CUR.T.id;UI.tmenu=UI.tmenu===id?null:id;render()},
   psort(el){const k=el.dataset.k,o=UI.psort||{k:'pos',d:1};UI.psort={k,d:o.k===k?-o.d:1};render()},
   zoom(el){const d=+el.dataset.d;setZoom(d?ZOOM+d*.1:1)},
   uniGo(el){const u=document.querySelector('.uni');if(!u)return;const v=el.dataset.v,ub=u.querySelector('.ub'),po=u.querySelector('.po-start');const X=e=>e.getBoundingClientRect().left-u.getBoundingClientRect().left+u.scrollLeft-20;u.scrollTo({left:v==='lb'?0:v==='wb'?X(ub):X(po),behavior:'smooth'})},
@@ -1070,7 +1074,7 @@ const A={
   saveLive(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);const sa=num('sa')||0,sb=num('sb')||0,tb=num('tbl');if(!tb){document.getElementById('m-err').textContent='Выберите стол';return}
     T.results[m.id]={a:m.a.id,b:m.b.id,sa,sb,live:true,done:false,table:tb,ts:Date.now()};save();closeModal();render();toast("Игроки вызваны к столу")},
   clearRes(el){const {T}=CUR;delete T.results[el.dataset.mid];save();closeModal();render();toast('Результат сброшен')},
-  askDel(el){UI.confirm='del-'+el.dataset.id;render()},
+  askDel(el){UI.confirm='del-'+el.dataset.id;UI.tmenu=null;render()},
   cancelConfirm(){UI.confirm=null;render()},
   delT(el){S.tournaments=S.tournaments.filter(t=>t.id!==el.dataset.id);UI.confirm=null;save();go('cabinet');toast('Турнир удалён')},
   async login(el){const e=document.getElementById('lg-err');const email=document.getElementById('lg-email').value.trim(),password=document.getElementById('lg-pass').value;if(!email||!password){e.textContent='Введите почту и пароль';return}
@@ -1113,7 +1117,7 @@ const A={
     if(T.seedMode==='random'){for(let i=T.players.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[T.players[i],T.players[j]]=[T.players[j],T.players[i]]}}
     T.status='live';T.results={};UI.tab[T.id]='grid';save();render();toast('Сетка построена')}
 };
-document.addEventListener('click',e=>{
+document.addEventListener('click',e=>{if(UI.tmenu&&!(e.target.closest&&e.target.closest('.tmenu'))){UI.tmenu=null;render()}
   if(e.target.id==='modal'){closeModal();return}
   const el=e.target.closest('[data-act]');if(!el)return;const a=el.dataset.act;
   if(a==='fmt'||a==='seedMode'||a==='callSel')return;
