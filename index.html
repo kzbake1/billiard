@@ -131,7 +131,8 @@ a.card:hover{border-color:var(--ink)}
 .m-meta>span:first-child{display:inline-flex;align-items:center;gap:5px}
 .mst.live{color:var(--live-ink);font-weight:600}.mst.ok{color:var(--ok);font-weight:600}
 .mk{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:5px;color:#fff;font-size:10px;font-weight:700;line-height:1;font-style:normal}.mk.g{background:var(--ok)}.mk.b{background:var(--accent)}
-.cap{display:flex;align-items:center;gap:5px}.cap i{width:8px}
+.cap{display:flex;align-items:center;gap:5px}.cap i{width:6px}.cap b:not(.mk){color:var(--ink);font-weight:600}
+.capd .slot{padding:20px 0}
 .final-box .mw{margin-top:22px}
 .m .seed{color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
 .m .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);font-weight:400}
@@ -705,13 +706,14 @@ function uniHTML(T,b){const f=flow(T);const L=b.lb.length;const pl=[];let p=b.K+
   const tag=no=>mk[no]?`<b class="mk ${mk[no].c}">${mk[no].n}</b>`:'№'+no;
   const capL=(m,i)=>{const a=[];if(i===L-1)a.push(f.w[m.no]?'победитель → '+tag(f.w[m.no]):'победитель → в олимпийку');if(f.full)a.push((i===L-1?'иначе':'проигравший —')+' '+pl[i]+' место');return a.join('<i></i>')};
   const R=b.rounds.length;
-  const capU=(m,i)=>{if(i<b.wb.length)return i>=1&&f.l[m.no]?tag(f.l[m.no])+' ← проигравший':'';const k=i-b.wb.length,n=b.rounds[k].matches.length;return k===R-1?'победитель — 1 место':'проигравший — '+(n>1?(n+1)+'–'+(2*n):'3–4')+' место'};
+  const capU=(m,i)=>{if(i<b.wb.length)return i>=1&&f.l[m.no]?tag(f.l[m.no])+' ← проигравший':'';const k=i-b.wb.length,n=b.rounds[k].matches.length;return k===R-1?'<b>Финал</b><i></i>победитель — 1 место':(k===R-2?'<b>Полуфинал</b><i></i>':'')+'проигравший — '+(n>1?(n+1)+'–'+(2*n):'3–4')+' место'};
   const lbR=b.lb.map((rd,i)=>({title:'Нижняя · раунд '+(i+1),matches:rd.matches})),wbR=b.wb.map((rd,i)=>({title:'Верхняя · раунд '+(i+1),matches:rd.matches}));
   requestAnimationFrame(uniInit);
   return`<div class="uni" data-id="${T.id}">${bracketHTML(T,lbR,{cap:capL,cls:'mir',mk})}${bracketHTML(T,[...wbR,...b.rounds],{cap:capU,cls:'ub',po:b.wb.length,mk})}</div>`}
+const capSE=rounds=>({cls:'capd',cap:(m,i)=>i===rounds.length-1?'<b>Финал</b>':i===rounds.length-2?'<b>Полуфинал</b>':''});
 const LEGEND=`<div class="legend"><i><span class="r">●</span> играют</i><i><span class="g">●</span> можно вызывать</i></div>`;
 function renderGridTab(T,b){
-  if(T.format==='se')return`<div class="withside"><div class="wm"><div style="margin-bottom:14px">${LEGEND}</div>${bracketHTML(T,b.rounds)}</div>${sidePanels(T,b)}</div>`;
+  if(T.format==='se')return`<div class="withside"><div class="wm"><div style="margin-bottom:14px">${LEGEND}</div>${bracketHTML(T,b.rounds,capSE(b.rounds))}</div>${sidePanels(T,b)}</div>`;
   if(T.format==='de'&&b.K){
     const seg=`<div class="seg">${[['lb','← Нижняя сетка'],['wb','Верхняя сетка'],['gf','Олимпийка · '+b.K+' →']].map(([k,l])=>`<button data-act="uniGo" data-v="${k}">${l}</button>`).join('')}</div>`;
     return`<div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px">${seg}${LEGEND}</div><p class="muted" style="margin:0 0 12px;font-size:13px">Сетка ${b.name}. Проигравший в верхней сетке уходит влево, в нижнюю; второе поражение — выбывание. ${b.K/2} из верхней и ${b.K/2} из нижней выходят в олимпийку — она справа. <b class="mk g">1</b> — место в нижней сетке, <b class="mk b">5</b> — место в олимпийке: номер под матчем показывает, куда идёт игрок.${b.draw?(b.drawn?' Пары олимпийки определены жеребьёвкой.':' Пары олимпийки определит жеребьёвка.'):''}</p>${uniHTML(T,b)}<div class="uni-side">${sidePanels(T,b)}</div>`}
@@ -726,7 +728,7 @@ function renderGridTab(T,b){
   return`<div class="sec"><div class="sec-h"><h2>Группы</h2><span class="muted">в плей-офф выходят ${b.K} из каждой группы</span></div>
   <div class="groups">${b.groups.map(g=>`<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0">${g.name}</h3>${g.complete?'<span class="st done">сыграна</span>':`<span class="muted" style="font-size:12px">${g.matches.filter(m=>m.state==='done').length}/${g.matches.length} матчей</span>`}</div>
   ${standingsHTML(T,g,g.matches.some(m=>m.state==='done')?b.K:0)}<details class="more" ${g.matches.some(m=>m.state==='live')?'open':''}><summary>Матчи группы</summary><div class="mlist">${g.matches.map(m=>mRow(T,m)).join('')}</div></details></div>`).join('')}</div></div>
-  <div class="sec"><div class="sec-h"><h2>Плей-офф</h2><span class="muted">соперники появляются, когда группа сыграна</span></div>${bracketHTML(T,b.rounds)}</div>`;
+  <div class="sec"><div class="sec-h"><h2>Плей-офф</h2><span class="muted">соперники появляются, когда группа сыграна</span></div>${bracketHTML(T,b.rounds,capSE(b.rounds))}</div>`;
 }
 function clubLive(clubId,exceptMid){const out=[];S.tournaments.filter(t=>t.clubId===clubId&&t.status!=='reg').forEach(t=>build(t).all.forEach(m=>{if((m.state==='live'||m.state==='call')&&m.res.table&&!(CUR&&t===CUR.T&&m.id===exceptMid))out.push({t,m})}));return out}
 function busyTables(clubId,exceptMid){return new Set(clubLive(clubId,exceptMid).map(x=>x.m.res.table))}
