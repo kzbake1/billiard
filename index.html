@@ -195,6 +195,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .m.s-ready{border-color:var(--ok);background:#F2FAF5}
 .m.s-live .row+.row,.m.s-ready .row+.row{border-top-color:rgba(0,0,0,.07)}.m.s-ready .m-top{color:var(--ok);background:var(--ok-soft)}
 .m.s-bye{cursor:default}
+.m.s-ready.nofree{border-color:var(--line);background:#fff}
 .m .row.wo .n{color:#B5B5B5}
 .final-box{max-width:260px}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
@@ -682,7 +683,8 @@ const IC=(()=>{const w=p=>`<svg width="18" height="18" viewBox="0 0 24 24" fill=
   del:w('<path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/>')}})();
 function renderGridOnly(T){const b=build(T);CUR={T,b};document.body.classList.add('gonly');
   return`<div class="go-h"><b>${esc(T.title)}</b><span>${fdate(T.date)}${T.format==='de'&&b.name?' · Сетка '+b.name:''}</span></div>${renderGridTab(T,b)}`}
-function render(){
+let RENDER_N=0;
+function render(){RENDER_N++;
   const h=location.hash.slice(1)||'home';
   const nav=document.getElementById('nav');
   const me=S.session?club(S.session):null;
@@ -762,13 +764,15 @@ function renderT(T){
   <div class="tabs">${tabs.map(t=>`<button class="${t[0]===tab?'on':''}" data-act="tab" data-id="${T.id}" data-tab="${t[0]}">${t[1]}${t[2]?`<span class="cnt">${t[2]}</span>`:''}</button>`).join('')}</div></div>
   ${body}`;
 }
+const FREE={k:'',v:true};
+function hasFree(T){const k=T.id+'|'+RENDER_N;if(FREE.k!==k){const c=club(T.clubId);FREE.k=k;FREE.v=(c.tables||6)>busyTables(T.clubId).size}return FREE.v}
 function mCard(T,m,mk){
   const r=m.res,showSc=m.state==='done'||m.state==='live';
   const cls=s=>{if(s.t==='tbd')return'tbd';if(s.t==='bye')return'wo';if(m.state!=='done')return'';return m.winner.t==='p'&&m.winner.id===s.id?'win':'lose'};
   const row=(s,sc)=>`<div class="row ${cls(s)}"${s.t==='p'?` data-pid="${s.id}"`:''}><span class="n">${s.t==='tbd'?'&nbsp;':s.t==='bye'?'—':esc(s.t==='p'?sname(pname(T,s)):pname(T,s))}</span><span class="sc">${showSc?sc:''}</span></div>`;
   const tm=m.state==='done'&&r&&r.ts?new Date(r.ts).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}):'';
-  const st={live:`<span class="mst live">● играют</span>`,ready:'<span class="mst ok">● можно вызывать</span>',bye:''}[m.state]||'';
-  return`<div class="mw"><div class="m-meta"><span>${mk?`<b class="mk ${mk.c}">${mk.n}</b>`:'№'+m.no}${(m.state==='done'||m.state==='live')&&r&&r.table?' · стол '+r.table:''}</span>${st}</div><div class="m s-${m.state}" data-act="match" data-mid="${m.id}">${row(m.a,r?r.sa:'')}${row(m.b,r?r.sb:'')}</div></div>`;
+  const st={live:`<span class="mst live">● играют</span>`,ready:hasFree(T)?'<span class="mst ok">● на очереди</span>':'<span class="mst">ждут стол</span>',bye:''}[m.state]||'';
+  const rcls=m.state==='ready'&&!hasFree(T)?' nofree':'';return`<div class="mw"><div class="m-meta"><span>${mk?`<b class="mk ${mk.c}">${mk.n}</b>`:'№'+m.no}${(m.state==='done'||m.state==='live')&&r&&r.table?' · стол '+r.table:''}</span>${st}</div><div class="m s-${m.state}${rcls}" data-act="match" data-mid="${m.id}">${row(m.a,r?r.sa:'')}${row(m.b,r?r.sb:'')}</div></div>`;
 }
 function bracketHTML(T,rounds,opt){opt=opt||{};
   const rs=rounds.map((rd,i)=>{const n=rd.matches.length,nx=rounds[i+1]?rounds[i+1].matches.length:0;const join=!!nx&&n===nx*2;const step=join?2:1;const groups=[];
@@ -842,7 +846,7 @@ function uniHTML(T,b){const f=flow(T);const L=b.lb.length;const pl=[];let p=b.K+
   requestAnimationFrame(uniInit);
   return`<div class="uni" data-id="${T.id}"><div class="uni-in zm" style="zoom:${ZOOM}">${bracketHTML(T,lbR,{cap:capL,cls:'mir',mk})}${bracketHTML(T,[...wbR,...b.rounds.map((rd,k)=>({title:rd.title,sub:poSub(k),matches:rd.matches}))],{cap:capU,cls:'ub',po:b.wb.length,mk})}</div></div>`}
 const capSE=rounds=>({cls:'capd',cap:(m,i)=>i===rounds.length-1?'<b>Финал</b>':i===rounds.length-2?'<b>Полуфинал</b>':''});
-const LEGEND=`<div class="legend"><i><span class="r">●</span> играют</i><i><span class="g">●</span> можно вызывать</i></div>`;
+const LEGEND=`<div class="legend"><i><span class="r">●</span> играют</i><i><span class="g">●</span> на очереди</i></div>`;
 function renderGridTab(T,b){
   if(T.format==='se')return`<div class="withside"><div class="wm"><div style="margin-bottom:14px"><div class="lz">${LEGEND}${zoomCtl()}</div></div>${bracketHTML(T,b.rounds,capSE(b.rounds))}</div></div>`;
   if(T.format==='de'&&b.K){
@@ -877,7 +881,7 @@ function stageMap(b){const st={};const put=(arr,f)=>(arr||[]).forEach((rd,i)=>(r
   if(b.gf)st[b.gf.id]='Суперфинал';if(b.gf2)st[b.gf2.id]='Суперфинал · 2';
   (b.groups||[]).forEach((g,gi)=>(g.rounds||[]).forEach(rd=>(rd.matches||[]).forEach(m=>{st[m.id]=(b.groups.length>1?(g.name||g.title||'Группа '+(gi+1))+' · ':'')+(rd.title||'')})));return st}
 function renderSheet(T,b){const st=stageMap(b);const ms=b.all.filter(m=>m.state!=='bye').sort((x,y)=>x.no-y.no);
-  const nm=s=>s.t==='p'?esc(pname(T,s)):'';const stl={live:'<span class="mst live">● играют</span>',ready:'<span class="mst ok">● можно вызывать</span>',done:'сыгран',wait:''};
+  const nm=s=>s.t==='p'?esc(pname(T,s)):'';const stl={live:'<span class="mst live">● играют</span>',ready:'<span class="mst ok">● на очереди</span>',done:'сыгран',wait:''};
   const rows=ms.map(m=>{const r=m.res,d=m.state==='done',w=s=>d&&m.winner.t==='p'&&m.winner.id===s.id;
     return`<tr data-act="match" data-mid="${m.id}" style="cursor:pointer"><td class="pos">${m.no}</td><td class="mut">${esc(st[m.id]||'')}</td><td class="c">${r&&r.table?r.table:''}</td><td class="r">${w(m.a)?'<b>'+nm(m.a)+'</b>':nm(m.a)}</td><td class="c sc">${r&&(d||m.state==='live')?r.sa+' : '+r.sb:''}</td><td>${w(m.b)?'<b>'+nm(m.b)+'</b>':nm(m.b)}</td><td class="mut">${stl[m.state]||''}</td></tr>`}).join('');
   return`<div class="panel sheet"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px"><h3 style="margin:0">Ведомость · ${ms.filter(m=>m.state==='done').length} из ${ms.length}</h3><button class="btn sm ghost noprint" data-act="print">Печать</button></div>
@@ -1113,7 +1117,7 @@ const A={
           pos.forEach((P_,ci)=>{const {rd,c,rows}=P_;const h=cell(top,c);h.value=rd.title.toUpperCase();h.font={bold:true,size:9,color:{argb:rd.k==='p'&&rd.i===0&&b.K?'FF1667FF':'FF111111'}};bd(top,c,'bottom',LN);bd(top,c+1,'bottom',LN);
             const last=rd.k==='p'?rd.i===(b.rounds||[]).length-1:false,semi=rd.k==='p'&&rd.i===(b.rounds||[]).length-2;
             rd.matches.forEach((m,i)=>{const r0=rows[i],rr=m.res||{},d=m.state==='done',sh=d||m.state==='live';
-              const meta=cell(r0,c);meta.value='№'+m.no+(sh&&rr.table?' · стол '+rr.table:'')+(m.state==='live'?' · играют':m.state==='ready'?' · можно вызывать':'');meta.font={size:8,color:{argb:m.state==='live'?'FFC4321F':m.state==='ready'?'FF0B7A47':GR}};
+              const meta=cell(r0,c);meta.value='№'+m.no+(sh&&rr.table?' · стол '+rr.table:'')+(m.state==='live'?' · играют':m.state==='ready'?' · на очереди':'');meta.font={size:8,color:{argb:m.state==='live'?'FFC4321F':m.state==='ready'?'FF0B7A47':GR}};
               const fill=m.state==='live'?'FFFEF0EE':m.state==='ready'?'FFEAF7EF':'FFFFFFFF';
               [[m.a,'sa'],[m.b,'sb']].forEach(([x,k],j)=>{const r=r0+1+j;const n=cell(r,c),s=cell(r,c+1);n.value=x.t==='p'?sname(pname(T,x)):x.t==='bye'?'—':'';n.font={size:11,color:{argb:x.t==='bye'?'FFB5B5B5':'FF111111'}};
                 s.value=sh?rr[k]:'';const win=d&&m.winner.t==='p'&&m.winner.id===x.id;s.font={size:11,bold:true,color:{argb:d?(win?'FF0B7A47':'FFC4321F'):'FF111111'}};s.alignment={horizontal:'center'};
