@@ -329,6 +329,7 @@ footer button{border:0;background:none;color:var(--muted);text-decoration:underl
 .pm-un{display:block;margin:14px auto 0;border:0;background:none;font:inherit;font-size:12px;color:var(--muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer}.pm-un:hover{color:var(--live-ink)}
 .pm-row{display:grid;grid-template-columns:minmax(0,1fr) 40px 36px 40px;align-items:center;gap:8px;padding:10px 0}.pm-row+.pm-row{border-top:1px solid #F0F0F0}
 .pm-f{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}.pm-f b{color:var(--ink);font-weight:600}.pm-f label{display:flex;align-items:center;gap:8px}.pm-f select{font:inherit;font-size:14px;font-weight:600;color:var(--ink);padding:6px 8px;border:1px solid var(--line2);border-radius:8px;background:#fff}
+.pm-f input{width:52px;font:inherit;font-size:14px;font-weight:600;color:var(--ink);text-align:center;padding:6px 4px;border:1px solid var(--line2);border-radius:8px;background:#fff}.pm-t{margin-top:10px;font-size:12px;color:#A3A3A3}
 .pm-go{width:100%;margin-top:18px;justify-content:center;text-align:center}.pm-b:disabled{opacity:.35;cursor:default}
 .pm-n{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pm-s{text-align:center;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
 .pm-b{width:40px;height:40px;border-radius:10px;border:1px solid var(--line2);background:#fff;font-size:20px;cursor:pointer;line-height:1}.pm-b.plus{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -1027,27 +1028,32 @@ function renderPult(T){
   ${UI.undo&&UI.undo.tid===T.id?`<div class="undo" role="status"><span>${esc(UI.undo.text)}</span><button class="btn light" data-act="undo">Отменить</button></div>`:''}`;
 }
 
+const mrace=(T,m)=>{const r=T.results[m.id];return(r&&r.race)||(UI.pmRace&&UI.pmRace.mid===m.id&&UI.pmRace.v)||T.raceTo};
+const hhmm=ts=>{const d=new Date(ts);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
 function pultHTML(T,m){const r=m.res||{};const c=club(T.clubId);const n=c.tables||6;const busy=busyTables(T.clubId,m.id);
   const head=`<div class="dlg-h"><h3>Матч №${m.no}${r.table&&m.state!=='ready'?` · стол ${r.table}`:''}</h3><button class="x" data-act="close">×</button></div>`;
   if(m.state==='done'){const w=r.sa>r.sb?m.a:m.b;return head+`<div class="pm-done"><span class="mut">Матч завершён</span><b>${esc(pname(T,w))}</b><span class="sc">${Math.max(r.sa,r.sb)} : ${Math.min(r.sa,r.sb)}</span></div><div class="acts"><button class="btn blue" data-act="close">Готово</button><button class="btn ghost" data-act="undo">Отменить последнюю партию</button></div>`}
   const rdy=m.state==='ready';const free=Array.from({length:n},(_,i)=>i+1).filter(k=>!busy.has(k));const stg=CUR&&CUR.b?stageMap(CUR.b)[m.id]:'';
   const row=side=>`<div class="pm-row"><span class="pm-n">${esc(pname(T,m[side]))}</span><button class="pm-b" aria-label="Убрать партию" ${rdy?'disabled':''} data-act="sc" data-mid="${m.id}" data-side="${side}" data-d="-1">−</button><span class="pm-s">${rdy?0:r['s'+side]}</span><button class="pm-b plus" aria-label="Партия" ${rdy?'disabled':''} data-act="sc" data-mid="${m.id}" data-side="${side}" data-d="1">+</button></div>`;
-  const tbl=rdy?(free.length?`<select id="pm-t">${free.map(k=>`<option value="${k}">№${k}</option>`).join('')}</select>`:'<b>все заняты</b>'):`<b>№${r.table||'—'}</b>`;
+  const opts=rdy?free:free.concat(r.table?[r.table]:[]).sort((x,y)=>x-y);
+  const tbl=opts.length?`<select id="pm-t" ${rdy?'':`data-act="pmTable" data-mid="${m.id}"`}>${opts.map(k=>`<option value="${k}" ${k===r.table?'selected':''}>№${k}</option>`).join('')}</select>`:'<b>все заняты</b>';
+  const R=mrace(T,m);
   return`<div class="pm"><div class="pm-h"><span><b>Матч №${m.no}</b>${stg?' · '+esc(stg):''}</span><button class="x" data-act="close" aria-label="Закрыть">×</button></div>${row('a')}${row('b')}
-  <div class="pm-f"><label>Стол ${tbl}</label><span>игра до <b>${T.raceTo}</b> побед</span></div>
+  <div class="pm-f"><label>Стол ${tbl}</label><label>игра до <input id="pm-r" type="number" inputmode="numeric" min="1" max="25" value="${R}" data-act="pmRace" data-mid="${m.id}"> побед</label></div>
+  ${!rdy&&r.ts?`<div class="pm-t">Начат в ${hhmm(r.ts)}</div>`:''}
   ${rdy?`<button class="btn blue pm-go" data-act="startM" data-mid="${m.id}" ${free.length?'':'disabled'}>Начать встречу</button>`:(r.sa+r.sb===0?`<button class="pm-un" data-act="uncall" data-mid="${m.id}">убрать со стола</button>`:'')}</div>`}
 function refreshPult(){if(!UI.pm||!CUR||!document.getElementById('modal').classList.contains('open'))return;const m=CUR.b.all.find(x=>x.id===UI.pm);if(!m||m.state==='wait'){closeModal();return}openModal(pultHTML(CUR.T,m))}
 /* ============ modal ============ */
 function openModal(html){const m=document.getElementById('modal');m.innerHTML=`<div class="dlg">${html}</div>`;m.classList.add('open')}
-function closeModal(){UI.pm=null;const m=document.getElementById('modal');m.classList.remove('open');m.innerHTML=''}
+function closeModal(){UI.pm=null;UI.pmRace=null;const m=document.getElementById('modal');m.classList.remove('open');m.innerHTML=''}
 function openMatch(mid){
   const {T,b}=CUR;const m=b.all.find(x=>x.id===mid);if(!m)return;const own=isOwner(T);
   const head=`<div class="dlg-h"><h3>Матч №${m.no}</h3><button class="x" data-act="close">×</button></div>`;
   if(m.state==='wait'||m.state==='bye'){openModal(head+`<p>${esc(pname(T,m.a))} — ${esc(pname(T,m.b))}</p><p class="muted">${m.state==='bye'?'Свободный проход: соперника нет, игрок проходит дальше без игры.':'Матч ждёт, пока определятся оба соперника.'}</p>`);return}
   const r=m.res||{};
-  if(!own){openModal(head+`<div class="score"><span class="nm">${esc(pname(T,m.a))}</span><span style="font-size:22px;font-weight:800;text-align:center">${m.res?r.sa:'—'}</span></div><div class="score"><span class="nm">${esc(pname(T,m.b))}</span><span style="font-size:22px;font-weight:800;text-align:center">${m.res?r.sb:'—'}</span></div><p class="muted" style="font-size:13px">${m.state==='live'?`Идёт${r.table?' за столом '+r.table:''}. `:''}${m.state==='done'?'Матч завершён.':m.state==='ready'?'Ожидает вызова к столу.':''} Игра до ${T.raceTo} побед.</p>`);return}
+  if(!own){openModal(head+`<div class="score"><span class="nm">${esc(pname(T,m.a))}</span><span style="font-size:22px;font-weight:800;text-align:center">${m.res?r.sa:'—'}</span></div><div class="score"><span class="nm">${esc(pname(T,m.b))}</span><span style="font-size:22px;font-weight:800;text-align:center">${m.res?r.sb:'—'}</span></div><p class="muted" style="font-size:13px">${m.state==='live'?`Идёт${r.table?' за столом '+r.table:''}. `:''}${m.state==='done'?'Матч завершён.':m.state==='ready'?'Ожидает вызова к столу.':''} Игра до ${mrace(T,m)} побед.</p>`);return}
   if(m.state!=='done'||(UI.undo&&UI.undo.mid===m.id&&UI.undo.tid===T.id)){UI.pm=m.id;openModal(pultHTML(T,m));return}
-  openModal(head+`<p class="muted" style="margin-top:0;font-size:13px">Матч сыгран. Здесь можно исправить счёт, если ошиблись. Игра до ${T.raceTo} побед.</p>
+  openModal(head+`<p class="muted" style="margin-top:0;font-size:13px">Матч сыгран. Здесь можно исправить счёт, если ошиблись. Игра до ${mrace(T,m)} побед.</p>
   <div class="score"><span class="nm">${esc(pname(T,m.a))}</span><input id="sa" type="number" min="0" inputmode="numeric" value="${r.sa??''}"></div>
   <div class="score"><span class="nm">${esc(pname(T,m.b))}</span><input id="sb" type="number" min="0" inputmode="numeric" value="${r.sb??''}"></div>
   <input type="hidden" id="tbl" value="${r.table??''}">
@@ -1063,11 +1069,16 @@ const A={
   callT(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m)return;const k=+el.dataset.t;if(busyTables(T.clubId).has(k)){toast('Стол уже занят');return}
     T.results[m.id]={a:m.a.id,b:m.b.id,sa:0,sb:0,live:true,done:false,table:k,ts:Date.now()};save();render();refreshPult();toast(`Матч начат за столом ${k}`)},
   startM(el){const {T}=CUR;const r=T.results[el.dataset.mid];if(!r)return;r.call=false;r.live=true;r.ts=Date.now();save();render()},
-  startM(el){const t=document.getElementById('pm-t');if(!t)return;A.callT({dataset:{mid:el.dataset.mid,t:t.value}})},
+  startM(el){const t=document.getElementById('pm-t');if(!t)return;const {T}=CUR;const pr=UI.pmRace&&UI.pmRace.mid===el.dataset.mid?UI.pmRace.v:0;UI.pmRace=null;A.callT({dataset:{mid:el.dataset.mid,t:t.value}});const r=T.results[el.dataset.mid];if(r&&pr&&pr!==T.raceTo){r.race=pr;save();render();refreshPult()}},
+  pmTable(el){const {T}=CUR;const r=T.results[el.dataset.mid];const k=+el.value;if(!r||!k)return;if(busyTables(T.clubId,el.dataset.mid).has(k)){toast('Стол уже занят');refreshPult();return}r.table=k;save();render();refreshPult();toast('Матч перенесён на стол '+k)},
+  pmRace(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m)return;const v=Math.max(1,Math.min(25,Math.floor(+el.value||0)));const r=T.results[m.id];
+    if(!r){UI.pmRace={mid:m.id,v};el.value=v;return}
+    if(v<=Math.max(r.sa,r.sb)){toast('Счёт уже больше этого числа');refreshPult();return}
+    if(v===T.raceTo)delete r.race;else r.race=v;save();render();refreshPult()},
   uncall(el){const {T}=CUR;delete T.results[el.dataset.mid];save();render();refreshPult()},
-  sc(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];const k='s'+el.dataset.side;const prev=Object.assign({},r);if(r.call){r.call=false;r.live=true}
-    r[k]=Math.max(0,Math.min(T.raceTo,r[k]+(+el.dataset.d)));
-    if(r[k]===T.raceTo&&r.sa!==r.sb){r.done=true;r.live=false;r.ts=Date.now();const w=r.sa>r.sb?m.a:m.b;
+  sc(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];const k='s'+el.dataset.side;const R=r.race||T.raceTo;const prev=Object.assign({},r);if(r.call){r.call=false;r.live=true}
+    r[k]=Math.max(0,Math.min(R,r[k]+(+el.dataset.d)));
+    if(r[k]===R&&r.sa!==r.sb){r.done=true;r.live=false;r.ts=Date.now();const w=r.sa>r.sb?m.a:m.b;
       UI.undo={tid:T.id,mid:m.id,prev,text:`Матч №${m.no} завершён · ${sname(pname(T,w))} ${Math.max(r.sa,r.sb)}:${Math.min(r.sa,r.sb)}`};clearTimeout(A._u);A._u=setTimeout(()=>{UI.undo=null;if(UI.pm===m.id)refreshPult()},30000)}
     save();render();refreshPult()},
   undo(){const u=UI.undo;if(!u)return;const T=tById(u.tid);if(T){T.results[u.mid]=u.prev;save()}UI.undo=null;render();refreshPult();toast('Отменено')},
@@ -1150,8 +1161,8 @@ const A={
   saveRes(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);const sa=num('sa'),sb=num('sb'),tb=num('tbl');const e=document.getElementById('m-err');
     if(sa===null||sb===null||sa<0||sb<0){e.textContent='Введите счёт обоих игроков';return}
     if(sa===sb){e.textContent='Ничьих нет — у одного счёт должен быть больше';return}
-    if(Math.max(sa,sb)!==T.raceTo){e.textContent=`Победитель должен набрать ${T.raceTo}`;return}
-    T.results[m.id]={a:m.a.id,b:m.b.id,sa,sb,done:true,table:tb,ts:Date.now()};save();closeModal();render();toast('Результат сохранён')},
+    {const R=(T.results[el.dataset.mid]&&T.results[el.dataset.mid].race)||T.raceTo;if(Math.max(sa,sb)!==R){e.textContent=`Победитель должен набрать ${R}`;return}}
+    {const pr=T.results[m.id]&&T.results[m.id].race;T.results[m.id]={a:m.a.id,b:m.b.id,sa,sb,done:true,table:tb,ts:Date.now()};if(pr)T.results[m.id].race=pr}save();closeModal();render();toast('Результат сохранён')},
   saveLive(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);const sa=num('sa')||0,sb=num('sb')||0,tb=num('tbl');if(!tb){document.getElementById('m-err').textContent='Выберите стол';return}
     T.results[m.id]={a:m.a.id,b:m.b.id,sa,sb,live:true,done:false,table:tb,ts:Date.now()};save();closeModal();render();toast("Игроки вызваны к столу")},
   clearRes(el){const {T}=CUR;delete T.results[el.dataset.mid];save();closeModal();render();toast('Результат сброшен')},
@@ -1201,13 +1212,14 @@ const A={
 document.addEventListener('click',e=>{if(UI.tmenu&&!(e.target.closest&&e.target.closest('.tmenu'))){UI.tmenu=null;render()}
   if(e.target.id==='modal'){closeModal();return}
   const el=e.target.closest('[data-act]');if(!el)return;const a=el.dataset.act;
-  if(a==='fmt'||a==='seedMode'||a==='callSel')return;
+  if(a==='fmt'||a==='seedMode'||a==='callSel'||a==='pmTable'||a==='pmRace')return;
   if(A[a]){e.preventDefault();A[a](el)}
 });
 document.addEventListener('change',e=>{
   const a=e.target.dataset&&e.target.dataset.act;
   if(a==='fmt')A.fmt();
   if(a==='seedMode'){CUR.T.seedMode=e.target.value;save()}
+  if(a==='pmTable'||a==='pmRace')A[a](e.target);
   if(a==='callSel'&&e.target.value){A.callT({dataset:{mid:e.target.dataset.mid,t:e.target.value}})}
 });
 document.addEventListener('input',e=>{if(e.target.id==='q'){UI.filter.q=e.target.value;renderGrid()}if(e.target.id==='rs-q')renderRoster();if(e.target.id==='wq'&&UI.wiz){UI.wiz.q=e.target.value;renderWizRoster()}if(e.target.dataset&&e.target.dataset.w&&UI.wiz){UI.wiz[e.target.dataset.w]=e.target.value;const t=document.getElementById('ws-title');if(t&&e.target.dataset.w==='title')t.textContent=e.target.value||'Без названия'}});
