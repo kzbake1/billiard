@@ -180,6 +180,9 @@ table.tb{width:100%;border-collapse:collapse;font-size:13.5px}
 .tb th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;font-weight:700;padding:6px;border-bottom:1px solid var(--line)}
 .tb td{padding:9px 6px;border-bottom:1px solid #EFEFEF}
 .tb td.c,.tb th.c{text-align:center}
+.tb td.r,.tb th.r{text-align:right}.tb td.mut{color:var(--muted);font-size:12.5px;white-space:nowrap}.tb td.sc{font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sheet tbody tr:hover td{background:#FAFAFA}
+@media print{header,.topbar,.tabs,.th-top,.note,footer,.noprint,.toast{display:none!important}body{background:#fff}.tband{padding:0;margin-bottom:8px}.panel{border:0;padding:0}}
 .tb tr.q td{background:#F3F7FF}
 .tb tr.q td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .tb .pos{width:26px;color:var(--muted);font-weight:700}
@@ -674,12 +677,13 @@ function renderGrid(){
 /* ============ tournament page ============ */
 function renderT(T){
   const b=build(T);CUR={T,b};const st=tStatus(T,b);const c=club(T.clubId);const own=isOwner(T);
-  const tabs=T.status==='reg'?[['people','Участники',T.players.length]]:[...(b.finished?[['result','Итоги']]:[]),['grid','Сетка'],['matches','Матчи',b.all.filter(m=>m.state==='live').length||''],['people','Участники',T.players.length]];
+  const tabs=T.status==='reg'?[['people','Участники',T.players.length]]:[['grid','Сетка'],['tables','Столы',b.all.filter(m=>m.state==='live').length||''],['sheet','Ведомость'],['people','Участники',T.players.length],...(b.finished?[['result','Итоги']]:[])];
   let tab=UI.tab[T.id];if(!tabs.some(t=>t[0]===tab))tab=tabs[0][0];
   const cdel='del-'+T.id;
   let body='';
   if(tab==='grid')body=renderGridTab(T,b);
-  else if(tab==='matches')body=renderMatchesTab(T,b);
+  else if(tab==='tables')body=renderTablesTab(T,b);
+  else if(tab==='sheet')body=renderSheet(T,b);
   else if(tab==='people')body=renderPeople(T,b);
   else body=renderResult(T,b);
   const done=b.all.filter(m=>m.state==='done').length,tot=b.all.filter(m=>m.state!=='bye').length;
@@ -799,12 +803,21 @@ function busyTables(clubId,exceptMid){return new Set(clubLive(clubId,exceptMid).
 function tablesBoard(T){const c=club(T.clubId);const n=c.tables||6;const live=clubLive(T.clubId);const map={};live.forEach(x=>map[x.m.res.table]=x);
   return`<div class="sec"><div class="sec-h"><h2>Столы клуба</h2><span class="muted">свободно ${n-Object.keys(map).length} из ${n}</span></div><div class="tables">${Array.from({length:n},(_,i)=>i+1).map(k=>{const x=map[k];
   return x?`<div class="tblx ${x.m.state==='call'?'call':'busy'}" ${x.t===T?`data-act="match" data-mid="${x.m.id}"`:''}><b>Стол ${k}${x.m.state==='call'?' · вызваны':''}</b><span>${esc(pname(x.t,x.m.a))}</span><span>${esc(pname(x.t,x.m.b))}</span><em>${x.m.state==='call'?'':x.m.res.sa+' : '+x.m.res.sb}${x.t===T?'':' <small>· '+esc(x.t.title)+'</small>'}</em></div>`:`<div class="tblx"><b>Стол ${k}</b><span class="muted">свободен</span></div>`}).join('')}</div></div>`}
-function renderMatchesTab(T,b){
-  const call=b.all.filter(m=>m.state==='call'),live=b.all.filter(m=>m.state==='live'),ready=b.all.filter(m=>m.state==='ready'),done=b.all.filter(m=>m.state==='done').sort((x,y)=>y.res.ts-x.res.ts);
-  const blk=(t,arr,e)=>`<div class="sec"><div class="sec-h"><h2>${t}</h2><span class="muted">${arr.length}</span></div>${arr.length?`<div class="mlist" style="max-width:720px">${arr.map(m=>mRow(T,m)).join('')}</div>`:`<div class="muted">${e}</div>`}</div>`;
-  return (isOwner(T)?`<div class="note" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span>Вызывать к столу и вести счёт удобнее на пульте — он сделан под планшет.</span><a class="btn blue" href="#pult-${T.id}">Открыть пульт</a></div>`:'')+tablesBoard(T)+
-    (call.length?blk('Вызваны к столу',call,''):'')+blk('Идут сейчас',live,'Сейчас никто не играет')+blk('Можно вызывать',ready,b.finished?'Турнир завершён':'Ждут результатов предыдущих матчей')+blk('Сыграны',done,'Пока ничего');
+function renderTablesTab(T,b){
+  const ready=b.all.filter(m=>m.state==='ready');
+  return (isOwner(T)&&!b.finished?`<div class="note" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span>Вызывать к столу и вести счёт — на пульте.</span><a class="btn blue" href="#pult-${T.id}">Открыть пульт</a></div>`:'')+tablesBoard(T)+
+    (b.finished?'':`<div class="sec"><div class="sec-h"><h2>Ждут свободного стола</h2><span class="muted">${ready.length}</span></div>${ready.length?`<div class="mlist" style="max-width:720px">${ready.map(m=>mRow(T,m)).join('')}</div>`:'<div class="muted">Очереди нет</div>'}</div>`);
 }
+function stageMap(b){const st={};const put=(arr,f)=>(arr||[]).forEach((rd,i)=>(rd.matches||[]).forEach(m=>{st[m.id]=f(rd,i)}));
+  put(b.wb,(rd,i)=>'Верхняя · '+(i+1));put(b.lb,(rd,i)=>'Нижняя · '+(i+1));put(b.rounds,rd=>rd.title||'');
+  if(b.gf)st[b.gf.id]='Суперфинал';if(b.gf2)st[b.gf2.id]='Суперфинал · 2';
+  (b.groups||[]).forEach((g,gi)=>(g.rounds||[]).forEach(rd=>(rd.matches||[]).forEach(m=>{st[m.id]=(b.groups.length>1?(g.name||g.title||'Группа '+(gi+1))+' · ':'')+(rd.title||'')})));return st}
+function renderSheet(T,b){const st=stageMap(b);const ms=b.all.filter(m=>m.state!=='bye').sort((x,y)=>x.no-y.no);
+  const nm=s=>s.t==='p'?esc(pname(T,s)):'';const stl={live:'<span class="mst live">● играют</span>',ready:'<span class="mst ok">● можно вызывать</span>',done:'сыгран',wait:''};
+  const rows=ms.map(m=>{const r=m.res,d=m.state==='done',w=s=>d&&m.winner.t==='p'&&m.winner.id===s.id;
+    return`<tr data-act="match" data-mid="${m.id}" style="cursor:pointer"><td class="pos">${m.no}</td><td class="mut">${esc(st[m.id]||'')}</td><td class="c">${r&&r.table?r.table:''}</td><td class="r">${w(m.a)?'<b>'+nm(m.a)+'</b>':nm(m.a)}</td><td class="c sc">${r&&(d||m.state==='live')?r.sa+' : '+r.sb:''}</td><td>${w(m.b)?'<b>'+nm(m.b)+'</b>':nm(m.b)}</td><td class="mut">${stl[m.state]||''}</td></tr>`}).join('');
+  return`<div class="panel sheet"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px"><h3 style="margin:0">Ведомость · ${ms.filter(m=>m.state==='done').length} из ${ms.length}</h3><button class="btn sm ghost noprint" data-act="print">Печать</button></div>
+  <div style="overflow-x:auto"><table class="tb"><thead><tr><th class="pos">№</th><th>Стадия</th><th class="c">Стол</th><th class="r">Игрок</th><th class="c">Счёт</th><th>Игрок</th><th>Статус</th></tr></thead><tbody>${rows}</tbody></table></div></div>`}
 const byear=p=>p.birth?p.birth.slice(0,4):'';
 function renderPeople(T,b){
   const own=isOwner(T),reg=T.status==='reg';const ed=own&&reg;
@@ -1004,6 +1017,7 @@ const A={
     UI.tab[T.id]='grid';go('t-'+T.id);toast('Сетка построена')},
   filter(el){UI.filter[el.dataset.k]=el.dataset.v;render()},
   tab(el){UI.tab[el.dataset.id]=el.dataset.tab;render()},
+  print(){window.print()},
   zoom(el){const d=+el.dataset.d;setZoom(d?ZOOM+d*.1:1)},
   uniGo(el){const u=document.querySelector('.uni');if(!u)return;const v=el.dataset.v,ub=u.querySelector('.ub'),po=u.querySelector('.po-start');const X=e=>e.getBoundingClientRect().left-u.getBoundingClientRect().left+u.scrollLeft-20;u.scrollTo({left:v==='lb'?0:v==='wb'?X(ub):X(po),behavior:'smooth'})},
   deView(el){UI.de[el.dataset.id]=el.dataset.v;render()},
