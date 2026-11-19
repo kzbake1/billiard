@@ -264,19 +264,18 @@ details.more summary{cursor:pointer;color:var(--muted);font-weight:700;font-size
 #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:8px;font-weight:600;opacity:0;transition:.2s;z-index:60;pointer-events:none}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 .tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
-.ptab{--w:#6B3A1E;position:relative;aspect-ratio:2/1;border-radius:14px;padding:14px;box-sizing:border-box;
-  background:radial-gradient(circle at 12px 12px,#111 7px,transparent 8px),radial-gradient(circle at calc(100% - 12px) 12px,#111 7px,transparent 8px),radial-gradient(circle at 12px calc(100% - 12px),#111 7px,transparent 8px),radial-gradient(circle at calc(100% - 12px) calc(100% - 12px),#111 7px,transparent 8px),radial-gradient(circle at 50% 7px,#111 6px,transparent 7px),radial-gradient(circle at 50% calc(100% - 7px),#111 6px,transparent 7px),linear-gradient(180deg,#7A4524,#5A2F17);
-  box-shadow:0 2px 6px rgba(0,0,0,.18)}
-.ptab .felt{height:100%;border-radius:4px;background:radial-gradient(ellipse at 50% 40%,#2E8A57,#1D6A40 75%);box-shadow:inset 0 0 0 2px #17573A,inset 0 0 18px rgba(0,0,0,.25);display:flex;flex-direction:column;justify-content:center;gap:6px;padding:10px 16px;box-sizing:border-box;color:#fff;position:relative}
-.ptab .felt::before{content:'';position:absolute;left:25%;top:50%;width:5px;height:5px;margin:-2.5px;border-radius:50%;background:rgba(255,255,255,.45)}
-.ptab .felt::after{content:'';position:absolute;left:25%;top:12%;bottom:12%;border-left:1px solid rgba(255,255,255,.25)}
-.ptab .pn{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.75);position:relative;z-index:1}
-.ptab .big{font-size:34px;font-weight:700;line-height:1;text-align:center;color:rgba(255,255,255,.9);position:relative;z-index:1}
-.ptab.busy .felt::before,.ptab.busy .felt::after{display:none}
-.ptab.busy .felt{justify-content:flex-start;padding-top:12px}
-.ptab .pl{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px;position:relative;z-index:1}.ptab .pl span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ptab .pl b{font-size:20px;font-weight:700}
-.ptab em{font-style:normal;text-align:center;color:rgba(255,255,255,.7);font-size:13px;position:relative;z-index:1}
-.ptab.busy{cursor:pointer;outline:2px solid var(--live);outline-offset:3px}
+.ptab{position:relative;aspect-ratio:2/1;border-radius:12px;padding:10px;box-sizing:border-box;background:#fff;border:1px solid var(--line2)}
+.ptab .felt{height:100%;border-radius:3px;background:#2F7D5B;display:flex;flex-direction:column;padding:12px 16px 12px;box-sizing:border-box;color:#fff;position:relative}
+.ptab .pk{position:absolute;width:14px;height:14px;border-radius:50%;background:#1C1C1C}
+.ptab .pk.c1{left:-6px;top:-6px}.ptab .pk.c2{right:-6px;top:-6px}.ptab .pk.c3{left:-6px;bottom:-6px}.ptab .pk.c4{right:-6px;bottom:-6px}
+.ptab .pk.m1,.ptab .pk.m2{left:50%;margin-left:-6px;width:12px;height:12px}.ptab .pk.m1{top:-8px}.ptab .pk.m2{bottom:-8px}
+.ptab .ph{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.7)}
+.ptab .ph i{font-style:normal;font-weight:500;letter-spacing:0;text-transform:none}
+.ptab .pls{margin:auto 0;display:flex;flex-direction:column;gap:7px}
+.ptab .pl{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:14.5px;line-height:1.25}.ptab .pl span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ptab .pl b{font-weight:600;font-variant-numeric:tabular-nums}
+.ptab .pf{margin:auto;font-size:14px;color:rgba(255,255,255,.85)}
+.ptab.free .felt{background:#8DB8A3}
+.ptab.busy{cursor:pointer;border-color:var(--live);box-shadow:0 0 0 1px var(--live)}
 .tblx{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;font-size:13px;min-height:100px}
 .tblx b{font-family:Inter,sans-serif;font-size:15px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
 .tblx.busy{border-color:var(--live);background:var(--live-soft)}.tblx.busy b{color:var(--live-ink)}.tblx[data-act]{cursor:pointer}
@@ -870,7 +869,8 @@ function busyTables(clubId,exceptMid){return new Set(clubLive(clubId,exceptMid).
 function tablesBoard(T){const c=club(T.clubId);const n=c.tables||6;const map={};clubLive(T.clubId).forEach(x=>{if(x.t===T)map[x.m.res.table]=x});
   const busy=Object.keys(map).length;
   return`<div class="sec"><div class="sec-h"><h2>Столы</h2><span class="muted">${busy?'играют за '+busy+' из '+n:'все '+n+' свободны'}</span></div><div class="tables">${Array.from({length:n},(_,i)=>i+1).map(k=>{const x=map[k];
-  return`<div class="ptab${x?' busy':''}" ${x?`data-act="match" data-mid="${x.m.id}"`:''}><div class="felt">${x?`<span class="pn">Стол ${k}</span><div class="pl"><span>${esc(pname(T,x.m.a))}</span><b>${x.m.res.sa}</b></div><div class="pl"><span>${esc(pname(T,x.m.b))}</span><b>${x.m.res.sb}</b></div>`:`<span class="big">${k}</span><em>свободен</em>`}</div></div>`}).join('')}</div></div>`}
+  const pk='<i class="pk c1"></i><i class="pk c2"></i><i class="pk c3"></i><i class="pk c4"></i><i class="pk m1"></i><i class="pk m2"></i>';
+  return`<div class="ptab ${x?'busy':'free'}" ${x?`data-act="match" data-mid="${x.m.id}"`:''}><div class="felt">${pk}<div class="ph"><span>Стол ${k}</span>${x?`<i>№${x.m.no}</i>`:''}</div>${x?`<div class="pls"><div class="pl"><span>${esc(pname(T,x.m.a))}</span><b>${x.m.res.sa}</b></div><div class="pl"><span>${esc(pname(T,x.m.b))}</span><b>${x.m.res.sb}</b></div></div>`:`<div class="pf">Свободен</div>`}</div></div>`}).join('')}</div></div>`}
 function renderTablesTab(T,b){
   const ready=b.all.filter(m=>m.state==='ready');
   return tablesBoard(T)+
