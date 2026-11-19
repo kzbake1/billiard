@@ -694,7 +694,7 @@ function mCard(T,m,mk){
   const row=(s,sc)=>`<div class="row ${cls(s)}"><span class="n">${s.t==='tbd'?'&nbsp;':esc(s.t==='p'?sname(pname(T,s)):pname(T,s))}</span><span class="sc">${showSc?sc:''}</span></div>`;
   const tm=m.state==='done'&&r&&r.ts?new Date(r.ts).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}):'';
   const st={live:`<span class="mst live">● ${r&&r.table?'стол '+r.table:'играют'}</span>`,ready:'<span class="mst ok">● можно вызывать</span>',bye:'<span class="mst">проход</span>'}[m.state]||'';
-  return`<div class="mw"><div class="m-meta"><span>${mk?`<b class="mk ${mk.c}">${mk.n}</b>`:''}№${m.no}${m.state==='done'&&r&&r.table?' · стол '+r.table:''}</span>${st}</div><div class="m s-${m.state}" data-act="match" data-mid="${m.id}">${row(m.a,r?r.sa:'')}${row(m.b,r?r.sb:'')}</div></div>`;
+  return`<div class="mw"><div class="m-meta"><span>${mk?`<b class="mk ${mk.c}">${mk.n}</b>`:'№'+m.no}${m.state==='done'&&r&&r.table?' · стол '+r.table:''}</span>${st}</div><div class="m s-${m.state}" data-act="match" data-mid="${m.id}">${row(m.a,r?r.sa:'')}${row(m.b,r?r.sb:'')}</div></div>`;
 }
 function bracketHTML(T,rounds,opt){opt=opt||{};
   const rs=rounds.map((rd,i)=>{const n=rd.matches.length,nx=rounds[i+1]?rounds[i+1].matches.length:0;const join=!!nx&&n===nx*2;const step=join?2:1;const groups=[];
@@ -744,10 +744,10 @@ const UNI_X={};
 function uniInit(){const el=document.querySelector('.uni');if(!el)return;const k=el.dataset.id;if(UNI_X[k]==null){const ub=el.querySelector('.ub');UNI_X[k]=Math.max(0,ub.getBoundingClientRect().left-el.getBoundingClientRect().left+el.scrollLeft-130*ZOOM)}el.scrollLeft=UNI_X[k];el.onscroll=()=>{UNI_X[k]=el.scrollLeft}}
 function uniHTML(T,b){const f=flow(T);const L=b.lb.length;const pl=[];let p=b.K+1;for(let i=L-1;i>=0;i--){const n=b.lb[i].matches.length;pl[i]=n>1?p+'–'+(p+n-1):''+p;p+=n}
   const dests=new Set();b.wb.forEach((rd,i)=>{if(i>=1)rd.matches.forEach(m=>{if(f.l[m.no])dests.add(f.l[m.no])})});
-  const mk={};
+  const mk={};b.rounds[0].matches.forEach(m=>{mk[m.no]={n:'№'+m.no,c:'b'}});
   const tag=no=>mk[no]?`<b class="mk ${mk[no].c}">${mk[no].n}</b>`:'№'+no;
   const ARL='<span class="ar">←</span>',ARR='<span class="ar">→</span>';
-  const capL=(m,i)=>i===L-1?(f.w[m.no]?'победитель на №'+f.w[m.no]:'победитель в олимпийку'):'';
+  const capL=(m,i)=>i===L-1?(f.w[m.no]?'победитель на '+tag(f.w[m.no]):'победитель в олимпийку'):'';
   const R=b.rounds.length;
   const capU=(m,i)=>{if(i<b.wb.length)return i>=1&&f.l[m.no]?'проигравший на №'+f.l[m.no]:'';const k=i-b.wb.length;return k===R-1?'<b>Финал</b>':k===R-2?'<b>Полуфинал</b>':''};
   const poSub=k=>{const n=b.rounds[k].matches.length;return k===R-1?'':'проигравший — '+(n>1?(n+1)+'–'+(2*n):'3–4')+' место'};
