@@ -88,9 +88,11 @@ a.card:hover{border-color:var(--ink)}
 .th-act{gap:8px}
 body.gonly>header,body.gonly>#ticker,body.gonly>footer{display:none}body.gonly>main{padding:16px 16px 40px}
 .go-h{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:10px}.go-h b{font-size:18px}.go-h span{color:var(--muted);font-size:14px}
-.tmenu{position:relative}.tmenu .dots{border:1px solid var(--line);background:#fff;width:36px;height:36px;border-radius:10px;font-size:18px;line-height:1;color:var(--sub);cursor:pointer}.tmenu .dots:hover{background:#F5F5F5;color:var(--ink)}
-.tmenu .pop{position:absolute;right:0;top:42px;z-index:20;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.10);padding:6px;min-width:180px}
-.tmenu .pop button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 12px;border-radius:8px;font:inherit;font-size:14px;color:var(--live-ink);cursor:pointer}.tmenu .pop button:hover{background:var(--live-soft)}
+.tmenu{position:relative}.tmenu .dots{display:inline-flex;align-items:center;justify-content:center;gap:4px;border:0;background:var(--ink);width:44px;height:40px;border-radius:10px;cursor:pointer;padding:0}.tmenu .dots i{width:4px;height:4px;border-radius:50%;background:#fff}.tmenu .dots:hover{background:#333}
+.tmenu .pop{position:absolute;right:0;top:46px;z-index:20;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.12);padding:6px;min-width:230px}
+.tmenu .pop button,.tmenu .pop a{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;text-align:left;border:0;background:none;padding:10px 12px;border-radius:8px;font:inherit;font-size:14px;color:var(--ink);cursor:pointer;text-decoration:none}.tmenu .pop svg{color:var(--sub);flex:none}
+.tmenu .pop button:hover,.tmenu .pop a:hover{background:#F5F5F5}
+.tmenu .pop .del{color:var(--live-ink);border-top:1px solid #F0F0F0;border-radius:0 0 8px 8px;margin-top:4px}.tmenu .pop .del svg{color:var(--live-ink)}.tmenu .pop .del:hover{background:var(--live-soft)}
 .th-del{border:0;background:none;padding:0;font:inherit;font-size:13px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px}.th-del:hover{color:var(--live-ink)}
 .th-main{display:flex;justify-content:space-between;align-items:flex-end;gap:32px;flex-wrap:wrap}.th-l{min-width:0;flex:1 1 520px}
 .th-l h1{font-size:36px;line-height:1.1;margin:6px 0 0;letter-spacing:-.02em}
@@ -753,7 +755,7 @@ function renderT(T){
   const place=[c.city,c.address].filter(Boolean).map(esc).join(', ');
   const cl=[`<b>${esc(c.name)}</b>`,place,c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:'',c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:''].filter(Boolean);
   const side=`<div class="th-side"><b class="cn">${esc(c.name)}</b>${place?`<span>${place}</span>`:''}${c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:''}${c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:''}</div>`;
-  return`<div class="tband"><div class="th-top"><a class="back" href="#home">← Все турниры</a><div class="th-act">${own&&UI.confirm===cdel?`<span class="muted" style="font-size:13px">Удалить турнир?</span><button class="btn sm red" data-act="delT" data-id="${T.id}">Да, удалить</button><button class="btn sm ghost" data-act="cancelConfirm">Нет</button>`:`<button class="ib" data-act="shareT" title="Поделиться" aria-label="Поделиться">${IC.share}</button><button class="ib" data-act="xlsT" title="Скачать в Excel" aria-label="Скачать в Excel">${IC.xls}</button><a class="ib" href="#g-${T.id}" target="_blank" rel="noopener" title="Открыть сетку в новом окне" aria-label="Открыть сетку в новом окне">${IC.open}</a>${own?`<button class="ib del" data-act="askDel" data-id="${T.id}" title="Удалить турнир" aria-label="Удалить турнир">${IC.del}</button>`:''}`}</div></div>
+  return`<div class="tband"><div class="th-top"><a class="back" href="#home">← Все турниры</a><div class="th-act">${own&&UI.confirm===cdel?`<span class="muted" style="font-size:13px">Удалить турнир?</span><button class="btn sm red" data-act="delT" data-id="${T.id}">Да, удалить</button><button class="btn sm ghost" data-act="cancelConfirm">Нет</button>`:`<div class="tmenu"><button class="dots" data-act="tmenu" aria-label="Действия" title="Действия"><i></i><i></i><i></i></button>${UI.tmenu===T.id?`<div class="pop"><button data-act="shareT">${IC.share}<span>Поделиться</span></button><button data-act="xlsT">${IC.xls}<span>Скачать в Excel</span></button><a href="#g-${T.id}" target="_blank" rel="noopener">${IC.open}<span>Открыть только сетку</span></a>${own?`<button class="del" data-act="askDel" data-id="${T.id}">${IC.del}<span>Удалить турнир</span></button>`:''}</div>`:''}</div>`}</div></div>
   <div class="th-main"><div class="th-l"><div class="th-over"><span class="dot ${st}"></span>${ST_LABEL[st]}<i></i>${esc(T.discipline)}</div><h1>${esc(T.title)}</h1>
   <div class="th-facts">${facts.map(f=>`<span>${f}</span>`).join('')}</div>
 </div>${side}</div>
@@ -1091,10 +1093,10 @@ const A={
   filter(el){UI.filter[el.dataset.k]=el.dataset.v;render()},
   tab(el){UI.tab[el.dataset.id]=el.dataset.tab;render()},
   print(){window.print()},
-  shareT(){const T=CUR&&CUR.T;if(!T)return;const url=location.origin+location.pathname+'#t-'+T.id;
+  shareT(){const T=CUR&&CUR.T;if(!T)return;if(UI.tmenu){UI.tmenu=null;render()}const url=location.origin+location.pathname+'#t-'+T.id;
     if(navigator.share){navigator.share({title:T.title,url}).catch(()=>{});return}
     (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>toast('Ссылка скопирована')).catch(()=>prompt('Ссылка на турнир',url))},
-  xlsT(){const T=CUR&&CUR.T;if(!T)return;const go=async()=>{try{const b=build(T),st=stageMap(b),f=flow(T),wb=new ExcelJS.Workbook();
+  xlsT(){const T=CUR&&CUR.T;if(!T)return;if(UI.tmenu){UI.tmenu=null;render()}const go=async()=>{try{const b=build(T),st=stageMap(b),f=flow(T),wb=new ExcelJS.Workbook();
       const GR='FF9A9A9A',LN={style:'thin',color:{argb:'FFBDBDBD'}},CN={style:'thin',color:{argb:'FF9A9A9A'}};
       const R=(arr,t,k)=>(arr||[]).map((rd,i)=>({title:t(rd,i),matches:rd.matches,k,i}));
       const blocks=[];
