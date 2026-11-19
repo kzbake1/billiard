@@ -672,7 +672,7 @@ function mCard(T,m,mk){
   const row=(s,sc)=>`<div class="row ${cls(s)}"><span class="n">${esc(s.t==='p'?sname(pname(T,s)):pname(T,s))}</span><span class="sc">${showSc?sc:''}</span></div>`;
   const tm=m.state==='done'&&r&&r.ts?new Date(r.ts).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}):'';
   const st={live:`<span class="mst live">● ${r&&r.table?'стол '+r.table:'играют'}</span>`,ready:'<span class="mst ok">● можно вызывать</span>',bye:'<span class="mst">проход</span>'}[m.state]||'';
-  return`<div class="mw"><div class="m-meta"><span>${mk?`<b class="mk ${mk.c}">${mk.n}</b>`:''}№${m.no}${tm?' · '+tm:''}</span>${st}</div><div class="m s-${m.state}" data-act="match" data-mid="${m.id}">${row(m.a,r?r.sa:'')}${row(m.b,r?r.sb:'')}</div></div>`;
+  return`<div class="mw"><div class="m-meta"><span>${mk?`<b class="mk ${mk.c}">${mk.n}</b>`:''}№${m.no}${m.state==='done'&&r&&r.table?' · стол '+r.table:''}</span>${st||(tm?`<span>${tm}</span>`:'')}</div><div class="m s-${m.state}" data-act="match" data-mid="${m.id}">${row(m.a,r?r.sa:'')}${row(m.b,r?r.sb:'')}</div></div>`;
 }
 function bracketHTML(T,rounds,opt){opt=opt||{};
   return`<div class="bracket${opt.cls?' '+opt.cls:''}">${rounds.map((rd,i)=>{const n=rd.matches.length,nx=rounds[i+1]?rounds[i+1].matches.length:0;const join=!!nx&&n===nx*2;const step=join?2:1;const groups=[];
