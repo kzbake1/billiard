@@ -716,7 +716,7 @@ function renderGridTab(T,b){
   if(T.format==='se')return`<div class="withside"><div class="wm"><div style="margin-bottom:14px">${LEGEND}</div>${bracketHTML(T,b.rounds,capSE(b.rounds))}</div>${sidePanels(T,b)}</div>`;
   if(T.format==='de'&&b.K){
     const seg=`<div class="seg">${[['lb','← Нижняя сетка'],['wb','Верхняя сетка'],['gf','Олимпийка · '+b.K+' →']].map(([k,l])=>`<button data-act="uniGo" data-v="${k}">${l}</button>`).join('')}</div>`;
-    return`<div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px">${seg}${LEGEND}</div><p class="muted" style="margin:0 0 12px;font-size:13px">Сетка ${b.name}. Проигравший в верхней сетке уходит влево, в нижнюю; второе поражение — выбывание. ${b.K/2} из верхней и ${b.K/2} из нижней выходят в олимпийку — она справа. <b class="mk g">1</b> — место в нижней сетке, <b class="mk b">5</b> — место в олимпийке: номер под матчем показывает, куда идёт игрок.${b.draw?(b.drawn?' Пары олимпийки определены жеребьёвкой.':' Пары олимпийки определит жеребьёвка.'):''}</p>${uniHTML(T,b)}<div class="uni-side">${sidePanels(T,b)}</div>`}
+    return`<div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px">${seg}${LEGEND}</div>${uniHTML(T,b)}<div class="uni-side">${sidePanels(T,b)}</div>`}
   if(T.format==='de'){const v=UI.de[T.id]||'wb';
     const seg=`<div class="seg">${[['wb','Верхняя сетка'],['lb','Нижняя сетка'],['gf',b.K?'Олимпийка · '+b.K:'Финал']].map(([k,l])=>`<button class="${k===v?'on':''}" data-act="deView" data-id="${T.id}" data-v="${k}">${l}</button>`).join('')}</div>`;
     let inner;
