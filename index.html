@@ -182,7 +182,7 @@ details.more summary{cursor:pointer;color:var(--muted);font-weight:700;font-size
 .score input{border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center;font-family:Inter,sans-serif;font-size:24px;font-weight:700;width:100%}
 .dlg .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
 .err{color:var(--live-ink);font-size:13px;font-weight:600;min-height:18px}
-#toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:10px;font-weight:600;opacity:0;transition:.2s;z-index:60;pointer-events:none}
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:10px;font-weight:600;opacity:0;transition:.2s;z-index:60;pointer-events:none}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 .tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
 .tblx{background:#fff;border:1px solid var(--line);border-radius:22px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;font-size:13px;min-height:100px}
@@ -291,6 +291,23 @@ button.step3{cursor:pointer;border:2px solid var(--accent)}
 button.step3 i{background:var(--accent);color:#fff}
 .step3 b{font-size:18px;font-weight:600}.step3 span{color:var(--sub);font-size:14px}
 @media(max-width:640px){.cab-hero{padding:24px 20px}.cab-hero h1{font-size:36px}}
+.wz{max-width:680px;margin:0 auto}.wz.wide{max-width:1040px}
+.wz-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}
+.wz-head h1{font-size:30px;margin:0 0 2px}
+.wz-card{padding:24px}
+.wz-row{display:grid;grid-template-columns:1.4fr 1fr auto;gap:12px;align-items:start}
+@media(max-width:640px){.wz-row{grid-template-columns:1fr!important}}
+.wz .field input,.wz .field select{min-height:48px;border-radius:14px;font-size:15px}
+.stepper.sm .pbtn{width:44px;height:44px;font-size:20px}.stepper.sm .pl-s{font-size:22px;min-width:36px}
+.stepper.sm{min-height:48px;flex-wrap:nowrap}
+.fpills{display:flex;gap:8px;flex-wrap:wrap}
+.fpills button{min-height:44px;padding:0 16px;border:1px solid var(--line);background:#fff;border-radius:999px;font-weight:600;font-size:14px;cursor:pointer}
+.fpills button.on{background:#111;border-color:#111;color:#fff}
+.wz-hint{margin:10px 0 0;font-size:13px;color:var(--sub);background:var(--bg);border-radius:12px;padding:10px 12px}
+.wz-next{width:100%;justify-content:center;margin-top:18px}
+.wz-sum{display:flex;gap:6px 14px;flex-wrap:wrap;align-items:baseline;background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px 18px;margin-bottom:14px;font-size:14px}
+.wz-sum span{color:var(--sub)}.wz-sum .lnk{margin-left:auto;font-size:13px;color:var(--accent-ink)}
+.seg.sm button{padding:6px 12px;font-size:12.5px}
 </style>
 </head>
 <body>
@@ -720,40 +737,33 @@ function newWiz(){const c=club(S.session);return{step:1,title:'',disc:DISC[0],da
 function wizTour(){const w=UI.wiz;return{format:w.format,groups:{count:w.gc,advance:w.ga}}}
 function fmtMatches(f,n,gc){n=Math.max(n,2);if(f==='se')return n-1;if(f==='de')return 2*n-2;if(f==='rr')return n*(n-1)/2;const g=Math.ceil(n/gc);return gc*g*(g-1)/2+ (gc*2-1)}
 function renderCreate(){
-  const w=UI.wiz||(UI.wiz=newWiz());const c=club(S.session);
-  const steps=['Основное','Формат','Игроки'].map((l,i)=>{const k=i+1;return`<li class="${k<w.step?'ok':k===w.step?'on':''}"${k===w.step?' aria-current="step"':''}><span>${k<w.step?'✓':k}</span>${l}</li>`}).join('');
-  let body='';
+  const w=UI.wiz||(UI.wiz=newWiz());if(w.step>2)w.step=2;
+  const min=minPlayers(wizTour());const n=w.players.length||16;
+  const head=`<div class="wz-head"><div><h1>Новый турнир</h1><span class="muted">Шаг ${w.step} из 2 · ${w.step===1?'о турнире':'игроки'}</span></div><a class="btn ghost sm" href="#cabinet">Закрыть</a></div>`;
   if(w.step===1){
-    body=`<h1>Основное</h1><p class="muted lead">Название и дату увидят зрители. Всё можно поменять до запуска сетки.</p>
-    <div class="field"><label>Название</label><input class="big" data-w="title" value="${esc(w.title)}" placeholder="Можно не заполнять — назовём по дисциплине и дате"></div>
-    <div class="field"><label>Дисциплина</label><div class="chips" style="margin:0">${DISC.map(d=>`<button class="chip ${w.disc===d?'on':''}" data-act="wDisc" data-v="${esc(d)}">${d}</button>`).join('')}</div></div>
-    <div class="row2"><div class="field"><label>Дата начала</label><input class="big" type="date" data-w="date" value="${w.date}"></div>
-    <div class="field"><label>Игра до … побед</label><div class="stepper"><button class="pbtn" aria-label="Меньше" data-act="wRace" data-d="-1">−</button><span class="pl-s">${w.race}</span><button class="pbtn plus" aria-label="Больше" data-act="wRace" data-d="1">+</button><span class="muted" style="font-size:13px">обычно 3–5 в пирамиде, 7–9 в пуле</span></div></div></div>
-`;
-  } else if(w.step===2){
-    const n=w.players.length||16;
-    body=`<h1>Формат</h1><p class="muted lead">Как игроки выбывают. Внизу карточки — сколько выйдет матчей на ${n} игроков.</p>
-    <div class="fcards">${Object.keys(FORMATS).map(k=>`<button class="fcard ${w.format===k?'on':''}" aria-pressed="${w.format===k}" data-act="wFmt" data-v="${k}"><b>${FORMATS[k]}</b><span>${FORMAT_DESC[k]}</span><small>${n} игроков → ~${fmtMatches(k,n,w.gc)} матчей</small></button>`).join('')}</div>
-    ${w.format==='gp'?`<div class="row2" style="margin-top:16px"><div class="field"><label>Групп</label><div class="stepper"><button class="pbtn" data-act="wNum" data-k="gc" data-d="-1">−</button><span class="pl-s">${w.gc}</span><button class="pbtn plus" data-act="wNum" data-k="gc" data-d="1">+</button></div></div><div class="field"><label>Выходят из группы</label><div class="stepper"><button class="pbtn" data-act="wNum" data-k="ga" data-d="-1">−</button><span class="pl-s">${w.ga}</span><button class="pbtn plus" data-act="wNum" data-k="ga" data-d="1">+</button></div></div></div>`:''}
-    ${w.format==='de'?`<div class="panel" style="margin-top:16px;font-size:14px;color:var(--sub)">Если суперфинал выигрывает игрок из нижней сетки, у обоих по одному поражению — сыграют повторный финал. Это произойдёт само.</div>`:''}`;
-  } else {
-    body=`<h1>Игроки</h1><p class="muted lead">Выберите из базы клуба или добавьте нового. Порядок списка — это посев: сверху сильнейшие.</p>
-    <div class="two">
-    <div class="panel"><input id="wq" class="search pill" style="width:100%;min-width:0" placeholder="Найти в базе по фамилии" value="${esc(w.q)}"><div id="wq-list" class="mlist"></div>
-    <div class="np"><div class="np-h">Нет в базе — новый игрок</div><div class="row2"><input id="wn-last" placeholder="Фамилия" aria-label="Фамилия"><input id="wn-first" placeholder="Имя" aria-label="Имя"><input id="wn-birth" type="date" aria-label="Дата рождения"><input id="wn-city" placeholder="Город" aria-label="Город" value="${esc(w.city)}"><select id="wn-rank" aria-label="Звание">${RANKS.map(r=>`<option>${r}</option>`).join('')}</select><button class="btn dark" data-act="wAddP">+ Добавить</button></div><div class="err" id="wn-err"></div></div></div>
-    <div class="panel"><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px"><h3 style="margin:0">В турнире · ${w.players.length}</h3><span class="muted" style="font-size:13px">стрелки меняют посев</span></div>
-    ${w.players.length?w.players.map((p,i)=>`<div class="wp"><span class="num">${i+1}</span><b>${esc(p.name)}</b><span class="muted" style="font-size:12px">${esc(p.rank||'')}</span><button class="x" aria-label="Выше" data-act="wMove" data-i="${i}" data-d="-1" ${i===0?'disabled':''}>↑</button><button class="x" aria-label="Ниже" data-act="wMove" data-i="${i}" data-d="1" ${i===w.players.length-1?'disabled':''}>↓</button><button class="x" aria-label="Убрать" data-act="wRm" data-i="${i}">×</button></div>`).join(''):'<div class="muted" style="padding:16px 0">Пока никого — добавьте игроков слева.</div>'}</div></div>
-    <div class="panel" style="margin-top:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap"><b>Посев</b><div class="seg">${[['list','По списку'],['random','Жеребьёвка']].map(([k,l])=>`<button class="${w.seed===k?'on':''}" data-act="wSeed" data-v="${k}">${l}</button>`).join('')}</div><span class="muted" style="font-size:14px">${w.seed==='list'?'Сильные не встретятся в первых раундах.':'Пары определит случайная жеребьёвка.'}</span></div>`;
+    return`<div class="wz">${head}<div class="panel wz-card">
+    <div class="field"><label>Название</label><input data-w="title" value="${esc(w.title)}" placeholder="Необязательно — назовём по дисциплине и дате"></div>
+    <div class="wz-row"><div class="field"><label>Дисциплина</label><select data-w="disc">${DISC.map(d=>`<option ${w.disc===d?'selected':''}>${d}</option>`).join('')}</select></div>
+    <div class="field"><label>Дата</label><input type="date" data-w="date" value="${w.date}"></div>
+    <div class="field"><label>Игра до побед</label><div class="stepper sm"><button class="pbtn" aria-label="Меньше" data-act="wRace" data-d="-1">−</button><span class="pl-s">${w.race}</span><button class="pbtn plus" aria-label="Больше" data-act="wRace" data-d="1">+</button></div></div></div>
+    <div class="field" style="margin-bottom:0"><label>Формат</label><div class="fpills">${Object.keys(FORMATS).map(k=>`<button class="${w.format===k?'on':''}" aria-pressed="${w.format===k}" data-act="wFmt" data-v="${k}">${FORMATS[k]}</button>`).join('')}</div>
+    <p class="wz-hint">${FORMAT_DESC[w.format]}. На ${n} игроков — примерно ${fmtMatches(w.format,n,w.gc)} матчей.</p></div>
+    ${w.format==='gp'?`<div class="wz-row" style="grid-template-columns:1fr 1fr;margin-top:6px"><div class="field"><label>Групп</label><div class="stepper sm"><button class="pbtn" data-act="wNum" data-k="gc" data-d="-1">−</button><span class="pl-s">${w.gc}</span><button class="pbtn plus" data-act="wNum" data-k="gc" data-d="1">+</button></div></div><div class="field"><label>Выходят из группы</label><div class="stepper sm"><button class="pbtn" data-act="wNum" data-k="ga" data-d="-1">−</button><span class="pl-s">${w.ga}</span><button class="pbtn plus" data-act="wNum" data-k="ga" data-d="1">+</button></div></div></div>`:''}
+    <div class="err" id="w-err"></div>
+    <button class="btn blue big wz-next" data-act="wNext">Далее: добавить игроков →</button></div></div>`;
   }
-  const min=minPlayers(wizTour());
-  const sumRow=(k,v,m)=>`<div class="sr"><span>${k}</span><b class="${m?'muted':''}">${v}</b></div>`;
-  const nextBtn=w.step<3?`<button class="btn dark big" data-act="wNext">Далее: ${w.step===1?'формат':'игроки'}</button>`:`<button class="btn blue big" data-act="wFinish" ${w.players.length<min?'disabled':''}>${w.players.length<min?`Нужно ещё ${min-w.players.length}`:'Построить сетку'}</button>`;
-  return`<div class="wiz-top"><a class="back" href="#cabinet" style="margin:0">× Закрыть</a><b style="font-size:18px">Новый турнир</b><ol class="wsteps">${steps}</ol></div>
-  <div class="wiz"><div class="wiz-main">${body}<div class="err" id="w-err"></div></div>
-  <aside class="panel wiz-sum"><div class="pc-l">Итог</div><div id="ws-title" style="font-size:20px;font-weight:500;letter-spacing:-.02em;margin:4px 0 12px">${esc(w.title)||'Без названия'}</div>
-  ${sumRow('Дисциплина',esc(w.disc))}${sumRow('Дата',fdate(w.date))}${sumRow('Игра','до '+w.race+' побед')}${sumRow('Формат',w.step>1?FORMATS[w.format]:'—',w.step<2)}${sumRow('Игроки',w.players.length?w.players.length+' · можно от '+min:'—',!w.players.length)}
-  ${w.step===3?`<button class="btn ghost" style="width:100%;margin-top:14px;justify-content:center" data-act="wSave">Сохранить без запуска</button>`:''}</aside></div>
-  <div class="wiz-bar"><div>${w.step>1?`<button class="btn ghost big" data-act="wBack">Назад</button>`:''}</div><div style="display:flex;align-items:center;gap:14px"><span class="muted" style="font-size:14px">Шаг ${w.step} из 3</span>${nextBtn}</div></div>`;
+  const can=w.players.length>=min;
+  return`<div class="wz wide">${head}
+  <div class="wz-sum"><b>${esc(w.title)}</b><span>${esc(w.disc)} · ${fdate(w.date)} · до ${w.race} побед · ${FORMATS[w.format]}</span><button class="lnk" data-act="wBack">изменить</button></div>
+  <div class="two" style="grid-template-columns:1fr 1fr">
+  <div class="panel"><h3>Добавить игрока</h3><input id="wq" class="search pill" style="width:100%;min-width:0" placeholder="Найти в базе клуба по фамилии" value="${esc(w.q)}"><div id="wq-list" class="mlist"></div>
+  <div class="np"><div class="np-h">Нет в базе — новый игрок</div><div class="row2"><input id="wn-last" placeholder="Фамилия" aria-label="Фамилия"><input id="wn-first" placeholder="Имя" aria-label="Имя"><input id="wn-birth" type="date" aria-label="Дата рождения" title="Дата рождения"><input id="wn-city" placeholder="Город" aria-label="Город" value="${esc(w.city)}"><select id="wn-rank" aria-label="Звание">${RANKS.map(r=>`<option>${r}</option>`).join('')}</select><button class="btn dark" data-act="wAddP">+ Добавить</button></div><div class="err" id="wn-err"></div></div></div>
+  <div class="panel"><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px"><h3 style="margin:0">В турнире · ${w.players.length}</h3><div class="seg sm">${[['list','Посев по списку'],['random','Жеребьёвка']].map(([k,l])=>`<button class="${w.seed===k?'on':''}" data-act="wSeed" data-v="${k}">${l}</button>`).join('')}</div></div>
+  ${w.players.length?w.players.map((p,i)=>`<div class="wp"><span class="num">${i+1}</span><b>${esc(p.name)}</b><span class="muted" style="font-size:12px">${esc(p.rank||'')}</span><button class="x" aria-label="Выше" data-act="wMove" data-i="${i}" data-d="-1" ${i===0?'disabled':''}>↑</button><button class="x" aria-label="Ниже" data-act="wMove" data-i="${i}" data-d="1" ${i===w.players.length-1?'disabled':''}>↓</button><button class="x" aria-label="Убрать" data-act="wRm" data-i="${i}">×</button></div>`).join(''):'<div class="muted" style="padding:14px 0">Пока никого. Добавьте игроков слева — они появятся здесь.</div>'}
+  ${w.players.length&&w.seed==='list'?'<p class="muted" style="font-size:12px;margin:10px 0 0">Сверху — сильнейшие. Стрелки меняют порядок.</p>':''}
+  <div class="err" id="w-err"></div>
+  <button class="btn blue big wz-next" data-act="wFinish" ${can?'':'disabled'}>${can?'Построить сетку →':`Добавьте ещё ${min-w.players.length} — нужно минимум ${min}`}</button>
+  <div style="text-align:center;margin-top:10px"><button class="lnk" style="font-size:13px" data-act="wSave">сохранить и запустить позже</button></div></div></div></div>`;
 }
 function renderWizRoster(){
   const el=document.getElementById('wq-list');if(!el)return;const w=UI.wiz;const c=club(S.session);const q=w.q.trim().toLowerCase();
