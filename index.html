@@ -25,36 +25,20 @@ header{background:#ECECEC;border-bottom:1px solid var(--line)}
 .soon::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 1.6s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.25}}
 
-.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:48px;align-items:center;padding-top:72px;padding-bottom:72px}
+.hero{display:grid;grid-template-columns:1fr 1.2fr;gap:56px;align-items:center;padding-top:72px;padding-bottom:72px}
 .eyebrow{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 18px}
 h1{font-size:60px;line-height:1.02;font-weight:500;letter-spacing:-.035em;margin:0 0 22px}
 h1 em{font-style:normal;color:var(--accent);white-space:nowrap}
 .lead{font-size:19px;color:var(--sub);margin:0;max-width:30em}
 
-.demo{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px}
-.demo-h{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}
-.demo-h b{font-size:15px;font-weight:600}
-.demo-h span{font-size:13px;color:var(--muted)}
-.demo-h .livepill{display:inline-flex;align-items:center;gap:6px;background:var(--live);color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;padding:4px 9px;border-radius:8px;white-space:nowrap}
-.livepill::before{content:'';width:6px;height:6px;border-radius:50%;background:#fff;animation:pulse 1.2s ease-in-out infinite}
-.br{--h:77px;--gap:22px;display:grid;grid-template-columns:minmax(0,1fr) 22px 22px minmax(0,1fr);align-items:center}
-.br-col{display:flex;flex-direction:column;gap:var(--gap)}
-.br-lab{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px}
-.br-lab span:last-child{grid-column:3}
-.m{height:var(--h);border:1px solid var(--line2);border-radius:10px;background:#fff;overflow:hidden;display:flex;flex-direction:column}
-.m.on{border-color:var(--live)}
-.m div{flex:1;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px;font-size:14px;min-width:0}
-.m div+div{border-top:1px solid var(--line)}
-.m span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--sub)}
-.m b{font-weight:700;font-size:15px;color:var(--muted)}
-.m .w span{color:var(--ink);font-weight:600}.m .w b{color:var(--ink)}
-.m.on b{color:var(--live)}
-.m .tbd span{color:#A8A8A8}
-.c1{height:calc(var(--h) + var(--gap));border:1.5px solid var(--line2);border-left:0;border-radius:0 10px 10px 0}
-.c2{height:0;border-top:1.5px solid var(--line2)}
-.demo-f{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
-.demo-f i{font-style:normal;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:4px 10px;color:var(--sub)}
-.note{font-size:12.5px;color:var(--muted);margin:10px 2px 0}
+.dev{position:relative;padding:0 7% 34px 0}
+.lap-s{background:#111;border-radius:14px 14px 0 0;padding:9px 9px 10px}
+.lap-s img{display:block;width:100%;height:auto;border-radius:5px}
+.lap-b{height:13px;margin:0 -5%;background:linear-gradient(#DADADA,#B9B9B9);border-radius:2px 2px 12px 12px;position:relative}
+.lap-b::after{content:'';position:absolute;left:50%;top:0;width:15%;height:5px;transform:translateX(-50%);background:#A9A9A9;border-radius:0 0 6px 6px}
+.ph{position:absolute;right:0;bottom:0;width:25%;background:#111;border-radius:22px;padding:5px;box-shadow:0 18px 40px rgba(0,0,0,.18)}
+.ph img{display:block;width:100%;height:auto;border-radius:17px}
+.note{font-size:12.5px;color:var(--muted);margin:14px 2px 0;text-align:center}
 
 section{padding-bottom:72px}
 h2{font-size:34px;font-weight:500;letter-spacing:-.025em;line-height:1.1;margin:0 0 28px}
@@ -85,6 +69,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 
 @media(max-width:900px){
   .hero{grid-template-columns:1fr;gap:36px;padding-top:44px;padding-bottom:56px}
+  .lap{margin-left:5%}
   h1{font-size:42px}.lead{font-size:17px}
   .grid{grid-template-columns:1fr 1fr}
   .sp-row{grid-template-columns:1fr 1fr}
@@ -99,11 +84,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
   .lead{font-size:17px}
   section{padding-bottom:72px}
   h2{font-size:26px;margin-bottom:18px}
-  .demo{padding:18px}
-  .demo-f{display:none}
-  .br{--h:69px;grid-template-columns:minmax(0,1fr) 12px 12px minmax(0,1fr)}
-  .br-lab{grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr)}
-  .m div{font-size:13px;padding:0 9px}
+  .dev{padding:0 4% 30px 0}.lap-s{border-radius:9px 9px 0 0;padding:5px 5px 6px}.lap-s img{border-radius:3px}.lap-b{height:8px;border-radius:1px 1px 8px 8px}.lap-b::after{height:3px}
+  .ph{width:28%;border-radius:13px;padding:3px;box-shadow:0 10px 24px rgba(0,0,0,.18)}.ph img{border-radius:10px}
   .grid{grid-template-columns:1fr;gap:0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
   .f{display:flex;align-items:center;gap:16px;padding:18px;border:0;border-radius:0}
   .f+.f{border-top:1px solid var(--line)}
@@ -131,20 +113,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
     <p class="lead">Счёт, сетка и столы — онлайн, пока идёт игра.</p>
   </div>
   <div>
-    <div class="demo" aria-label="Пример турнирной сетки">
-      <div class="demo-h"><div><b>Кубок клуба</b><br><span>Пирамида · до 4 побед</span></div><span class="livepill">ИДЁТ ИГРА</span></div>
-      <div class="br">
-        <div class="br-lab"><span>Полуфинал</span><span>Финал</span></div>
-        <div class="br-col">
-          <div class="m"><div class="w"><span>Игрок А</span><b>4</b></div><div><span>Игрок Б</span><b>2</b></div></div>
-          <div class="m on"><div><span>Игрок В</span><b>3</b></div><div><span>Игрок Г</span><b>3</b></div></div>
-        </div>
-        <div class="c1"></div><div class="c2"></div>
-        <div class="m"><div class="w"><span>Игрок А</span><b>–</b></div><div class="tbd"><span>Победитель полуфинала</span><b>–</b></div></div>
-      </div>
-      <div class="demo-f"><i>Стол №3 · идёт игра</i><i>Стол №1 · свободен</i></div>
+    <div class="dev">
+      <div class="lap"><div class="lap-s"><img src="/img/screen-laptop.jpg" width="1600" height="1000" alt="Сетка турнира на kazbilliard — экран ноутбука"></div><div class="lap-b"></div></div>
+      <div class="ph"><img src="/img/screen-phone.jpg" width="585" height="1266" alt="Страница турнира на kazbilliard — экран телефона"></div>
     </div>
-    <p class="note">Пример: так будет выглядеть турнир на сайте</p>
+    <p class="note">Так выглядит турнир на сайте</p>
   </div>
 </div>
 
