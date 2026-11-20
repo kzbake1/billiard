@@ -301,6 +301,7 @@ details.more summary{cursor:pointer;color:var(--muted);font-weight:700;font-size
 .ptab .pls{margin:auto 0;display:flex;flex-direction:column;gap:7px}
 .ptab .pl{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:14.5px;line-height:1.25}.ptab .pl span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ptab .pl b{font-weight:600;font-variant-numeric:tabular-nums}
 .ptab .pf{margin:auto;font-size:14px;color:rgba(255,255,255,.85)}
+.ptab .pnx{margin:auto 0;display:flex;flex-direction:column;align-items:flex-start;gap:10px}.ptab .pnx span{font-size:13.5px;color:#fff}.ptab .pnx .btn{background:#fff;border-color:#fff;color:var(--ink)}
 .ptab.free .felt{background:#8DB8A3}
 .ptab.busy{cursor:pointer;border-color:var(--live);box-shadow:0 0 0 1px var(--live)}
 .tblx{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;font-size:13px;min-height:100px}
@@ -990,10 +991,12 @@ function renderGridTab(T,b){
 function clubLive(clubId,exceptMid){const out=[];S.tournaments.filter(t=>t.clubId===clubId&&t.status!=='reg').forEach(t=>build(t).all.forEach(m=>{if((m.state==='live'||m.state==='call')&&m.res.table&&!(CUR&&t===CUR.T&&m.id===exceptMid))out.push({t,m})}));return out}
 function busyTables(clubId,exceptMid){return new Set(clubLive(clubId,exceptMid).map(x=>x.m.res.table))}
 function tablesBoard(T){const c=club(T.clubId);const n=c.tables||6;const map={};clubLive(T.clubId).forEach(x=>{if(x.t===T)map[x.m.res.table]=x});
-  const busy=Object.keys(map).length;
-  return`<div class="sec"><div class="sec-h"><h2>Столы</h2><span class="muted">${busy?'играют за '+busy+' из '+n:'все '+n+' свободны'}</span></div><div class="tables">${Array.from({length:n},(_,i)=>i+1).map(k=>{const x=map[k];
+  const busy=Object.keys(map).length;const occ=busyTables(T.clubId);const own=isOwner(T);const q=own&&CUR&&CUR.b?CUR.b.all.filter(m=>m.state==='ready').sort((x,y)=>x.no-y.no):[];
+  const freeK=Array.from({length:n},(_,i)=>i+1).filter(k=>!occ.has(k));const nextOf={};freeK.forEach((k,i)=>{if(q[i])nextOf[k]=q[i]});
+  const fill=own&&Object.keys(nextOf).length>1?`<button class="btn sm blue" data-act="callAll">Вызвать на все свободные · ${Object.keys(nextOf).length}</button>`:'';
+  return`<div class="sec"><div class="sec-h"><h2>Столы</h2><span class="muted">${busy?'играют за '+busy+' из '+n:'все '+n+' свободны'}</span>${fill?`<span style="margin-left:auto">${fill}</span>`:''}</div><div class="tables">${Array.from({length:n},(_,i)=>i+1).map(k=>{const x=map[k];
   const pk='<i class="pk c1"></i><i class="pk c2"></i><i class="pk c3"></i><i class="pk c4"></i><i class="pk m1"></i><i class="pk m2"></i>';
-  return`<div class="ptab ${x?'busy':'free'}" ${x?`data-act="match" data-mid="${x.m.id}"`:''}><div class="felt">${pk}<div class="ph"><span>Стол ${k}</span>${x?`<i>№${x.m.no}${x.m.res.paused?' · пауза':''}</i>`:''}</div>${x?`<div class="pls"><div class="pl"><span>${esc(pname(T,x.m.a))}</span><b>${x.m.res.sa}</b></div><div class="pl"><span>${esc(pname(T,x.m.b))}</span><b>${x.m.res.sb}</b></div></div>`:`<div class="pf">Свободен</div>`}</div></div>`}).join('')}</div></div>`}
+  return`<div class="ptab ${x?'busy':'free'}" ${x?`data-act="match" data-mid="${x.m.id}"`:''}><div class="felt">${pk}<div class="ph"><span>Стол ${k}</span>${x?`<i>№${x.m.no}${x.m.res.paused?' · пауза':''}</i>`:''}</div>${x?`<div class="pls"><div class="pl"><span>${esc(pname(T,x.m.a))}</span><b>${x.m.res.sa}</b></div><div class="pl"><span>${esc(pname(T,x.m.b))}</span><b>${x.m.res.sb}</b></div></div>`:(nextOf[k]?`<div class="pnx"><span>№${nextOf[k].no} · ${esc(sname(pname(T,nextOf[k].a)))} — ${esc(sname(pname(T,nextOf[k].b)))}</span><button class="btn sm" data-act="callT" data-mid="${nextOf[k].id}" data-t="${k}">Вызвать</button></div>`:`<div class="pf">Свободен</div>`)}</div></div>`}).join('')}</div></div>`}
 function renderTablesTab(T,b){
   const ready=b.all.filter(m=>m.state==='ready');
   return tablesBoard(T)+
@@ -1287,6 +1290,9 @@ function openMatch(mid){
 function num(id){const v=document.getElementById(id).value.trim();return v===''?null:Math.floor(+v)}
 const A={
   pultOpen(el){go('pult-'+el.dataset.id)},
+  callAll(){const {T,b}=CUR;const occ=busyTables(T.clubId);const n=club(T.clubId).tables||6;const q=b.all.filter(m=>m.state==='ready').sort((x,y)=>x.no-y.no);let i=0,c=0;
+    for(let k=1;k<=n&&i<q.length;k++){if(occ.has(k))continue;const m=q[i++];T.results[m.id]={a:m.a.id,b:m.b.id,sa:0,sb:0,live:true,done:false,table:k,ts:Date.now(),start:Date.now()};c++}
+    save();render();toast(`Вызвано матчей: ${c}`)},
   callT(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m)return;const k=+el.dataset.t;if(busyTables(T.clubId).has(k)){toast('Стол уже занят');return}
     T.results[m.id]={a:m.a.id,b:m.b.id,sa:0,sb:0,live:true,done:false,table:k,ts:Date.now(),start:Date.now()};save();render();refreshPult();toast(`Матч начат за столом ${k}`)},
   startM(el){const t=document.getElementById('pm-t');if(!t)return;const {T}=CUR;const pr=UI.pmRace&&UI.pmRace.mid===el.dataset.mid?UI.pmRace.v:0;UI.pmRace=null;A.callT({dataset:{mid:el.dataset.mid,t:t.value}});const r=T.results[el.dataset.mid];if(r&&pr&&pr!==T.raceTo){r.race=pr;save();render();refreshPult()}},
