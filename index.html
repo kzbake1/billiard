@@ -44,6 +44,23 @@ h3{font-family:Inter,sans-serif;font-size:17px;margin:0 0 10px;font-weight:600;l
 .btn.gold{background:var(--gold-bg);border-color:var(--gold-bg);color:var(--ink)}
 .btn.sm{padding:7px 11px;font-size:13px}
 .btn[disabled]{opacity:.4;cursor:not-allowed}
+.hfind{margin:8px 0 44px}.hfind h1{font-size:40px;margin:0 0 8px;letter-spacing:-.02em}.hfind p{margin:0 0 18px;color:var(--sub);font-size:15px}
+.hf-in{display:flex;gap:10px;flex-wrap:wrap;max-width:720px}.hf-in .search{flex:1 1 300px;min-width:0;height:48px;font-size:16px}
+.fr{margin-top:10px;max-width:720px;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.fr-i{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 18px;text-decoration:none;color:inherit}.fr-i+.fr-i{border-top:1px solid #F0F0F0}.fr-i:hover{background:#FAFAFA}
+.fr-i div{display:flex;flex-direction:column;gap:2px;min-width:0}.fr-i b{font-weight:600;font-size:15px}.fr-i span{font-size:13px;color:var(--muted)}
+.fr-i em{font-style:normal;font-size:13.5px;color:var(--sub);text-align:right}.fr-i em.live{color:var(--live-ink)}.fr-i em.ok{color:var(--ok)}
+.fr-no{margin-top:10px;font-size:14px;color:var(--muted)}
+.hs{margin-bottom:44px}.hs-h{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}.hs-h h2{margin:0;font-size:24px}.hs-h span{font-size:14px;color:var(--muted)}
+.hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.hc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:4px;transition:border-color .15s}.hc:hover{border-color:var(--ink)}
+.hc.row{flex-direction:row;gap:16px;align-items:flex-start}.hc-b{display:flex;flex-direction:column;gap:4px;min-width:0}
+.hc-d{flex:0 0 46px;text-align:center;padding-right:14px;border-right:1px solid var(--line)}.hc-d b{display:block;font-size:28px;font-weight:500;line-height:1.05;letter-spacing:-.02em}.hc-d span{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.hc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}.hc-live{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--live-ink)}.hc-live i{width:7px;height:7px;border-radius:50%;background:var(--live);animation:pulse 1.4s infinite}
+.hc-m{font-size:13px;color:var(--muted)}.hc-t{font-size:17px;font-weight:600;line-height:1.3}.hc-s{font-size:13.5px;color:var(--muted)}.hc-w{font-size:13.5px;color:var(--ink);margin-top:2px}
+.hc-bar{height:4px;border-radius:4px;background:#EDEDED;overflow:hidden;margin:12px 0 4px}.hc-bar i{display:block;height:100%;background:var(--ok);border-radius:4px}
+.hs-more{margin-top:14px}
+@media(max-width:640px){.hfind h1{font-size:30px}.hgrid{grid-template-columns:1fr}.fr-i{flex-direction:column;align-items:flex-start;gap:6px}.fr-i em{text-align:left}}
 .hero{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:22px}
 .hero p{margin:0;color:var(--muted);max-width:520px}
 .feat{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:56px}
@@ -701,7 +718,7 @@ function render(){RENDER_N++;
   const nav=document.getElementById('nav');
   const me=S.session?club(S.session):null;
   nav.innerHTML=`<a href="#home" class="${h==='home'||h.startsWith('t-')?'on':''}">Турниры</a><a href="${S.admin&&!me?'#admin':'#cabinet'}" class="cta">${me?'Кабинет клуба':S.admin?'Администратор':'Вход для клубов'}</a>`;
-  renderTicker(h==='home');
+  renderTicker(false);
   const app=document.getElementById('app');
   document.body.classList.remove('gonly','sbd');
   if(h.startsWith('s-')){const x=h.slice(2),i=x.indexOf('-');const T=tById(x.slice(0,i));if(T){app.innerHTML=renderBoard(T,x.slice(i+1));return}}
@@ -711,29 +728,50 @@ function render(){RENDER_N++;
   if(h==='admin'){app.innerHTML=renderAdmin();loadAdminList();return}
   if(h==='create'){app.innerHTML=S.session?renderCreate():renderCabinet();renderWizRoster();return}
   if(h.startsWith('pult-')){location.replace('#t-'+h.slice(5));return}
-  app.innerHTML=renderHome();renderGrid();
+  app.innerHTML=renderHome();renderFind();
 }
 
 /* ============ home ============ */
+function tFmt(T,b){b=b||build(T);return T.format==='de'?(b.name?'Сетка '+b.name:'Сетка на '+nextPow2(Math.max(2,T.players.length))+' · суперфинал'):FORMATS[T.format]+(T.format==='gp'?` ${T.groups.count}×${T.groups.advance}`:'')}
 function renderHome(){
-  const f=UI.filter;
-  const chip=(k,v,l)=>`<button class="chip ${f[k]===v?'on':''}" data-act="filter" data-k="${k}" data-v="${esc(v)}">${l}</button>`;
-  const discs=[...new Set(S.tournaments.map(t=>t.discipline))];
-  const lives=S.tournaments.filter(t=>t.status==='live').map(t=>({t,b:build(t)})).filter(x=>!x.b.finished).sort((x,y)=>y.b.all.filter(m=>m.state==='live').length-x.b.all.filter(m=>m.state==='live').length);
-  let feat='';
-  if(lives.length){const {t:T,b}=lives[0];const c=club(T.clubId);const lm=b.all.filter(m=>m.state==='live');const list=(lm.length?lm:b.all.filter(m=>m.state==='ready')).slice(0,4);
-    const done=b.all.filter(m=>m.state==='done').length,tot=b.all.filter(m=>m.state!=='bye').length;
-    feat=`<section class="feat"><a class="feat-main" href="#t-${T.id}"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="st live">Идёт</span><span class="muted" style="font-size:14px">${fdate(T.date)} · ${esc(T.city)}, ${esc(c.name)}</span></div>
-    <h1>${esc(T.title)}</h1>
-    <div class="facts"><div><span>Дисциплина</span><b>${esc(T.discipline)}</b></div><div><span>Формат</span><b>${FORMATS[T.format]}</b></div><div><span>Игра</span><b>до ${T.raceTo} побед</b></div><div><span>Сыграно</span><b>${done} из ${tot}</b></div></div>
-    <div><span class="btn green">Смотреть сетку →</span></div></a>
-    <aside class="feat-side"><div style="display:flex;justify-content:space-between;align-items:baseline"><h3 style="margin:0">${lm.length?'Сейчас за столами':'Ожидают вызова'}</h3><span class="muted" style="font-size:13px">${lm.length?lm.length+' из '+(c.tables||'—'):''}</span></div>
-    ${list.map(m=>`<a class="lm" href="#t-${T.id}"><div class="lt"><span>${m.res&&m.res.table?'Стол '+m.res.table+' · ':''}№${m.no}</span>${m.state==='live'?'<em>● live</em>':''}</div><div class="lg"><span>${esc(pname(T,m.a))}</span><b>${m.res?m.res.sa:''}</b><span>${esc(pname(T,m.b))}</span><b>${m.res?m.res.sb:''}</b></div></a>`).join('')||'<div class="muted">Пока нет матчей</div>'}</aside></section>`}
-  return`${feat}<div class="hero"><h2 style="margin:0;font-size:34px">Турниры</h2>
-  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><input id="q" class="search" placeholder="Поиск: турнир, клуб, город" value="${esc(f.q)}">${S.session?`<button class="btn blue big" data-act="newT">+ Новый турнир</button>`:''}</div></div>
-  <div class="chips">${chip('status','all','Все')}${chip('status','live','Идут')}${chip('status','reg','Скоро')}${chip('status','done','Завершены')}</div>
-  <div class="grid" id="grid"></div>`;
+  const all=S.tournaments.map(T=>({T,b:T.status==='reg'?null:build(T)}));
+  const live=all.filter(x=>x.T.status==='live'&&!x.b.finished).sort((x,y)=>(y.T.date||'').localeCompare(x.T.date||''));
+  const soon=all.filter(x=>x.T.status==='reg').sort((x,y)=>(x.T.date||'').localeCompare(y.T.date||''));
+  const done=all.filter(x=>x.b&&x.b.finished).sort((x,y)=>(y.T.date||'').localeCompare(x.T.date||''));
+  const more=UI.homeMore;const dn=more?done:done.slice(0,6);
+  const sec=(t,n,body,extra='')=>`<section class="hs"><div class="hs-h"><h2>${t}</h2>${n?`<span>${n}</span>`:''}${extra}</div>${body}</section>`;
+  if(!S.tournaments.length)return`<div class="hfind"><h1>Бильярдные турниры</h1></div><div class="empty">${S.session?'Турниров пока нет.<br><br><button class="btn blue big" data-act="newT">+ Создать первый турнир</button>':'Турниров пока нет. Они появятся здесь, когда клубы их создадут.<br><br><a class="btn dark" href="#cabinet">Вы клуб? Войдите, чтобы создать турнир</a>'}</div>`;
+  return`<div class="hfind"><h1>Бильярдные турниры</h1><p>Найдите себя — покажем ваш турнир, следующий матч и стол.</p>
+  <div class="hf-in"><input id="pq" class="search" type="search" autocomplete="off" placeholder="Фамилия игрока" value="${esc(UI.pq||'')}">${S.session?`<button class="btn blue" data-act="newT">+ Новый турнир</button>`:''}</div><div id="find-res"></div></div>
+  ${live.length?sec('Сейчас идут',live.length,`<div class="hgrid">${live.map(x=>hLive(x.T,x.b)).join('')}</div>`):''}
+  ${soon.length?sec('Скоро',soon.length,`<div class="hgrid">${soon.map(x=>hSoon(x.T)).join('')}</div>`):''}
+  ${done.length?sec('Завершённые',done.length,`<div class="hgrid">${dn.map(x=>hDone(x.T,x.b)).join('')}</div>${done.length>6?`<button class="btn ghost hs-more" data-act="homeMore">${more?'Свернуть':'Показать все'}</button>`:''}`):''}`;
 }
+function hDate(T){const [y,mo,d]=(T.date||'--').split('-');return`<div class="hc-d"><b>${+d||'—'}</b><span>${MSHORT[+mo-1]||''}</span></div>`}
+function hLive(T,b){const c=club(T.clubId);const ms=b.all.filter(m=>m.state!=='bye');const dn=ms.filter(m=>m.state==='done').length;const lv=ms.filter(m=>m.state==='live').length;const pc=ms.length?Math.round(dn/ms.length*100):0;
+  return`<a class="hc" href="#t-${T.id}"><div class="hc-top"><span class="hc-live"><i></i>идёт</span>${lv?`<span class="hc-m">${lv} за столами</span>`:''}</div>
+  <b class="hc-t">${esc(T.title)}</b><span class="hc-s">${esc(c.name)} · ${esc(T.city)}</span><span class="hc-s">${esc(tFmt(T,b))} · до ${T.raceTo} побед</span>
+  <div class="hc-bar"><i style="width:${pc}%"></i></div><span class="hc-s">Сыграно ${dn} из ${ms.length}</span></a>`}
+function hSoon(T){const c=club(T.clubId);
+  return`<a class="hc row" href="#t-${T.id}">${hDate(T)}<div class="hc-b"><b class="hc-t">${esc(T.title)}</b><span class="hc-s">${esc(c.name)} · ${esc(T.city)}</span><span class="hc-s">${esc(T.discipline)} · ${T.players.length} игрок${plural(T.players.length)}</span>${c.phone?`<span class="hc-s">Запись: ${esc(c.phone)}</span>`:''}</div></a>`}
+function hDone(T,b){const c=club(T.clubId);const w=b.places&&b.places[0]&&b.places[0].ids[0];
+  return`<a class="hc row" href="#t-${T.id}">${hDate(T)}<div class="hc-b"><b class="hc-t">${esc(T.title)}</b><span class="hc-s">${esc(c.name)} · ${esc(T.discipline)}</span>${w?`<span class="hc-w">Победитель · ${esc(pname(T,P(w)))}</span>`:''}</div></a>`}
+function renderFind(){const el=document.getElementById('find-res');if(!el)return;const q=(UI.pq||'').trim().toLowerCase();
+  if(q.length<2){el.innerHTML='';return}
+  const out=[];
+  S.tournaments.forEach(T=>T.players.forEach(p=>{if(!p.name.toLowerCase().split(' ').some(w=>w.startsWith(q))&&!p.name.toLowerCase().startsWith(q))return;
+    let txt,rank=5,tag='';
+    if(T.status==='reg'){txt=`Записан · турнир ${fdate(T.date)}`;rank=3}
+    else{const b=build(T);const ms=b.all.filter(m=>(m.a.t==='p'&&m.a.id===p.id)||(m.b.t==='p'&&m.b.id===p.id));const opp=m=>{const o=m.a.t==='p'&&m.a.id===p.id?m.b:m.a;return o.t==='p'?sname(pname(T,o)):'соперник пока неизвестен'};
+      const lv=ms.find(m=>m.state==='live'),rd=ms.find(m=>m.state==='ready'),wt=ms.find(m=>m.state==='wait');
+      if(lv){const me=lv.a.t==='p'&&lv.a.id===p.id;txt=`Играет сейчас · стол ${lv.res.table||'—'} · ${me?lv.res.sa:lv.res.sb}:${me?lv.res.sb:lv.res.sa} против ${opp(lv)}`;rank=0;tag='live'}
+      else if(rd){txt=`На очереди · матч №${rd.no} против ${opp(rd)}`;rank=1;tag='ok'}
+      else if(wt){txt=`Следующий матч №${wt.no} · ${opp(wt)}`;rank=2}
+      else if(b.finished){const pl=(b.places||[]).find(x=>x.ids.includes(p.id));txt=pl?`${pl.from===pl.to?pl.from:pl.from+'–'+pl.to} место`:'Турнир завершён';rank=4}
+      else{txt='Выбыл';rank=4}}
+    out.push({T,p,txt,rank,tag})}));
+  out.sort((x,y)=>x.rank-y.rank||(y.T.date||'').localeCompare(x.T.date||''));
+  el.innerHTML=out.length?`<div class="fr">${out.slice(0,8).map(r=>`<a class="fr-i" href="#t-${r.T.id}"><div><b>${esc(r.p.name)}</b><span>${esc(r.T.title)} · ${esc(club(r.T.clubId).name)}</span></div><em class="${r.tag}">${esc(r.txt)}</em></a>`).join('')}</div>`:'<div class="fr-no">Игрок не найден</div>'}
 function tCard(T){
   const st=tStatus(T);const c=club(T.clubId);const [y,mo,d]=(T.date||'--').split('-');
   return`<a class="card" href="#t-${T.id}"><div class="date"><b>${d||'—'}</b><span>${MSHORT[+mo-1]||''}</span></div>
@@ -763,7 +801,7 @@ function renderT(T){
   else if(tab==='people')body=renderPeople(T,b);
   else body=renderResult(T,b);
   const done=b.all.filter(m=>m.state==='done').length,tot=b.all.filter(m=>m.state!=='bye').length;
-  const fmt=T.format==='de'?(b.name?'Сетка '+b.name:'Сетка на '+nextPow2(Math.max(2,T.players.length))+' · суперфинал'):FORMATS[T.format]+(T.format==='gp'?` ${T.groups.count}×${T.groups.advance}`:'');
+  const fmt=tFmt(T,b);
   const n=T.players.length,pw=n%10===1&&n%100!==11?'игрок':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?'игрока':'игроков');
   const facts=[fdate(T.date),fmt];
   const champ=b.finished&&b.places&&b.places[0]&&b.places[0].ids[0]?pname(T,P(b.places[0].ids[0])):'';
@@ -1163,6 +1201,7 @@ const A={
     const T=wizMake('live');if(T.seedMode==='random'){for(let i=T.players.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[T.players[i],T.players[j]]=[T.players[j],T.players[i]]}save()}
     UI.tab[T.id]='grid';go('t-'+T.id);toast('Сетка построена')},
   filter(el){UI.filter[el.dataset.k]=el.dataset.v;render()},
+  homeMore(){UI.homeMore=!UI.homeMore;render()},
   tab(el){UI.tab[el.dataset.id]=el.dataset.tab;render()},
   print(){window.print()},
   shareT(){const T=CUR&&CUR.T;if(!T)return;if(UI.tmenu){UI.tmenu=null;render()}const url=location.origin+location.pathname+'#t-'+T.id;
@@ -1280,7 +1319,7 @@ document.addEventListener('change',e=>{
   if(a==='pmTable'||a==='pmRace'||a==='pmScore'||a==='pmStart')A[a](e.target);
   if(a==='callSel'&&e.target.value){A.callT({dataset:{mid:e.target.dataset.mid,t:e.target.value}})}
 });
-document.addEventListener('input',e=>{if(e.target.id==='q'){UI.filter.q=e.target.value;renderGrid()}if(e.target.id==='rs-q')renderRoster();if(e.target.id==='wq'&&UI.wiz){UI.wiz.q=e.target.value;renderWizRoster()}if(e.target.dataset&&e.target.dataset.w&&UI.wiz){UI.wiz[e.target.dataset.w]=e.target.value;const t=document.getElementById('ws-title');if(t&&e.target.dataset.w==='title')t.textContent=e.target.value||'Без названия'}});
+document.addEventListener('input',e=>{if(e.target.id==='pq'){UI.pq=e.target.value;renderFind()}if(e.target.id==='q'){UI.filter.q=e.target.value;renderGrid()}if(e.target.id==='rs-q')renderRoster();if(e.target.id==='wq'&&UI.wiz){UI.wiz.q=e.target.value;renderWizRoster()}if(e.target.dataset&&e.target.dataset.w&&UI.wiz){UI.wiz[e.target.dataset.w]=e.target.value;const t=document.getElementById('ws-title');if(t&&e.target.dataset.w==='title')t.textContent=e.target.value||'Без названия'}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='Enter'&&e.target.id==='lg-pass'){const b=document.querySelector('[data-act=login]');b&&b.click()}if(e.key==='Enter'&&document.getElementById('sa')&&document.getElementById('modal').classList.contains('open')){const b=document.querySelector('[data-act=saveRes]');b&&b.click()}});
 window.addEventListener('hashchange',()=>{closeModal();UI.confirm=null;render();window.scrollTo(0,0)});
 boot();
