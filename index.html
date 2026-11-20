@@ -842,7 +842,7 @@ function renderFind(){const el=document.getElementById('find-res');if(!el)return
     else{const b=build(T);const ms=b.all.filter(m=>(m.a.t==='p'&&m.a.id===p.id)||(m.b.t==='p'&&m.b.id===p.id));const opp=m=>{const o=m.a.t==='p'&&m.a.id===p.id?m.b:m.a;return o.t==='p'?sname(pname(T,o)):'соперник пока неизвестен'};
       const lv=ms.find(m=>m.state==='live'),rd=ms.find(m=>m.state==='ready'),wt=ms.find(m=>m.state==='wait');
       if(lv){const me=lv.a.t==='p'&&lv.a.id===p.id;txt=`Играет сейчас · стол ${lv.res.table||'—'} · ${me?lv.res.sa:lv.res.sb}:${me?lv.res.sb:lv.res.sa} против ${opp(lv)}`;rank=0;tag='live'}
-      else if(rd){txt=`На очереди · матч №${rd.no} против ${opp(rd)}`;rank=1;tag='ok'}
+      else if(rd){const ahead=b.all.filter(m=>m.state==='ready'&&m.no<rd.no).length;txt=`${ahead?`Перед вами ${ahead} матч${plural(ahead)} в очереди`:'Следующие к столу'} · №${rd.no} против ${opp(rd)}`;rank=1;tag='ok'}
       else if(wt){txt=`Следующий матч №${wt.no} · ${opp(wt)}`;rank=2}
       else if(b.finished){const pl=(b.places||[]).find(x=>x.ids.includes(p.id));txt=pl?`${pl.from===pl.to?pl.from:pl.from+'–'+pl.to} место`:'Турнир завершён';rank=4}
       else{txt='Выбыл';rank=4}}
