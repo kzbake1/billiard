@@ -524,6 +524,15 @@ nav.main a{white-space:nowrap}
 .hl-d i{display:block;font-style:normal;font-size:11px;color:var(--muted);margin-top:1px}.hl-d b.rg{font-size:16px;white-space:nowrap}
 .hl-n{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:44px}.hl-n span{display:inline-flex;align-items:center;gap:5px;font-size:14px;color:var(--sub);font-variant-numeric:tabular-nums}.hl-n svg{width:17px;height:17px}.hl-n .tv{color:#D4002B}
 @media(max-width:640px){.hl-n{flex-direction:row;padding-left:68px;min-width:0}}
+.hgrid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:32px;align-items:start}.hmain{min-width:0}
+.htop{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;position:sticky;top:20px;margin-top:40px}
+.ht-h h2{margin:0;font-size:20px}.ht-h span{display:block;font-size:13px;color:var(--muted);margin-top:4px}
+.htop ol{list-style:none;margin:18px 0 0;padding:0}.htop li{display:flex;align-items:center;gap:14px;padding:10px 0}.htop li+li{border-top:1px solid var(--line)}
+.ht-av{flex:0 0 44px;height:44px;border-radius:10px;background:#EEF1F5;display:grid;place-items:center;font-style:normal;font-weight:600;font-size:14px;color:var(--sub)}
+.htop li div{flex:1;min-width:0}.htop li b{display:block;font-weight:500;font-size:15px}.htop li div span{font-size:13px;color:var(--muted)}
+.htop li em{flex:0 0 40px;height:40px;border-radius:10px;background:#F4F5F7;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:16px}.htop li em.tp{background:#FFF4D6;color:#8A6100}
+.ht-all{display:flex;align-items:center;gap:6px;margin-top:14px;font-size:14px;color:var(--blue);text-decoration:none}.ht-all svg{width:15px;height:15px}
+@media(max-width:980px){.hgrid{grid-template-columns:1fr}.htop{position:static;margin-top:8px}}
 </style>
 </head>
 <body>
@@ -859,14 +868,16 @@ function renderHome(){
   if(!S.tournaments.length)return`<div class="hfind"><h1>Бильярдные турниры</h1></div><div class="empty">${S.session?'Турниров пока нет.<br><br><button class="btn blue big" data-act="newT">+ Создать первый турнир</button>':'Турниров пока нет. Они появятся здесь, когда клубы их создадут.<br><br><a class="btn dark" href="#cabinet">Вы клуб? Войдите, чтобы создать турнир</a>'}</div>`;
   return`<div class="hfind"><h1>Бильярдные турниры</h1><p>Найдите себя — покажем ваш турнир, следующий матч и стол.</p>
   <div class="hf-in"><input id="pq" class="search" type="search" autocomplete="off" placeholder="Фамилия игрока" value="${esc(UI.pq||'')}">${S.session?`<button class="btn blue" data-act="newT">+ Новый турнир</button>`:''}</div><div id="find-res"></div></div>
-  ${live.length?sec('Сейчас идут',live.length,`<div class="hlist">${live.map(x=>hLive(x.T,x.b)).join('')}</div>`):''}
+  <div class="hgrid"><div class="hmain">${live.length?sec('Сейчас идут',live.length,`<div class="hlist">${live.map(x=>hLive(x.T,x.b)).join('')}</div>`):''}
   ${soon.length?sec('Скоро',soon.length,`<div class="hlist">${soon.map(x=>hSoon(x.T)).join('')}</div>`):''}
-  ${done.length?sec('Завершённые',done.length,`<div class="hlist">${dn.map(x=>hDone(x.T,x.b)).join('')}</div>${done.length>6?`<button class="btn ghost hs-more" data-act="homeMore">${more?'Свернуть':'Показать все'}</button>`:''}`):''}`;
+  ${done.length?sec('Завершённые',done.length,`<div class="hlist">${dn.map(x=>hDone(x.T,x.b)).join('')}</div>${done.length>6?`<button class="btn ghost hs-more" data-act="homeMore">${more?'Свернуть':'Показать все'}</button>`:''}`):''}</div>${hTop()}</div>`;
 }
 function cabRows(list){const o={live:0,reg:1,done:2};return list.map(T=>{const b=T.status==='reg'?null:build(T);return{T,b,st:T.status==='reg'?'reg':b.finished?'done':'live'}})
   .sort((x,y)=>o[x.st]-o[y.st]||((x.st==='done'?-1:1)*(x.T.date||'').localeCompare(y.T.date||'')))
   .map(({T,b,st})=>{let h=st==='live'?hLive(T,b):st==='reg'?hSoon(T):hDone(T,b);
     const tag=!isPub(T)?'черновик':st==='reg'?'подготовка':'';return tag?h.replace('<div class="hl-r">',`<div class="hl-r"><em class="tg">${tag}</em>`):h}).join('')}
+const FBS={date:'18 марта 2026',url:'https://fbs-rk.kz/rating/detail/13',list:[['Пан Максим','Тараз',1505],['Габдулхаир Ернур','Семей',1315],['Сейдазым Хамит','Алматы',1285],['Сактаган Мирас','Актау',1265],['Омаров Алибек','Караганда',1220],['Джолдасбеков Сейтжан','Шымкент',1115],['Карамолдаев Даулет','Алматы',1100],['Бахарамулы Куат','Талдыкурган',985],['Мананков Куаныш','Алматы',905],['Казыбеков Жанибек','Караганда',880]]};
+function hTop(){return`<aside class="htop"><div class="ht-h"><h2>Топ игроков</h2><span>Рейтинг ФБС РК · ${FBS.date}</span></div><ol>${FBS.list.map(([n,c,p],i)=>{const [f,m]=n.split(' ');return`<li><i class="ht-av">${f[0]}${(m||'')[0]||''}</i><div><b>${esc(n)}</b><span>${p} очков · ${esc(c)}</span></div><em${i<3?' class="tp"':''}>${i+1}</em></li>`}).join('')}</ol><a class="ht-all" href="${FBS.url}" target="_blank" rel="noopener">Весь рейтинг на fbs-rk.kz <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></a></aside>`}
 const WD=['вс','пн','вт','ср','чт','пт','сб'];
 function hDate(T){const [y,mo,d]=(T.date||'--').split('-');const e=T.dateEnd&&T.dateEnd!==T.date?T.dateEnd.split('-'):null;const same=e&&e[1]===mo;const wd=T.date?WD[new Date(+y,+mo-1,+d).getDay()]:'';
   return`<div class="hl-d"><b${e?' class="rg"':''}>${+d||'—'}${same?'–'+(+e[2]):''}</b><span>${MSHORT[+mo-1]||''}${e&&!same?' – '+(+e[2])+' '+MSHORT[+e[1]-1]:''}</span><i>${wd}</i></div>`}
