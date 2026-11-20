@@ -857,7 +857,6 @@ function renderHome(){
   <div class="hf-in"><input id="pq" class="search" type="search" autocomplete="off" placeholder="Фамилия игрока" value="${esc(UI.pq||'')}">${S.session?`<button class="btn blue" data-act="newT">+ Новый турнир</button>`:''}</div><div id="find-res"></div></div>
   ${live.length?sec('Сейчас идут',live.length,`<div class="hlist">${live.map(x=>hLive(x.T,x.b)).join('')}</div>`):''}
   ${soon.length?sec('Скоро',soon.length,`<div class="hlist">${soon.map(x=>hSoon(x.T)).join('')}</div>`):''}
-  ${homeClubs()}
   ${done.length?sec('Завершённые',done.length,`<div class="hlist">${dn.map(x=>hDone(x.T,x.b)).join('')}</div>${done.length>6?`<button class="btn ghost hs-more" data-act="homeMore">${more?'Свернуть':'Показать все'}</button>`:''}`):''}`;
 }
 function cabRows(list){const o={live:0,reg:1,done:2};return list.map(T=>{const b=T.status==='reg'?null:build(T);return{T,b,st:T.status==='reg'?'reg':b.finished?'done':'live'}})
