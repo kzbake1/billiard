@@ -84,7 +84,7 @@ h2{font-size:34px;font-weight:500;letter-spacing:-.025em;line-height:1.1;margin:
 .sp-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .slot{height:104px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;font-size:13px;color:#9A9A9A;border:1.5px dashed var(--line2)}
 .slot.has{background:none;border:0;padding:12px 28px}
-.slot img{width:100%;max-width:190px;height:auto;display:block}
+.slot img{width:auto;height:auto;max-width:min(190px,100%);max-height:88px;display:block}
 
 footer{border-top:1px solid var(--line);padding:22px 0 28px;font-size:13.5px;color:var(--muted)}
 footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -116,7 +116,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
   .pc .per{margin:0;font-size:13.5px}.pc .per em{display:block;margin:1px 0 0}
   .ct{padding:24px 20px;gap:20px}.ct h2{font-size:24px}
   .sp{padding-top:32px}
-  .slot{height:80px;font-size:12px}.slot.has{padding:12px 20px}
+  .slot{height:80px;font-size:12px}.slot.has{padding:12px 20px}.slot img{max-height:70px}
   footer{padding:20px 0 28px}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
@@ -192,7 +192,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
   <p class="sp-h">Спонсоры</p>
   <div class="sp-row">
     <div class="slot has"><img src="/sponsors/chimba.svg" alt="Chimba"></div>
-    <div class="slot">Место для спонсора</div>
+    <div class="slot has"><img src="/sponsors/pro-billiards-kazakhstan.png" alt="Pro Billiards Kazakhstan" width="360" height="360"></div>
     <div class="slot">Место для спонсора</div>
     <div class="slot">Место для спонсора</div>
   </div>
