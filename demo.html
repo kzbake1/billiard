@@ -62,6 +62,11 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .round.conn .pair.join .slot::after{display: none;}
 .round.conn .pair.join::before{content: ""; position: absolute; right: -14px; top: 25%; height: 25%; width: 14px; box-sizing: border-box; border-top: 1px solid var(--line2); border-right: 1px solid var(--line2); border-top-right-radius: 12px;}
 .round.conn .pair.join::after{content: ""; position: absolute; right: -14px; top: 50%; bottom: auto; height: 25%; width: 14px; box-sizing: border-box; border-bottom: 1px solid var(--line2); border-right: 1px solid var(--line2); border-bottom-right-radius: 12px;}
+.m .row.hlr{background:var(--accent-soft)}
+.m .row.hlr .n{font-weight:600;color:var(--accent-ink)}
+.round.conn .slot.hlo::after,.round.instub .slot.hli::before{border-top-color:var(--accent);border-top-width:2px;margin-top:-.5px}
+.round.conn .pair.join.hlt::before{border-color:var(--accent);border-width:2px 2px 0 0}
+.round.conn .pair.join.hlb::after{border-color:var(--accent);border-width:0 2px 2px 0}
 /* просмотр */
 .bar{flex:none;display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border-bottom:1px solid var(--line);font-size:13.5px}
 .bar .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
@@ -110,6 +115,18 @@ u.addEventListener('touchend',function(e){if(e.touches.length<2)d0=0});
 var md=null;u.addEventListener('mousedown',function(e){md={x:e.clientX,y:e.clientY,l:u.scrollLeft,t:u.scrollTop};u.classList.add('drag')});
 window.addEventListener('mousemove',function(e){if(md){u.scrollLeft=md.l-(e.clientX-md.x);u.scrollTop=md.t-(e.clientY-md.y)}});
 window.addEventListener('mouseup',function(){md=null;u.classList.remove('drag')});
+var HL=null;function hl(pid){if(pid===HL)return;HL=pid;var root=inn;
+  root.querySelectorAll('.hlr,.hlm,.hlo,.hli,.hlt,.hlb').forEach(function(e){e.classList.remove('hlr','hlm','hlo','hli','hlt','hlb')});
+  if(!pid)return;var sel='.row[data-pid="'+pid+'"]';
+  root.querySelectorAll(sel).forEach(function(row){row.classList.add('hlr');var sw=row.closest('.sw');if(!sw)return;sw.classList.add('hlm');
+    var slot=sw.parentElement,pair=slot.parentElement,round=slot.closest('.round');if(!round)return;
+    if(row.classList.contains('win')&&round.classList.contains('conn')){if(pair.classList.contains('join'))pair.classList.add(slot===pair.firstElementChild?'hlt':'hlb');else slot.classList.add('hlo')}
+    var prev=round.previousElementSibling;if(prev&&round.classList.contains('instub')&&prev.querySelector('.win'+sel))slot.classList.add('hli')})}
+var canHover=!window.matchMedia||window.matchMedia('(hover:hover)').matches;
+function rowOf(e){return e.target&&e.target.closest&&e.target.closest('.m .row[data-pid]')}
+u.addEventListener('mouseover',function(e){if(!canHover||md)return;var r=rowOf(e);hl(r?r.dataset.pid:null)});
+u.addEventListener('mouseleave',function(){if(canHover)hl(null)});
+u.addEventListener('click',function(e){if(canHover)return;var r=rowOf(e);if(r){var p=r.dataset.pid;hl(HL===p?null:p)}else hl(null)});
 // старт: верхняя сетка, 1-й раунд слева
 var small=window.innerWidth<700;if(small)set(.8);
 var ub=u.querySelector('.ub');var col=ub&&(ub.closest('.round')||ub);
