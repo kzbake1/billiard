@@ -1007,8 +1007,8 @@ function renderPeople(T,b){
   return`<div class="two">${list}<div>${side}</div></div>`;
 }
 function prepBar(T){const n=T.players.length;const late=T.drawn&&T.players.some(p=>!p.no);
-  return`<div class="prep"><div class="prep-t"><b>Подготовка</b><span>${n} участник${plural(n)} · ${T.drawn?(late?'<em>после жеребьёвки добавлены новые — проведите её заново</em>':'жеребьёвка проведена'):'жеребьёвки не было'} · судей ${(T.judges||[]).length}</span></div>
-  <div class="prep-a"><button class="btn ghost" data-act="drawT" ${n<2?'disabled':''}>${IC.dice}${T.drawn?'Жеребьёвка заново':'Жеребьёвка'}</button><button class="btn blue" data-act="schOpen" ${n<2?'disabled':''}>${IC.grid}Задать схему турнира</button></div></div>`}
+  return`<div class="prep"><div class="prep-t"><b>Подготовка</b><span>${n} участник${plural(n)} · ${T.drawn?(late?'<em>после жеребьёвки добавлены новые — проведите её заново</em>':'жеребьёвка проведена'):'<em>проведите жеребьёвку, чтобы задать схему</em>'} · судей ${(T.judges||[]).length}</span></div>
+  <div class="prep-a"><button class="btn ghost" data-act="drawT" ${n<2?'disabled':''}>${IC.dice}${T.drawn?'Жеребьёвка заново':'Жеребьёвка'}</button><button class="btn blue" data-act="schOpen" ${n<2||!T.drawn||late?`disabled title="Сначала проведите жеребьёвку"`:''}>${IC.grid}Задать схему турнира</button></div></div>`}
 function schHTML(T){const u=UI.sch;const n=T.players.length;const tmp={format:u.format,groups:{count:u.gc,advance:u.ga},playoff:u.playoff};const min=minPlayers(tmp);
   const name=u.format==='de'?(deName(n,u.playoff)?'сетка '+deName(n,u.playoff):'сетка на '+nextPow2(Math.max(2,n))+' с суперфиналом'):FORMATS[u.format].toLowerCase();
   const st=(k,l)=>`<div class="field"><label>${l}</label><div class="stepper sm"><button class="pbtn" data-act="schNum" data-k="${k}" data-d="-1">−</button><span class="pl-s">${u[k]}</span><button class="pbtn plus" data-act="schNum" data-k="${k}" data-d="1">+</button></div></div>`;
@@ -1017,7 +1017,7 @@ function schHTML(T){const u=UI.sch;const n=T.players.length;const tmp={format:u.
   ${u.format==='de'?`<div class="field"><label>Выход в олимпийку</label><select data-sch="playoff">${[['auto','Авто'],[4,'Олимпийка с 4'],[8,'Олимпийка с 8'],[16,'Олимпийка с 16'],[0,'Нет, суперфинал']].map(([k,l])=>`<option value="${k}" ${String(u.playoff)===String(k)?'selected':''}>${l}</option>`).join('')}</select></div>`:''}</div>
   ${u.format!=='rr'&&!(u.format==='de'&&!playoffK({playoff:u.playoff},n))?`<label class="chk"><input type="checkbox" data-sch="third" ${u.third?'checked':''}><span>Матч за 3 место</span></label>`:''}
   <div class="sch-row">${u.format==='gp'?st('gc','Количество групп')+st('ga','Выходят из группы'):''}${st('race','Матч до побед')}</div>
-  <p class="sch-sum">На ${n} игрок${plural(n)} — ${name}, ${u.format==='de'&&String(u.playoff)!=='0'?'':'до '}${fmtMatches(u.format,n,u.gc,u.playoff)+(u.third&&u.format!=='rr'&&!(u.format==='de'&&!playoffK({playoff:u.playoff},n))?1:0)} матч${plural(fmtMatches(u.format,n,u.gc,u.playoff)+(u.third?1:0))}.${n<min?` <em>Нужно минимум ${min} участник${plural(min)}.</em>`:''}${T.status==='reg'&&!T.drawn?' Жеребьёвки не было — места в сетке по порядку регистрации.':''}${T.status!=='reg'?' Сетка будет построена заново.':''}</p>
+  <p class="sch-sum">На ${n} игрок${plural(n)} — ${name}, ${u.format==='de'&&String(u.playoff)!=='0'?'':'до '}${fmtMatches(u.format,n,u.gc,u.playoff)+(u.third&&u.format!=='rr'&&!(u.format==='de'&&!playoffK({playoff:u.playoff},n))?1:0)} матч${plural(fmtMatches(u.format,n,u.gc,u.playoff)+(u.third?1:0))}.${n<min?` <em>Нужно минимум ${min} участник${plural(min)}.</em>`:''}${T.status!=='reg'?' Сетка будет построена заново.':''}</p>
   <div class="err" id="sch-err"></div><div class="pm-acts"><button class="btn blue" data-act="schApply" ${n<min?'disabled':''}>Применить</button><button class="btn ghost" data-act="close">Отмена</button></div></div>`}
 function renderRules(T){const own=isOwner(T);
   if(own&&UI.rulesEd!==T.id&&!T.rules&&!T.link)UI.rulesEd=T.id;
@@ -1385,7 +1385,7 @@ const A={
   schIn(el){const u=UI.sch,k=el.dataset.sch;u[k]=k==='third'?el.checked:k==='playoff'?(el.value==='auto'?'auto':+el.value):el.value;openModal(schHTML(CUR.T))},
   schSet(el){const u=UI.sch,k=el.dataset.k,v=el.dataset.v;u[k]=k==='playoff'?(v==='auto'?'auto':+v):v;openModal(schHTML(CUR.T))},
   schNum(el){const u=UI.sch,k=el.dataset.k,lim={gc:[2,16],ga:[1,8],race:[1,25]}[k];u[k]=Math.max(lim[0],Math.min(lim[1],u[k]+(+el.dataset.d)));openModal(schHTML(CUR.T))},
-  schApply(){const T=CUR.T,u=UI.sch,e=document.getElementById('sch-err');if(!isOwner(T))return;if(Object.keys(T.results||{}).length&&T.status!=='reg'){e.textContent='Матчи уже сыграны — схему менять нельзя';return}
+  schApply(){const T=CUR.T,u=UI.sch,e=document.getElementById('sch-err');if(!isOwner(T))return;if(T.status==='reg'&&(!T.drawn||T.players.some(p=>!p.no))){e.textContent='Сначала проведите жеребьёвку';return}if(Object.keys(T.results||{}).length&&T.status!=='reg'){e.textContent='Матчи уже сыграны — схему менять нельзя';return}
     if(u.format==='gp'&&u.ga>=Math.floor(T.players.length/u.gc)){e.textContent='Из группы выходит слишком много игроков для такого состава';return}
     T.format=u.format;T.playoff=u.format==='de'?u.playoff:undefined;T.third=!!u.third&&u.format!=='rr';T.groups={count:u.gc,advance:u.ga};T.raceTo=u.race;T.seedMode='list';delete T.draw;delete T.poPerm;
     T.players.sort((x,y)=>(x.no||1e9)-(y.no||1e9));T.status='live';T.results={};UI.tab[T.id]='grid';save();closeModal();render();toast('Сетка построена')},
