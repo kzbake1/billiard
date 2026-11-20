@@ -489,7 +489,7 @@ select:not([multiple]){-webkit-appearance:none;-moz-appearance:none;appearance:n
 body.ctb main{padding-top:12px}
 .ct-set{max-width:560px;margin:8px auto}.ct-set h1{margin:0 0 6px;font-size:28px}.ct-set p{margin:0 0 18px}
 .ct{display:flex;flex-direction:column;gap:10px;min-height:calc(100vh - 120px);min-height:calc(100dvh - 120px)}
-.ct-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}.ct-top b{font-size:20px;color:var(--ink)}
+.ct-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}.ct-top>b{font-size:20px;color:var(--ink)}
 .ct-main{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .ct-side{display:flex;flex-direction:column;gap:8px;min-height:0}
 .ct-hit{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:0;border-radius:18px;background:#123526;color:#fff;cursor:pointer;padding:18px 10px 60px;font:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:transform .06s,background .2s;min-height:200px}
@@ -512,7 +512,7 @@ body.ctb footer{display:none}
 .ct-ru{display:inline-flex;align-items:center;gap:6px;margin-top:8px;border:0;background:none;font:inherit;font-size:13px;color:var(--muted);cursor:pointer;padding:6px}
 @media(max-width:560px){.ct-hit{min-height:150px;padding-bottom:60px}}
 nav.main a{white-space:nowrap}
-.ct-top b{white-space:nowrap}body.ctb #toast{bottom:150px}
+.ct-top>b{white-space:nowrap}.ct-ttl{display:flex;flex-direction:column;gap:2px}.ct-ttl b{font-size:14px;font-weight:600;color:var(--ink)}.ct-ttl small{font-size:13px;color:var(--muted)}body.ctb #toast{bottom:150px}
 @media(max-width:480px){nav.main{gap:12px}nav.main a{font-size:12px}nav.main a.cta{padding:9px 12px;font-size:13px}nav.main .lg{display:none}.logo small{display:none}.logo b{font-size:18px}}
 </style>
 </head>
@@ -1165,7 +1165,7 @@ function renderCounter(){document.body.classList.add('ctb');
       <span class="ct-name">${esc(c.p[i])}</span>${cont?'':`<span class="ct-fr">партии ${c.f[i]}</span>`}<b class="ct-sc">${c.s[i]}</b>
       <span class="ct-meta">${c.done===i?'Победа':left>0?`осталось ${left}`:''}${turn&&c.ser>1?` · серия ${c.ser}`:''}</span>${c.turn==null&&c.done==null&&!c.s[0]&&!c.s[1]&&!(c.f&&(c.f[0]||c.f[1]))?'<span class="ct-hint">забил шар — нажмите</span>':''}<span class="ct-best">лучшая серия ${c.best[i]}</span></button>
       ${c.done!=null?'':`<button class="ct-foul" data-act="ctFoul" data-i="${i}">−1 штраф</button>`}</div>`};
-  return`<div class="ct"><div class="ct-top"><span>${esc(c.disc)} · ${cont?`до ${c.target} шаров`:`партия до ${c.fb}, матч до ${c.wins}`}</span>${cont?'':`<b>${c.f[0]} : ${c.f[1]}</b>`}<button class="ct-gear" data-act="ctSetup" aria-label="Настройки"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
+  return`<div class="ct"><div class="ct-top"><span class="ct-ttl"><b>${esc(c.disc)}</b><small>${cont?`до ${c.target} шаров`:`партия до ${c.fb} · матч до ${c.wins} побед`}</small></span>${cont?'':`<b>${c.f[0]} : ${c.f[1]}</b>`}<button class="ct-gear" data-act="ctSetup" aria-label="Настройки"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
     <div class="ct-main">${side(0)}${side(1)}</div>
     ${c.done!=null?`<div class="ct-res"><span class="ct-rl">${c.done<0?'Ничья':c.early?'Игра окончена · победа':'Победа'}</span><b class="ct-rn">${c.done<0?`${esc(c.p[0])} — ${esc(c.p[1])}`:esc(c.p[c.done])}</b><span class="ct-rs">${(()=>{const w=c.done<0?0:c.done;return cont?`${c.s[w]} : ${c.s[1-w]}`:`партии ${c.f[w]} : ${c.f[1-w]}${c.early?` · шары ${c.s[w]} : ${c.s[1-w]}`:''}`})()}</span>
       <span class="ct-rb">Лучшая серия — ${esc(c.p[0])} ${c.best[0]} · ${esc(c.p[1])} ${c.best[1]}</span>
