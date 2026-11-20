@@ -452,7 +452,8 @@ button.step3 i{background:var(--accent);color:#fff}
 .ptools{display:flex;gap:14px;flex-wrap:wrap}.ptools button{border:0;background:none;padding:0;font:inherit;font-size:13px;color:var(--sub);cursor:pointer}.ptools button:hover{color:var(--ink)}.ptools svg{width:16px;height:16px}
 .tb-wrap{overflow-x:auto;margin:0 -4px}.tb-wrap .tb{min-width:720px}
 .chk{display:inline-flex;align-items:center;gap:10px;font-size:14.5px;cursor:pointer;margin:2px 0 16px}.chk input{width:18px;height:18px;accent-color:var(--accent);margin:0}
-.sch-row{display:flex;gap:16px;flex-wrap:wrap}.sch-sum{font-size:13.5px;color:var(--sub);background:var(--soft);border-radius:8px;padding:10px 12px;margin:4px 0 0}.sch-sum em{font-style:normal;color:var(--live-ink)}
+.sch-row{display:flex;gap:16px;flex-wrap:wrap}.sch-g{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start}.sch-g select{height:44px}.sch-g+.sch-g{grid-template-columns:auto auto;justify-content:start}
+.sch-sum{background:var(--soft);border-radius:10px;padding:14px 16px;margin:4px 0 0;font-size:13.5px;color:var(--sub);line-height:1.5}.sch-sh{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:4px}.sch-sh b{font-size:15px;color:var(--ink)}.sch-sh span{font-size:13px;color:var(--muted);white-space:nowrap}.sch-sum p{margin:0}.sch-sum p.warn{margin-top:6px;color:var(--live-ink)}
 .rules{white-space:pre-wrap;font-size:15px;line-height:1.6;margin-bottom:14px}.rl{display:inline-flex;align-items:center;gap:7px}
 .field textarea{width:100%;box-sizing:border-box;font:inherit;font-size:14.5px;padding:10px 12px;border:1px solid var(--line2);border-radius:8px;resize:vertical}
 .jl{display:flex;flex-direction:column}.ji{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:14px 0}.ji+.ji{border-top:1px solid #F0F0F0}.ji div{display:flex;flex-direction:column;gap:3px}.ji b{font-size:16px;font-weight:600}.ji .jr{font-size:13.5px;color:var(--accent-ink);font-weight:500}.ji .jd{font-size:13px;color:var(--muted)}
@@ -1017,14 +1018,22 @@ function prepBar(T){const n=T.players.length;const late=T.drawn&&T.players.some(
 function gridOpts(n){const N=nextPow2(Math.max(2,n)),o=[];[4,8,16].forEach(k=>{if(playoffK({playoff:k},n)===k)o.push(['de:'+k,deName(n,k)])});
   o.push(['de:0',N+' · суперфинал'],['se','Олимпийка '+N],['gp','Группы + плей-офф'],['rr','Круговая']);return o}
 function gridVal(u,n){if(u.format!=='de')return u.format;const k=u.playoff==='auto'?playoffK({playoff:'auto'},n):(+u.playoff?playoffK({playoff:u.playoff},n):0);return'de:'+k}
+function schExplain(u,n){const N=nextPow2(Math.max(2,n)),K=u.format==='de'?playoffK({playoff:u.playoff},n):0;const can3=u.format!=='rr'&&!(u.format==='de'&&!K);
+  const cnt=fmtMatches(u.format,n,u.gc,u.playoff)+(u.third&&can3?1:0);const mt=`${u.format==='de'&&!K?'до ':''}${cnt} матч${plural(cnt)}`;
+  const S=K?(N>=16&&n<=N*3/4?N*3/4:N):N;const free=S-n;const fr=free>0?` ${free} мест${free===1?'о':free<5?'а':''} пуст${free===1?'ое':'ые'} — соперники проходят без игры.`:'';
+  if(u.format==='de'&&K)return[`${S}-${K}`,`Сетка на ${S} мест, играют до двух поражений. Когда останется ${K} игрок${plural(K)} — ${K/2} из верхней и ${K/2} из нижней сетки — дальше олимпийка до первого поражения.${fr}`,mt];
+  if(u.format==='de')return[`${N} · суперфинал`,`Верхняя и нижняя сетки до конца, в суперфинале встречаются их победители.${fr}`,mt];
+  if(u.format==='se')return[`Олимпийка ${N}`,`Проиграл — выбыл.${fr}`,mt];
+  if(u.format==='gp')return['Группы + плей-офф',`${u.gc} групп${u.gc<5?'ы':''}, каждый с каждым. Из каждой выходят ${u.ga} — дальше олимпийка на ${nextPow2(u.gc*u.ga)}.`,mt];
+  return['Круговая','Каждый с каждым, места по таблице.',mt]}
 function schHTML(T){const u=UI.sch;const n=T.players.length;const tmp={format:u.format,groups:{count:u.gc,advance:u.ga},playoff:u.playoff};const min=minPlayers(tmp);
-  const name=u.format==='de'?(deName(n,u.playoff)?'сетка '+deName(n,u.playoff):'сетка на '+nextPow2(Math.max(2,n))+' с суперфиналом'):FORMATS[u.format].toLowerCase();
-  const st=(k,l)=>`<div class="field"><label>${l}</label><div class="stepper sm"><button class="pbtn" data-act="schNum" data-k="${k}" data-d="-1">−</button><span class="pl-s">${u[k]}</span><button class="pbtn plus" data-act="schNum" data-k="${k}" data-d="1">+</button></div></div>`;
+  const can3=u.format!=='rr'&&!(u.format==='de'&&!playoffK({playoff:u.playoff},n));const [ttl,txt,mt]=schExplain(u,n);
+  const st=(k,l)=>`<div class="field"><label>${l}</label><div class="stepper sm"><button class="pbtn" aria-label="Меньше" data-act="schNum" data-k="${k}" data-d="-1">−</button><span class="pl-s">${u[k]}</span><button class="pbtn plus" aria-label="Больше" data-act="schNum" data-k="${k}" data-d="1">+</button></div></div>`;
   return`<div class="ed"><div class="pm-h"><div class="pm-ti"><b>Схема турнира</b><span>${n} участник${plural(n)}</span></div><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
-  <div class="field"><label>Сетка</label><select data-sch="grid">${gridOpts(n).map(([v,l])=>`<option value="${v}" ${v===gridVal(u,n)?'selected':''}>${l}</option>`).join('')}</select></div>
-  ${u.format!=='rr'&&!(u.format==='de'&&!playoffK({playoff:u.playoff},n))?`<label class="chk"><input type="checkbox" data-sch="third" ${u.third?'checked':''}><span>Матч за 3 место</span></label>`:''}
-  <div class="sch-row">${u.format==='gp'?st('gc','Количество групп')+st('ga','Выходят из группы'):''}${st('race','Матч до побед')}</div>
-  <p class="sch-sum">На ${n} игрок${plural(n)} — ${name}, ${u.format==='de'&&String(u.playoff)!=='0'?'':'до '}${fmtMatches(u.format,n,u.gc,u.playoff)+(u.third&&u.format!=='rr'&&!(u.format==='de'&&!playoffK({playoff:u.playoff},n))?1:0)} матч${plural(fmtMatches(u.format,n,u.gc,u.playoff)+(u.third?1:0))}.${n<min?` <em>Нужно минимум ${min} участник${plural(min)}.</em>`:''}${T.status!=='reg'?' Сетка будет построена заново.':''}</p>
+  <div class="sch-g"><div class="field"><label>Сетка</label><select data-sch="grid">${gridOpts(n).map(([v,l])=>`<option value="${v}" ${v===gridVal(u,n)?'selected':''}>${l}</option>`).join('')}</select></div>${st('race','Матч до побед')}</div>
+  ${u.format==='gp'?`<div class="sch-g">${st('gc','Групп')}${st('ga','Выходят из группы')}</div>`:''}
+  ${can3?`<label class="chk"><input type="checkbox" data-sch="third" ${u.third?'checked':''}><span>Матч за 3 место</span></label>`:''}
+  <div class="sch-sum"><div class="sch-sh"><b>${esc(ttl)}</b><span>${mt}</span></div><p>${txt}</p>${n<min?`<p class="warn">Нужно минимум ${min} участник${plural(min)}.</p>`:''}${T.status!=='reg'?'<p class="warn">Сетка будет построена заново.</p>':''}</div>
   <div class="err" id="sch-err"></div><div class="pm-acts"><button class="btn blue" data-act="schApply" ${n<min?'disabled':''}>Применить</button><button class="btn ghost" data-act="close">Отмена</button></div></div>`}
 function renderRules(T){const own=isOwner(T);
   if(own&&UI.rulesEd!==T.id&&!T.rules&&!T.link)UI.rulesEd=T.id;
