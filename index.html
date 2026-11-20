@@ -501,7 +501,7 @@ body.ctb main{padding-top:12px}
 .ct-hint{font-size:12.5px;color:rgba(255,255,255,.55);margin-top:4px}
 .ct-gear{margin-left:12px;width:38px;height:38px;border-radius:10px;border:1px solid var(--line2);background:#fff;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}.ct-top span{flex:1;min-width:0}
 .ct-bar{display:grid;grid-template-columns:auto 1fr;gap:10px}
-.ct-undo{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:84px;height:64px;border-radius:14px;border:1px solid var(--line2);background:#fff;font:inherit;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer}.ct-undo:disabled{opacity:.35}
+.ct-undo{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:56px;border-radius:14px;border:1px solid var(--line2);background:#fff;font:inherit;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer}.ct-undo:disabled{opacity:.35}
 .ct-miss{height:64px;border-radius:14px;border:0;background:var(--ink);color:#fff;font:inherit;font-size:18px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.ct-miss small{font-size:12.5px;font-weight:400;color:rgba(255,255,255,.65)}
 .ct-tip{display:flex;align-items:center;gap:8px;height:64px;border-radius:14px;background:var(--soft);font-size:14px;color:var(--sub);padding:0 10px}.ct-tip button{flex:1;min-width:0;height:46px;border-radius:10px;border:1px solid var(--line2);background:#fff;font:inherit;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 body.ctb footer{display:none}
@@ -1170,8 +1170,7 @@ function renderCounter(){document.body.classList.add('ctb');
       <span class="ct-rb">Лучшая серия — ${esc(c.p[0])} ${c.best[0]} · ${esc(c.p[1])} ${c.best[1]}</span>
       <div class="ct-ra"><button class="btn blue" data-act="ctNew">${cont?'Ещё партия':'Ещё матч'}</button><button class="btn ghost" data-act="ctSetup">Новые игроки</button></div>
       <button class="ct-ru" data-act="ctUndo">↶ Отменить последний шар</button></div>`:''}
-    ${c.done!=null?'':`<div class="ct-bar"><button class="ct-undo" data-act="ctUndo" ${c.h&&c.h.length?'':'disabled'} aria-label="Отменить последнее"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg><span>Отменить</span></button>
-      ${c.turn==null?`<div class="ct-tip"><span>Разбивает:</span><button data-act="ctTurn" data-i="0">${esc(c.p[0])}</button><button data-act="ctTurn" data-i="1">${esc(c.p[1])}</button></div>`:`<button class="ct-miss" data-act="ctMiss">Промах<small>ход переходит: ${esc(c.p[1-c.turn])}</small></button>`}</div>`}</div>`}
+    ${c.done!=null?'':`<button class="ct-undo" data-act="ctUndo" ${c.h&&c.h.length?'':'disabled'}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Отменить последнее</button>`}</div>`}
 function ctCheck(){const c=CT,cont=ctCont(c.disc);
   for(const i of [0,1]){if(cont&&c.s[i]>=c.target){c.done=i;return}
     if(!cont&&c.s[i]>=c.fb){c.f[i]++;if(c.f[i]>=c.wins){c.done=i;return}c.s=[0,0];c.ser=0;c.turn=null;toast(`Партия — ${c.p[i]}`);return}}}
