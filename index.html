@@ -443,6 +443,13 @@ button.step3 i{background:var(--accent);color:#fff}
 .stepper.sm .pbtn{width:40px;height:40px;font-size:20px}.stepper.sm .pl-s{font-size:22px;min-width:34px}
 .stepper.sm{min-height:48px;flex-wrap:nowrap}
 .fpills{display:flex;gap:8px;flex-wrap:wrap}
+.wz-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}.wz-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field label small{font-weight:400;color:var(--muted);margin-left:4px}
+.wz-more{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+@media(max-width:640px){.wz-row3,.wz-row2{grid-template-columns:1fr}}
+.th-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.th-links .btn{display:inline-flex;align-items:center;gap:7px}.th-links .tv{background:#FF0033;border-color:#FF0033;color:#fff}
+.th-over .draft{color:var(--muted)}.th-draft{margin-top:14px;font-size:14px;color:var(--sub);background:#FFF8E6;border:1px solid #F3E2B3;border-radius:8px;padding:10px 14px;display:inline-block}.th-draft .lnk{font-weight:600;color:var(--accent-ink)}
+.hl-tv{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:#D4002B}.hl-tv svg{width:15px;height:15px}
+.dlg:has(.ed){max-width:560px;padding:34px 36px 30px}
 .fpills button{min-height:44px;padding:0 16px;border:1px solid var(--line);background:#fff;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer}
 .fpills button.on{background:#111;border-color:#111;color:#fff}
 .wz-hint{margin:10px 0 0;font-size:13px;color:var(--sub);background:var(--bg);border-radius:8px;padding:10px 12px}
@@ -478,6 +485,12 @@ const LETTERS='ABCDEFGHIJKLMNOP';
 const uid=()=>Math.random().toString(36).slice(2,9);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const MONTHS=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const CATS=['Клубный','Городской','Республиканский','Международный'];
+const okUrl=u=>!u||/^https?:\/\/[^\s]+\.[^\s]+$/i.test(u.trim());
+const normUrl=u=>{u=(u||'').trim();if(u&&!/^https?:\/\//i.test(u))u='https://'+u;return u};
+function fdates(T){const a=T.date,b=T.dateEnd;if(!b||b===a)return fdate(a);const [y1,m1,d1]=a.split('-'),[y2,m2,d2]=b.split('-');
+  if(y1===y2&&m1===m2)return +d1+'–'+(+d2)+' '+MONTHS[+m1-1]+' '+y1;if(y1===y2)return +d1+' '+MONTHS[+m1-1]+' – '+(+d2)+' '+MONTHS[+m2-1]+' '+y1;return fdate(a)+' – '+fdate(b)}
+const isPub=T=>T.pub!==false;
 const fdate=d=>{if(!d)return'';const [y,m,dd]=d.split('-');return +dd+' '+MONTHS[+m-1]+' '+y};
 
 /* ============ engine ============ */
@@ -717,6 +730,9 @@ const IC=(()=>{const w=p=>`<svg width="18" height="18" viewBox="0 0 24 24" fill=
   share:w('<path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/>'),
   xls:w('<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5"/><path d="M9 12l6 6M15 12l-6 6"/>'),
   open:w('<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'),
+  edit:w('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>'),
+  play:w('<rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/>'),
+  doc:w('<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>'),
   del:w('<path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/>')}})();
 function renderGridOnly(T){const b=build(T);CUR={T,b};document.body.classList.add('gonly');
   return`<div class="go-h"><b>${esc(T.title)}</b><span>${fdate(T.date)}${T.format==='de'&&b.name?' · Сетка '+b.name:''}</span></div>${renderGridTab(T,b)}`}
@@ -731,7 +747,7 @@ function render(){RENDER_N++;
   document.body.classList.remove('gonly','sbd');
   if(h.startsWith('s-')){const x=h.slice(2),i=x.indexOf('-');const T=tById(x.slice(0,i));if(T){app.innerHTML=renderBoard(T,x.slice(i+1));return}}
   if(h.startsWith('g-')){const T=tById(h.slice(2));if(T){app.innerHTML=renderGridOnly(T);return}}
-  if(h.startsWith('t-')){const T=tById(h.slice(2));if(T){app.innerHTML=renderT(T);renderRoster();return}}
+  if(h.startsWith('t-')){const T=tById(h.slice(2));if(T&&!isPub(T)&&!isOwner(T)){app.innerHTML='<div class="empty">Турнир ещё не опубликован. <a href="#home">Все турниры</a></div>';return}if(T){app.innerHTML=renderT(T);renderRoster();return}}
   if(h==='cabinet'){app.innerHTML=renderCabinet();return}
   if(h==='admin'){app.innerHTML=renderAdmin();loadAdminList();return}
   if(h==='create'){app.innerHTML=S.session?renderCreate():renderCabinet();renderWizRoster();return}
@@ -742,7 +758,7 @@ function render(){RENDER_N++;
 /* ============ home ============ */
 function tFmt(T,b){b=b||build(T);return T.format==='de'?(b.name?'Сетка '+b.name:'Сетка на '+nextPow2(Math.max(2,T.players.length))+' · суперфинал'):FORMATS[T.format]+(T.format==='gp'?` ${T.groups.count}×${T.groups.advance}`:'')}
 function renderHome(){
-  const all=S.tournaments.map(T=>({T,b:T.status==='reg'?null:build(T)}));
+  const all=S.tournaments.filter(isPub).map(T=>({T,b:T.status==='reg'?null:build(T)}));
   const live=all.filter(x=>x.T.status==='live'&&!x.b.finished).sort((x,y)=>(y.T.date||'').localeCompare(x.T.date||''));
   const soon=all.filter(x=>x.T.status==='reg').sort((x,y)=>(x.T.date||'').localeCompare(y.T.date||''));
   const done=all.filter(x=>x.b&&x.b.finished).sort((x,y)=>(y.T.date||'').localeCompare(x.T.date||''));
@@ -756,17 +772,19 @@ function renderHome(){
   ${done.length?sec('Завершённые',done.length,`<div class="hlist">${dn.map(x=>hDone(x.T,x.b)).join('')}</div>${done.length>6?`<button class="btn ghost hs-more" data-act="homeMore">${more?'Свернуть':'Показать все'}</button>`:''}`):''}`;
 }
 function hDate(T){const [y,mo,d]=(T.date||'--').split('-');return`<div class="hl-d"><b>${+d||'—'}</b><span>${MSHORT[+mo-1]||''}</span></div>`}
+const hCat=T=>T.category&&T.category!=='Клубный'?esc(T.category)+' · ':'';
+const hTv=T=>T.video?`<span class="hl-tv">${IC.play}трансляция</span>`:'';
 function hRow(T,meta,right){return`<a class="hl" href="#t-${T.id}">${hDate(T)}<div class="hl-m"><b>${esc(T.title)}</b><span>${meta}</span></div><div class="hl-r">${right}</div></a>`}
 function hLive(T,b){const c=club(T.clubId);const lv=b.all.filter(m=>m.state==='live').length;
-  return hRow(T,`${esc(c.name)} · ${esc(T.city)} · ${esc(tFmt(T,b))} · до ${T.raceTo} побед`,`<em class="lv"><i></i>идёт</em>${lv?`<span>${lv} за столами</span>`:''}`)}
+  return hRow(T,`${hCat(T)}${esc(c.name)} · ${esc(T.city)} · ${esc(tFmt(T,b))} · до ${T.raceTo} побед`,`<em class="lv"><i></i>идёт</em>${lv?`<span>${lv} за столами</span>`:''}${hTv(T)}`)}
 function hSoon(T){const c=club(T.clubId);
-  return hRow(T,`${esc(c.name)} · ${esc(T.city)} · ${esc(T.discipline)}`,`<em>${T.players.length} игрок${plural(T.players.length)}</em>${c.phone?`<span>запись ${esc(c.phone)}</span>`:''}`)}
+  return hRow(T,`${T.dateEnd?esc(fdates(T))+' · ':''}${T.time?esc(T.time)+' · ':''}${hCat(T)}${esc(c.name)} · ${esc(T.city)} · ${esc(T.discipline)}`,`${hTv(T)}<em>${T.players.length} игрок${plural(T.players.length)}</em>${c.phone?`<span>запись ${esc(c.phone)}</span>`:''}`)}
 function hDone(T,b){const c=club(T.clubId);const w=b.places&&b.places[0]&&b.places[0].ids[0];
-  return hRow(T,`${esc(c.name)} · ${esc(T.city)} · ${esc(T.discipline)}`,w?`<span>победитель</span><em>${esc(pname(T,P(w)))}</em>`:'')}
+  return hRow(T,`${hCat(T)}${esc(c.name)} · ${esc(T.city)} · ${esc(T.discipline)}`,w?`<span>победитель</span><em>${esc(pname(T,P(w)))}</em>`:'')}
 function renderFind(){const el=document.getElementById('find-res');if(!el)return;const q=(UI.pq||'').trim().toLowerCase();
   if(q.length<2){el.innerHTML='';return}
   const out=[];
-  S.tournaments.forEach(T=>T.players.forEach(p=>{if(!p.name.toLowerCase().split(' ').some(w=>w.startsWith(q))&&!p.name.toLowerCase().startsWith(q))return;
+  S.tournaments.filter(isPub).forEach(T=>T.players.forEach(p=>{if(!p.name.toLowerCase().split(' ').some(w=>w.startsWith(q))&&!p.name.toLowerCase().startsWith(q))return;
     let txt,rank=5,tag='';
     if(T.status==='reg'){txt=`Записан · турнир ${fdate(T.date)}`;rank=3}
     else{const b=build(T);const ms=b.all.filter(m=>(m.a.t==='p'&&m.a.id===p.id)||(m.b.t==='p'&&m.b.id===p.id));const opp=m=>{const o=m.a.t==='p'&&m.a.id===p.id?m.b:m.a;return o.t==='p'?sname(pname(T,o)):'соперник пока неизвестен'};
@@ -782,7 +800,7 @@ function renderFind(){const el=document.getElementById('find-res');if(!el)return
 function tCard(T){
   const st=tStatus(T);const c=club(T.clubId);const [y,mo,d]=(T.date||'--').split('-');
   return`<a class="card" href="#t-${T.id}"><div class="date"><b>${d||'—'}</b><span>${MSHORT[+mo-1]||''}</span></div>
-  <div class="body"><div style="display:flex;justify-content:space-between;gap:4px 8px;align-items:flex-start;flex-wrap:wrap"><span class="disc">${esc(T.discipline)}</span><span class="st ${st}">${ST_LABEL[st]}</span></div>
+  <div class="body"><div style="display:flex;justify-content:space-between;gap:4px 8px;align-items:flex-start;flex-wrap:wrap"><span class="disc">${esc(T.discipline)}</span><span class="st ${st}">${isPub(T)?ST_LABEL[st]:'Черновик'}</span></div>
   <span class="ttl">${esc(T.title)}</span><span class="meta"><span>${esc(c.name)} · ${esc(T.city)}</span></span>
   <span class="meta" style="color:var(--sub)"><span>${FORMATS[T.format]} · до ${T.raceTo} · ${T.players.length} игрок${plural(T.players.length)}</span></span></div></a>`;
 }
@@ -810,14 +828,16 @@ function renderT(T){
   const done=b.all.filter(m=>m.state==='done').length,tot=b.all.filter(m=>m.state!=='bye').length;
   const fmt=tFmt(T,b);
   const n=T.players.length,pw=n%10===1&&n%100!==11?'игрок':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?'игрока':'игроков');
-  const facts=[fdate(T.date),fmt];
+  const facts=[fdates(T)+(T.time?' · '+esc(T.time):''),fmt];
   const champ=b.finished&&b.places&&b.places[0]&&b.places[0].ids[0]?pname(T,P(b.places[0].ids[0])):'';
   const place=[c.city,c.address].filter(Boolean).map(esc).join(', ');
   const cl=[`<b>${esc(c.name)}</b>`,place,c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:'',c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:''].filter(Boolean);
   const side=`<div class="th-side"><b class="cn">${esc(c.name)}</b>${place?`<span>${place}</span>`:''}${c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:''}${c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:''}</div>`;
-  return`<div class="tband"><div class="th-top"><a class="back" href="#home">← Все турниры</a><div class="th-act">${own&&UI.confirm===cdel?`<span class="muted" style="font-size:13px">Удалить турнир?</span><button class="btn sm red" data-act="delT" data-id="${T.id}">Да, удалить</button><button class="btn sm ghost" data-act="cancelConfirm">Нет</button>`:`<div class="tmenu"><button class="dots" data-act="tmenu" aria-label="Действия" title="Действия"><i></i><i></i><i></i></button>${UI.tmenu===T.id?`<div class="pop"><button data-act="shareT">${IC.share}<span>Поделиться</span></button><button data-act="xlsT">${IC.xls}<span>Скачать в Excel</span></button><a href="#g-${T.id}" target="_blank" rel="noopener">${IC.open}<span>Открыть только сетку</span></a>${own?`<button class="del" data-act="askDel" data-id="${T.id}">${IC.del}<span>Удалить турнир</span></button>`:''}</div>`:''}</div>`}</div></div>
-  <div class="th-main"><div class="th-l"><div class="th-over"><span class="dot ${st}"></span>${ST_LABEL[st]}<i></i>${esc(T.discipline)}</div><h1>${esc(T.title)}</h1>
+  return`<div class="tband"><div class="th-top"><a class="back" href="#home">← Все турниры</a><div class="th-act">${own&&UI.confirm===cdel?`<span class="muted" style="font-size:13px">Удалить турнир?</span><button class="btn sm red" data-act="delT" data-id="${T.id}">Да, удалить</button><button class="btn sm ghost" data-act="cancelConfirm">Нет</button>`:`<div class="tmenu"><button class="dots" data-act="tmenu" aria-label="Действия" title="Действия"><i></i><i></i><i></i></button>${UI.tmenu===T.id?`<div class="pop"><button data-act="shareT">${IC.share}<span>Поделиться</span></button><button data-act="xlsT">${IC.xls}<span>Скачать в Excel</span></button><a href="#g-${T.id}" target="_blank" rel="noopener">${IC.open}<span>Открыть только сетку</span></a>${own?`<button data-act="editT">${IC.edit}<span>Изменить турнир</span></button><button class="del" data-act="askDel" data-id="${T.id}">${IC.del}<span>Удалить турнир</span></button>`:''}</div>`:''}</div>`}</div></div>
+  <div class="th-main"><div class="th-l"><div class="th-over"><span class="dot ${st}"></span>${ST_LABEL[st]}<i></i>${esc(T.discipline)}${T.category?`<i></i>${esc(T.category)}`:''}${isPub(T)?'':'<i></i><span class="draft">черновик</span>'}</div><h1>${esc(T.title)}</h1>
   <div class="th-facts">${facts.map(f=>`<span>${f}</span>`).join('')}</div>
+  ${T.video||T.link?`<div class="th-links">${T.video?`<a class="btn sm tv" href="${esc(T.video)}" target="_blank" rel="noopener">${IC.play}Смотреть трансляцию</a>`:''}${T.link?`<a class="btn sm ghost" href="${esc(T.link)}" target="_blank" rel="noopener">${IC.doc}Положение</a>`:''}</div>`:''}
+  ${!isPub(T)&&own?`<div class="th-draft">Турнир не опубликован — его видите только вы. <button class="lnk" data-act="pubT">Опубликовать</button></div>`:''}
 </div>${side}</div>
   <div class="tabs">${tabs.map(t=>`<button class="${t[0]===tab?'on':''}" data-act="tab" data-id="${T.id}" data-tab="${t[0]}">${t[1]}${t[2]?`<span class="cnt">${t[2]}</span>`:''}</button>`).join('')}</div></div>
   ${body}`;
@@ -1005,7 +1025,7 @@ function renderCabinet(){
   <div class="panel">${info}</div></div>`;
 }
 /* ============ wizard ============ */
-function newWiz(){const c=club(S.session);return{step:1,title:'',disc:DISC[0],date:new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10),race:4,format:'de',playoff:'auto',gc:4,ga:2,city:c.city,players:[],seed:'list',q:''}}
+function newWiz(){const c=club(S.session);return{step:1,title:'',disc:DISC[0],date:new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10),race:4,format:'de',playoff:'auto',gc:4,ga:2,city:c.city,players:[],seed:'list',q:'',time:'',dateEnd:'',cat:'Клубный',link:'',video:'',pub:true}}
 function wizTour(){const w=UI.wiz;return{format:w.format,groups:{count:w.gc,advance:w.ga}}}
 function fmtMatches(f,n,gc,po){n=Math.max(n,2);if(f==='se')return n-1;if(f==='de'){const N=nextPow2(n),K=playoffK({playoff:po},n);return K?2*n-K/2-1:2*n-2}if(f==='rr')return n*(n-1)/2;const g=Math.ceil(n/gc);return gc*g*(g-1)/2+ (gc*2-1)}
 function renderCreate(){
@@ -1016,18 +1036,21 @@ function renderCreate(){
     return`<div class="wz">${head}<div class="panel wz-card">
     <div class="field"><label>Название</label><input data-w="title" value="${esc(w.title)}" placeholder="Необязательно — назовём по дисциплине и дате"></div>
     <div class="wz-row"><div class="field"><label>Дисциплина</label><select data-w="disc">${DISC.map(d=>`<option ${w.disc===d?'selected':''}>${d}</option>`).join('')}</select></div>
-    <div class="field"><label>Дата</label><input type="date" data-w="date" value="${w.date}"></div>
+    <div class="field"><label>Категория</label><select data-w="cat">${CATS.map(d=>`<option ${w.cat===d?'selected':''}>${d}</option>`).join('')}</select></div>
     <div class="field"><label>Игра до побед</label><div class="stepper sm"><button class="pbtn" aria-label="Меньше" data-act="wRace" data-d="-1">−</button><span class="pl-s">${w.race}</span><button class="pbtn plus" aria-label="Больше" data-act="wRace" data-d="1">+</button></div></div></div>
+    <div class="wz-row3"><div class="field"><label>Начало</label><input type="date" data-w="date" value="${w.date}"></div><div class="field"><label>Время</label><input type="time" data-w="time" value="${esc(w.time)}"></div><div class="field"><label>Окончание</label><input type="date" data-w="dateEnd" min="${w.date}" value="${esc(w.dateEnd)}"></div></div>
     <div class="field" style="margin-bottom:0"><label>Формат</label><div class="fpills">${Object.keys(FORMATS).map(k=>`<button class="${w.format===k?'on':''}" aria-pressed="${w.format===k}" data-act="wFmt" data-v="${k}">${FORMATS[k]}</button>`).join('')}</div>
     ${w.format==='de'?`<div class="po"><span>Выход в олимпийку</span><div class="fpills sm">${[['auto','Авто'],[4,'с 4'],[8,'с 8'],[16,'с 16'],[0,'нет, суперфинал']].map(([k,l])=>`<button class="${String(w.playoff)===String(k)?'on':''}" data-act="wPo" data-v="${k}">${l}</button>`).join('')}</div></div>`:''}
     <p class="wz-hint">${w.format==='de'?(String(w.playoff)==='0'?'Классика: верхняя и нижняя сетки до конца, в суперфинале встречаются их победители.':`Играют до двух поражений, пока не останется ${w.playoff==='auto'?'4 или 8':w.playoff} игроков: половина из верхней сетки, половина из нижней. Дальше — олимпийка, до первого поражения.${deName(n,w.playoff)?' Сетка '+deName(n,w.playoff)+'.':''}`):FORMAT_DESC[w.format]+'.'} На ${n} игроков — ${w.format==='de'&&String(w.playoff)!=='0'?'':'до '}${fmtMatches(w.format,n,w.gc,w.playoff)} матчей.</p></div>
     ${w.format==='gp'?`<div class="wz-row" style="grid-template-columns:1fr 1fr;margin-top:6px"><div class="field"><label>Групп</label><div class="stepper sm"><button class="pbtn" data-act="wNum" data-k="gc" data-d="-1">−</button><span class="pl-s">${w.gc}</span><button class="pbtn plus" data-act="wNum" data-k="gc" data-d="1">+</button></div></div><div class="field"><label>Выходят из группы</label><div class="stepper sm"><button class="pbtn" data-act="wNum" data-k="ga" data-d="-1">−</button><span class="pl-s">${w.ga}</span><button class="pbtn plus" data-act="wNum" data-k="ga" data-d="1">+</button></div></div></div>`:''}
+    <div class="wz-more"><div class="wz-row2"><div class="field"><label>Положение <small>ссылка, необязательно</small></label><input type="url" inputmode="url" data-w="link" value="${esc(w.link)}" placeholder="https://…"></div><div class="field"><label>Трансляция <small>YouTube, необязательно</small></label><input type="url" inputmode="url" data-w="video" value="${esc(w.video)}" placeholder="https://youtube.com/…"></div></div>
+    <div class="field" style="margin-bottom:0"><label>Опубликовать</label><div class="fpills sm">${[[1,'Да, показывать на сайте'],[0,'Нет, пока черновик']].map(([k,l])=>`<button class="${(w.pub?1:0)===k?'on':''}" data-act="wPub" data-v="${k}">${l}</button>`).join('')}</div></div></div>
     <div class="err" id="w-err"></div>
     <button class="btn blue big wz-next" data-act="wNext">Далее: добавить игроков →</button></div></div>`;
   }
   const can=w.players.length>=min;
   return`<div class="wz wide">${head}
-  <div class="wz-sum"><b>${esc(w.title)}</b><span>${esc(w.disc)} · ${fdate(w.date)} · до ${w.race} побед · ${FORMATS[w.format]}${w.format==='de'&&playoffK({playoff:w.playoff},w.players.length||16)?' · сетка '+deName(w.players.length||16,w.playoff):''}</span><button class="lnk" data-act="wBack">изменить</button></div>
+  <div class="wz-sum"><b>${esc(w.title)}</b><span>${esc(w.disc)} · ${w.cat} · ${fdates({date:w.date,dateEnd:w.dateEnd})}${w.time?' · '+w.time:''} · до ${w.race} побед${w.pub?'':' · черновик'} · ${FORMATS[w.format]}${w.format==='de'&&playoffK({playoff:w.playoff},w.players.length||16)?' · сетка '+deName(w.players.length||16,w.playoff):''}</span><button class="lnk" data-act="wBack">изменить</button></div>
   <div class="two" style="grid-template-columns:1fr 1fr">
   <div class="panel"><h3>Добавить игрока</h3><input id="wq" class="search pill" style="width:100%;min-width:0" placeholder="Найти в базе клуба по фамилии" value="${esc(w.q)}"><div id="wq-list" class="mlist"></div>
   <div class="np"><div class="np-h">Нет в базе — новый игрок</div><div class="row2"><input id="wn-last" placeholder="Фамилия" aria-label="Фамилия"><input id="wn-first" placeholder="Имя" aria-label="Имя"><input id="wn-birth" type="date" aria-label="Дата рождения" title="Дата рождения"><input id="wn-city" placeholder="Город" aria-label="Город" value="${esc(w.city)}"><select id="wn-rank" aria-label="Звание">${RANKS.map(r=>`<option>${r}</option>`).join('')}</select><button class="btn dark" data-act="wAddP">+ Добавить</button></div><div class="err" id="wn-err"></div></div></div>
@@ -1062,7 +1085,17 @@ async function loadAdminList(){
   if(r.error){el2.innerHTML=`<div class="err">${esc(r.error)}</div>`;return}
   el2.innerHTML=r.clubs.length?r.clubs.map(c=>`<div style="padding:12px 0;border-bottom:1px solid var(--soft)"><b>${esc(c.name)}</b> <span class="muted">· ${esc(c.city)} · ${c.tables} столов</span><div class="muted" style="font-size:13px;margin-bottom:8px">${esc(c.email)}</div><div style="display:flex;gap:8px"><input id="pw-${c.id}" placeholder="Новый пароль" autocomplete="off" style="flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 14px"><button class="btn sm ghost" data-act="setPass" data-id="${c.id}">Сменить</button></div></div>`).join(''):'<div class="muted">Клубов пока нет. Создайте первый справа.</div>';
 }
-function wizMake(status){const w=UI.wiz;const T={id:uid(),title:w.title.trim(),clubId:S.session,city:w.city,discipline:w.disc,format:w.format,playoff:w.format==='de'?w.playoff:undefined,raceTo:w.race,date:w.date,status,players:w.players.map(pub),applications:[],results:{},seedMode:w.seed,groups:{count:w.gc,advance:w.ga},createdAt:Date.now()};S.tournaments.unshift(T);UI.wiz=null;save();return T}
+function tErr(d,de,l,v){if(!d)return'Укажите дату начала';if(de&&de<d)return'Окончание раньше начала';if(!okUrl(normUrl(l)))return'Проверьте ссылку на положение';if(!okUrl(normUrl(v)))return'Проверьте ссылку на трансляцию';return''}
+function editTHTML(T){const pub=UI.ePub===undefined?isPub(T):UI.ePub;
+  return`<div class="ed"><div class="pm-h"><div class="pm-ti"><b>Изменить турнир</b></div><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
+  <div class="field"><label>Название</label><input id="e-title" value="${esc(T.title)}"></div>
+  <div class="wz-row2"><div class="field"><label>Дисциплина</label><select id="e-disc">${DISC.map(d=>`<option ${T.discipline===d?'selected':''}>${d}</option>`).join('')}</select></div><div class="field"><label>Категория</label><select id="e-cat">${CATS.map(d=>`<option ${(T.category||'Клубный')===d?'selected':''}>${d}</option>`).join('')}</select></div></div>
+  <div class="wz-row3"><div class="field"><label>Начало</label><input id="e-date" type="date" value="${esc(T.date)}"></div><div class="field"><label>Время</label><input id="e-time" type="time" value="${esc(T.time||'')}"></div><div class="field"><label>Окончание</label><input id="e-end" type="date" value="${esc(T.dateEnd||'')}"></div></div>
+  <div class="field"><label>Положение <small>ссылка</small></label><input id="e-link" type="url" value="${esc(T.link||'')}" placeholder="https://…"></div>
+  <div class="field"><label>Трансляция <small>YouTube</small></label><input id="e-video" type="url" value="${esc(T.video||'')}" placeholder="https://youtube.com/…"></div>
+  <div class="field"><label>Опубликовать</label><div class="fpills sm">${[[1,'Да'],[0,'Нет, черновик']].map(([k,l])=>`<button class="${(pub?1:0)===k?'on':''}" data-act="ePub" data-v="${k}">${l}</button>`).join('')}</div></div>
+  <div class="err" id="e-err"></div><div class="pm-acts"><button class="btn blue" data-act="saveT">Сохранить</button><button class="btn ghost" data-act="close">Отмена</button></div></div>`}
+function wizMake(status){const w=UI.wiz;const T={id:uid(),title:w.title.trim(),clubId:S.session,city:w.city,discipline:w.disc,format:w.format,playoff:w.format==='de'?w.playoff:undefined,raceTo:w.race,date:w.date,time:w.time||'',dateEnd:w.dateEnd&&w.dateEnd!==w.date?w.dateEnd:'',category:w.cat,link:normUrl(w.link),video:normUrl(w.video),pub:w.pub,status,players:w.players.map(pub),applications:[],results:{},seedMode:w.seed,groups:{count:w.gc,advance:w.ga},createdAt:Date.now()};S.tournaments.unshift(T);UI.wiz=null;save();return T}
 /* ============ pult ============ */
 function renderPult(T){
   const b=build(T);CUR={T,b};const c=club(T.clubId);const n=c.tables||6;
@@ -1188,7 +1221,8 @@ const A={
   wFmt(el){UI.wiz.format=el.dataset.v;render()},
   wPo(el){const v=el.dataset.v;UI.wiz.playoff=v==='auto'?'auto':+v;render()},
   wSeed(el){UI.wiz.seed=el.dataset.v;render()},
-  wNext(){const w=UI.wiz;if(w.step===1&&!w.title.trim())w.title=w.disc+' · '+fdate(w.date).replace(/ \d{4}$/,'');w.step++;render();window.scrollTo(0,0)},
+  wPub(el){UI.wiz.pub=el.dataset.v==='1';render()},
+  wNext(){const w=UI.wiz;if(w.step===1){const e=document.getElementById('w-err');const er=tErr(w.date,w.dateEnd,w.link,w.video);if(er){e.textContent=er;return}}if(w.step===1&&!w.title.trim())w.title=w.disc+' · '+fdate(w.date).replace(/ \d{4}$/,'');w.step++;render();window.scrollTo(0,0)},
   wBack(){UI.wiz.step--;render();window.scrollTo(0,0)},
   wAddR(el){const w=UI.wiz;const p=club(S.session).roster.find(x=>x.id===el.dataset.id);if(p)w.players.push(Object.assign({},p));render();const q=document.getElementById('wq');q&&q.focus()},
   wAddP(){const w=UI.wiz,c=club(S.session);const v=id=>document.getElementById(id).value.trim();const e=document.getElementById('wn-err');
@@ -1266,6 +1300,13 @@ const A={
   saveLive(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);const sa=num('sa')||0,sb=num('sb')||0,tb=num('tbl');if(!tb){document.getElementById('m-err').textContent='Выберите стол';return}
     T.results[m.id]={a:m.a.id,b:m.b.id,sa,sb,live:true,done:false,table:tb,ts:Date.now()};save();closeModal();render();toast("Игроки вызваны к столу")},
   clearRes(el){const {T}=CUR;delete T.results[el.dataset.mid];save();closeModal();render();toast('Результат сброшен')},
+  editT(){const T=CUR&&CUR.T;if(!T||!isOwner(T))return;UI.tmenu=null;UI.ePub=undefined;render();openModal(editTHTML(T))},
+  ePub(el){const T=CUR.T;const keep={};['e-title','e-disc','e-cat','e-date','e-time','e-end','e-link','e-video'].forEach(i=>keep[i]=document.getElementById(i).value);UI.ePub=el.dataset.v==='1';openModal(editTHTML(T));Object.keys(keep).forEach(i=>document.getElementById(i).value=keep[i])},
+  saveT(){const T=CUR&&CUR.T;if(!T||!isOwner(T))return;const v=i=>document.getElementById(i).value.trim();const e=document.getElementById('e-err');
+    const er=tErr(v('e-date'),v('e-end'),v('e-link'),v('e-video'));if(er){e.textContent=er;return}if(!v('e-title')){e.textContent='Введите название';return}
+    Object.assign(T,{title:v('e-title'),discipline:v('e-disc'),category:v('e-cat'),date:v('e-date'),time:v('e-time'),dateEnd:v('e-end')&&v('e-end')!==v('e-date')?v('e-end'):'',link:normUrl(v('e-link')),video:normUrl(v('e-video'))});
+    if(UI.ePub!==undefined)T.pub=UI.ePub;UI.ePub=undefined;save();closeModal();render();toast('Сохранено')},
+  pubT(){const T=CUR&&CUR.T;if(!T||!isOwner(T))return;T.pub=true;save();render();toast('Турнир опубликован')},
   askDel(el){UI.confirm='del-'+el.dataset.id;UI.tmenu=null;render()},
   cancelConfirm(){UI.confirm=null;render()},
   delT(el){S.tournaments=S.tournaments.filter(t=>t.id!==el.dataset.id);UI.confirm=null;save();go('cabinet');toast('Турнир удалён')},
