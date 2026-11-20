@@ -60,6 +60,19 @@ h2{font-size:34px;font-weight:500;letter-spacing:-.025em;line-height:1.1;margin:
 #setka{scroll-margin-top:28px}
 .try{margin:-14px 0 20px;color:var(--sub);font-size:16px}
 .demo{display:block;width:100%;height:560px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg)}
+.pr-h{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:28px}
+.pr-h h2{margin:0}
+.free{font-size:13.5px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:10px;padding:7px 12px;white-space:nowrap}
+.pr{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.pc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:26px 28px 28px}
+.pc h3{margin:0 0 22px;font-size:16px;font-weight:600;color:var(--sub);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pc h3 span{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;background:rgba(255,255,255,.2);border-radius:6px;padding:3px 7px;white-space:nowrap}
+.pc .sum{margin:0;font-size:38px;font-weight:500;letter-spacing:-.03em;line-height:1;white-space:nowrap}
+.pc .per{margin:12px 0 0;font-size:14.5px;color:var(--muted)}
+.pc .per em{font-style:normal;display:block;color:var(--ok,#0B7A47);font-weight:600;margin-top:2px}
+.pc.best{background:var(--accent);border-color:var(--accent);color:#fff}
+.pc.best h3{color:#fff}.pc.best .per{color:rgba(255,255,255,.85)}.pc.best .per em{color:#fff}
+.pr-wa{margin-top:22px}
 .ct{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:28px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
 .ct h2{margin:0 0 6px;font-size:28px}.ct p{margin:0;color:var(--sub);max-width:34em}
 .wa{display:inline-flex;align-items:center;gap:12px;background:none;color:var(--ink);border:0;text-decoration:none;padding:0;font-weight:600;font-size:15px;line-height:1.25}
@@ -97,6 +110,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
   .ph{width:28%;border-radius:13px;padding:3px;box-shadow:0 10px 24px rgba(0,0,0,.18)}.ph img{border-radius:10px}
   .of-c{padding:24px 20px 26px}.of-c h3{font-size:20px;margin-bottom:20px}.of-c ul{gap:18px}.of-c b{font-size:16px}
   .try{margin:-8px 0 16px;font-size:15px}.demo{height:480px}
+  .pr-h{gap:10px;margin-bottom:18px}.pr{grid-template-columns:1fr;gap:10px}
+  .pc{padding:18px 20px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 12px}
+  .pc h3{margin:0;font-size:16px;color:var(--ink);justify-content:flex-start}.pc .sum{font-size:24px;grid-column:2;grid-row:1/3;text-align:right}
+  .pc .per{margin:0;font-size:13.5px}.pc .per em{display:block;margin:1px 0 0}
   .ct{padding:24px 20px;gap:20px}.ct h2{font-size:24px}
   .sp{padding-top:32px}
   .slot{height:80px;font-size:12px}.slot.has{padding:12px 20px}
@@ -151,6 +168,17 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
   <h2>Посмотрите сетку сами</h2>
   <p class="try">Пример турнира. Двигайте, увеличивайте, а наведя или нажав на игрока, увидите его путь по сетке.</p>
   <iframe class="demo" src="/demo.html" title="Пример турнирной сетки kazbilliard" loading="lazy"></iframe>
+</div></section>
+
+<section id="price"><div class="wrap">
+  <div class="pr-h"><h2>Подписка для клубов</h2><span class="free">Первый месяц бесплатно</span></div>
+  <p class="try">Игрокам и зрителям платформа бесплатна.</p>
+  <div class="pr">
+    <div class="pc"><h3>1 месяц</h3><p class="sum">6 000 ₸</p><p class="per">оплата помесячно</p></div>
+    <div class="pc"><h3>6 месяцев</h3><p class="sum">30 000 ₸</p><p class="per">5 000 ₸ в месяц<em>экономия 6 000 ₸</em></p></div>
+    <div class="pc best"><h3>1 год<span>выгоднее всего</span></h3><p class="sum">49 000 ₸</p><p class="per">4 083 ₸ в месяц<em>экономия 23 000 ₸</em></p></div>
+  </div>
+  <a class="wa pr-wa" href="https://wa.me/77764308322?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5!%20%D0%A5%D0%BE%D1%87%D1%83%20%D0%BF%D0%BE%D0%B4%D0%BA%D0%BB%D1%8E%D1%87%D0%B8%D1%82%D1%8C%20%D0%BA%D0%BB%D1%83%D0%B1%20%D0%BA%20kazbilliard" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.2A9 9 0 1 0 12 3z"/><path d="M9 8.5c-.3 2.800 3.200 6.300 6.500 6.500l1-1.500-2-1-.8.800c-1-.4-2-1.400-2.500-2.500l.8-.8-1-2z"/></svg><span>Подключить клуб<small>напишите в WhatsApp</small></span></a>
 </div></section>
 
 <section><div class="wrap">
