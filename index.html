@@ -804,7 +804,7 @@ function render(){RENDER_N++;
 }
 
 /* ============ home ============ */
-function tFmt(T,b){b=b||build(T);return T.format==='de'?(b.name?'Сетка '+b.name:'Сетка на '+nextPow2(Math.max(2,T.players.length))+' · суперфинал'):FORMATS[T.format]+(T.format==='gp'?` ${T.groups.count}×${T.groups.advance}`:'')}
+function tFmt(T,b){b=b||build(T);const N=nextPow2(Math.max(2,T.players.length));return T.format==='de'?(b.name?'Сетка '+b.name:'Сетка '+N+' · суперфинал'):T.format==='se'?'Олимпийка '+N:T.format==='gp'?`Группы + плей-офф ${T.groups.count}×${T.groups.advance}`:'Круговая'}
 function renderHome(){
   const all=S.tournaments.filter(isPub).map(T=>({T,b:T.status==='reg'?null:build(T)}));
   const live=all.filter(x=>x.T.status==='live'&&!x.b.finished).sort((x,y)=>(y.T.date||'').localeCompare(x.T.date||''));
@@ -854,7 +854,7 @@ function tCard(T){
   return`<a class="card" href="#t-${T.id}"><div class="date"><b>${d||'—'}</b><span>${MSHORT[+mo-1]||''}</span></div>
   <div class="body"><div style="display:flex;justify-content:space-between;gap:4px 8px;align-items:flex-start;flex-wrap:wrap"><span class="disc">${esc(T.discipline)}</span><span class="st ${st}">${isPub(T)?ST_LABEL[st]:'Черновик'}</span></div>
   <span class="ttl">${esc(T.title)}</span><span class="meta"><span>${esc(c.name)} · ${esc(T.city)}</span></span>
-  <span class="meta" style="color:var(--sub)"><span>${FORMATS[T.format]} · до ${T.raceTo} · ${T.players.length} игрок${plural(T.players.length)}</span></span></div></a>`;
+  <span class="meta" style="color:var(--sub)"><span>${T.status==='reg'?esc(T.discipline):esc(tFmt(T))+' · до '+T.raceTo+' побед'} · ${T.players.length} игрок${plural(T.players.length)}</span></span></div></a>`;
 }
 function plural(n){const a=n%10,b=n%100;if(a===1&&b!==11)return'';if(a>=2&&a<=4&&(b<10||b>=20))return'а';return'ов'}
 function renderGrid(){
@@ -904,7 +904,7 @@ function mCard(T,m,mk){
   const cls=s=>{if(s.t==='tbd')return'tbd';if(s.t==='bye')return'wo';if(m.state!=='done')return'';return m.winner.t==='p'&&m.winner.id===s.id?'win':'lose'};
   const row=(s,sc)=>`<div class="row ${cls(s)}"${s.t==='p'?` data-pid="${s.id}"`:''}><span class="n">${s.t==='tbd'?'&nbsp;':s.t==='bye'?'—':esc(s.t==='p'?sname(pname(T,s)):pname(T,s))}</span><span class="sc">${showSc?sc:''}</span></div>`;
   const tm=m.state==='done'&&r&&r.ts?new Date(r.ts).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}):'';
-  const st={live:m.res&&m.res.paused?'<span class="mst">пауза</span>':`<span class="mst live">● играют</span>`,ready:hasFree(T)?'<span class="mst ok">● на очереди</span>':'<span class="mst">ждут стол</span>',bye:''}[m.state]||'';
+  const st={live:m.res&&m.res.paused?'<span class="mst">пауза</span>':`<span class="mst live">● играют</span>`,ready:hasFree(T)?'<span class="mst ok">● на очереди</span>':'<span class="mst">ждут стола</span>',bye:''}[m.state]||'';
   const rcls=m.state==='ready'&&!hasFree(T)?' nofree':'';return`<div class="mw"><div class="m-meta"><span>${mk?`<b class="mk ${mk.c}">${mk.n}</b>`:'№'+m.no}${(m.state==='done'||m.state==='live')&&r&&r.table?' · стол '+r.table:''}</span>${st}</div><div class="m s-${m.state}${rcls}" data-act="match" data-mid="${m.id}">${row(m.a,scTxt(r,'a'))}${row(m.b,scTxt(r,'b'))}</div></div>`;
 }
 function bracketHTML(T,rounds,opt){opt=opt||{};
@@ -1007,7 +1007,7 @@ function tablesBoard(T){const c=club(T.clubId);const n=c.tables||6;const map={};
 function renderTablesTab(T,b){
   const ready=b.all.filter(m=>m.state==='ready');
   return tablesBoard(T)+
-    (b.finished?'':`<div class="sec"><div class="sec-h"><h2>Ждут свободного стола</h2><span class="muted">${ready.length}</span></div>${ready.length?`<div class="mlist" style="max-width:720px">${ready.map(m=>mRow(T,m)).join('')}</div>`:'<div class="muted">Очереди нет</div>'}</div>`);
+    (b.finished?'':`<div class="sec"><div class="sec-h"><h2>Очередь</h2><span class="muted">${ready.length}</span></div>${ready.length?`<div class="mlist" style="max-width:720px">${ready.map(m=>mRow(T,m)).join('')}</div>`:'<div class="muted">Очереди нет</div>'}</div>`);
 }
 function stageMap(b){const st={};const put=(arr,f)=>(arr||[]).forEach((rd,i)=>(rd.matches||[]).forEach(m=>{st[m.id]=f(rd,i)}));
   put(b.wb,(rd,i)=>'Верхняя · '+(i+1));put(b.lb,(rd,i)=>'Нижняя · '+(i+1));put(b.rounds,rd=>rd.title||'');
@@ -1030,7 +1030,7 @@ function renderPeople(T,b){
   const rows=list0.map(({p,i})=>`<tr${own?` class="ped" data-act="editP" data-id="${p.id}" title="Изменить"`:''}><td class="pos">${T.drawn?(p.no||'—'):i+1}</td>${ed?`<td class="c"><button class="star${p.seed?' on':''}" data-act="seedP" data-id="${p.id}" title="${p.seed?'Убрать из сеяных':'Сеяный'}">★</button></td>`:''}<td><b>${esc(p.name)}</b></td><td class="c">${esc(p.sex||'')}</td><td class="c">${byear(p)}</td><td>${esc(p.country||'')}</td><td>${esc(p.city||'')}</td><td>${esc(p.club||'')}</td><td>${esc(p.rank||'')}</td>${ed?`<td class="c"><button class="x" data-act="rmP" data-id="${p.id}" title="Удалить">×</button></td>`:''}</tr>`).join('');
   const f=T.players.filter(p=>p.sex==='Ж').length;
   const tools=`<div class="ptools"><button data-act="printList">${IC.print}Печать</button><button data-act="xlsList">${IC.xls}Excel</button>${ed?`<button data-act="impList">${IC.up}Загрузить из Excel</button><input type="file" id="imp-file" accept=".xlsx" hidden>`:''}</div>`;
-  const list=`<div class="panel"><div class="ph"><h3>Участники · ${T.players.length}${f?` <span class="muted" style="font-weight:400;font-size:13px">из них женщин ${f}</span>`:''}</h3>${T.players.length?tools:''}</div>${T.players.length?`<div class="tb-wrap"><table class="tb"><thead><tr>${th('pos',T.drawn?'Жр.':'#','pos')}${ed?'<th class="c" title="Сеяные">★</th>':''}${th('name','Игрок')}${th('sex','Пол','c')}${th('birth','Г.р.','c')}${th('country','Страна')}${th('city','Город')}${th('club','Клуб')}${th('rank','Звание')}${ed?'<th></th>':''}</tr></thead><tbody>${rows}</tbody></table></div>`:`<div class="muted">${ed?'Пока никого. Добавьте участников справа или загрузите список из Excel.':'Участники появятся, когда клуб их зарегистрирует.'}</div>${ed?`<div class="ptools" style="margin-top:12px"><button data-act="impList">${IC.up}Загрузить из Excel</button><input type="file" id="imp-file" accept=".xlsx" hidden></div>`:''}`}</div>`;
+  const list=`<div class="panel"><div class="ph"><h3>Участники · ${T.players.length}${f?` <span class="muted" style="font-weight:400;font-size:13px">из них женщин ${f}</span>`:''}</h3>${T.players.length?tools:''}</div>${T.players.length?`<div class="tb-wrap"><table class="tb"><thead><tr>${th('pos',T.drawn?'№':'#','pos')}${ed?'<th class="c" title="Сеяные">★</th>':''}${th('name','Игрок')}${th('sex','Пол','c')}${th('birth','Г.р.','c')}${th('country','Страна')}${th('city','Город')}${th('club','Клуб')}${th('rank','Звание')}${ed?'<th></th>':''}</tr></thead><tbody>${rows}</tbody></table></div>`:`<div class="muted">${ed?'Пока никого. Добавьте участников справа или загрузите список из Excel.':'Участники появятся, когда клуб их зарегистрирует.'}</div>${ed?`<div class="ptools" style="margin-top:12px"><button data-act="impList">${IC.up}Загрузить из Excel</button><input type="file" id="imp-file" accept=".xlsx" hidden></div>`:''}`}</div>`;
   if(!ed)return list;
   const c=club(T.clubId);
   const side=`<div class="panel" style="margin-bottom:14px"><h3>Новый участник</h3>
@@ -1060,7 +1060,7 @@ function schHTML(T){const u=UI.sch;const n=T.players.length;const tmp={format:u.
   const can3=u.format!=='rr'&&!(u.format==='de'&&!playoffK({playoff:u.playoff},n));const [ttl,txt,mt]=schExplain(u,n);
   const st=(k,l)=>`<div class="field"><label>${l}</label><div class="stepper sm"><button class="pbtn" aria-label="Меньше" data-act="schNum" data-k="${k}" data-d="-1">−</button><span class="pl-s">${u[k]}</span><button class="pbtn plus" aria-label="Больше" data-act="schNum" data-k="${k}" data-d="1">+</button></div></div>`;
   return`<div class="ed"><div class="pm-h"><div class="pm-ti"><b>Схема турнира</b><span>${n} участник${plural(n)}</span></div><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
-  <div class="sch-g"><div class="field"><label>Сетка</label><select data-sch="grid">${gridOpts(n).map(([v,l])=>`<option value="${v}" ${v===gridVal(u,n)?'selected':''}>${l}</option>`).join('')}</select></div>${st('race','Матч до побед')}</div>
+  <div class="sch-g"><div class="field"><label>Сетка</label><select data-sch="grid">${gridOpts(n).map(([v,l])=>`<option value="${v}" ${v===gridVal(u,n)?'selected':''}>${l}</option>`).join('')}</select></div>${st('race','Игра до побед')}</div>
   ${u.format==='gp'?`<div class="sch-g">${st('gc','Групп')}${st('ga','Выходят из группы')}</div>`:''}
   ${can3?`<label class="chk"><input type="checkbox" data-sch="third" ${u.third?'checked':''}><span>Матч за 3 место</span></label>`:''}
   <div class="sch-sum"><div class="sch-sh"><b>${esc(ttl)}</b><span>${mt}</span></div><p>${txt}</p>${n<min?`<p class="warn">Нужно минимум ${min} участник${plural(min)}.</p>`:''}${T.status!=='reg'?'<p class="warn">Сетка будет построена заново.</p>':''}</div>
@@ -1236,7 +1236,7 @@ function pmTools(T,m,live){
     return`<div class="pm-tp"><div class="pm-tp-h">Техническое поражение</div><div class="fpills sm">${[['a',nm(m.a)],['b',nm(m.b)],['both','Обоим']].map(([k,l])=>`<button class="${t.who===k?'on':''}" data-act="tpWho" data-v="${k}">${l}</button>`).join('')}</div>
     <select id="tp-r" data-tpr="1">${Object.keys(TPR).map(k=>`<option value="${k}" ${t.reason===k?'selected':''}>${TPR[k][0].toUpperCase()+TPR[k].slice(1)}</option>`).join('')}</select>
     <div class="pm-acts" style="margin-top:12px"><button class="btn red" data-act="tpApply" data-mid="${m.id}" ${t.who?'':'disabled'}>Подтвердить</button><button class="btn ghost" data-act="tpCancel">Отмена</button></div></div>`}
-  return`<div class="pm-tools"><button data-act="printM" data-mid="${m.id}">${PI.print}Протокол</button><button data-act="tpOpen" data-mid="${m.id}">${PI.tp}ТП</button><a href="#s-${T.id}-${m.id}" target="_blank" rel="noopener">${PI.board}Табло</a>${live?`<button class="rs" data-act="resetM" data-mid="${m.id}">${PI.reset}Сбросить матч</button>`:''}</div>`}
+  return`<div class="pm-tools"><button data-act="printM" data-mid="${m.id}">${PI.print}Протокол</button><button data-act="tpOpen" data-mid="${m.id}" title="Техническое поражение">${PI.tp}ТП</button><a href="#s-${T.id}-${m.id}" target="_blank" rel="noopener">${PI.board}Табло</a>${live?`<button class="rs" data-act="resetM" data-mid="${m.id}">${PI.reset}Сбросить матч</button>`:''}</div>`}
 function pultHTML(T,m){const r=m.res||{};const c=club(T.clubId);const n=c.tables||6;const busy=busyTables(T.clubId,m.id);
   const stg=CUR&&CUR.b?stageMap(CUR.b)[m.id]:'';
   const head=chip=>`<div class="pm-h"><div class="pm-ti"><b>Матч №${m.no}</b>${stg?`<span>${esc(stg)}</span>`:''}</div>${chip}<button class="x" data-act="close" aria-label="Закрыть">×</button></div>`;
@@ -1269,7 +1269,7 @@ function protoHTML(T,m){const r=m.res||{};const c=club(T.clubId);const stg=CUR&&
   <table style="width:100%;border-collapse:collapse"><tr>${sign('Подпись игрока')}${sign('Подпись игрока')}${sign('Судья'+((T.judges||[]).find(j=>j.role!=='hall')?' · '+esc(T.judges.find(j=>j.role!=='hall').name):''))}</tr></table></div>`}
 function renderBoard(T,mid){const b=build(T);CUR={T,b};document.body.classList.add('gonly','sbd');const m=b.all.find(x=>x.id===mid);if(!m)return'<div class="sb"><div class="sb-foot">Матч не найден</div></div>';const r=m.res||{};
   const R=mrace(T,m),d=m.state==='done',stg=stageMap(b)[m.id]||'';const c=club(T.clubId);
-  const st=m.state==='live'?(r.paused?'<span class="sb-chip">пауза</span>':'<span class="sb-chip live"><i></i>идёт игра</span>'):d?'<span class="sb-chip">матч завершён</span>':'<span class="sb-chip">ожидает начала</span>';
+  const st=m.state==='live'?(r.paused?'<span class="sb-chip">пауза</span>':'<span class="sb-chip live"><i></i>играют</span>'):d?'<span class="sb-chip">матч завершён</span>':'<span class="sb-chip">ожидает начала</span>';
   const side=(s,sc,k)=>{const v=m.res?sc:0;const w=d&&m.winner&&m.winner.id===s.id,l=d&&!w;const nm=pname(T,s).split(' ');
     return`<div class="sb-side ${k}${w?' w':''}${l?' l':''}"><div class="sb-name"><b>${esc(nm[0])}</b><span>${esc(nm.slice(1).join(' '))}</span></div><div class="sb-pips">${Array.from({length:R},(_,i)=>`<i class="${i<v?'on':''}"></i>`).join('')}</div><div class="sb-num">${v}</div></div>`};
   return`<div class="sb"><div class="sb-head"><div><b>${esc(T.title)}</b><span>${esc([stg,T.discipline].filter(Boolean).join(' · '))}</span></div>${st}</div>
