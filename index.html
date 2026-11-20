@@ -1165,12 +1165,12 @@ function renderCounter(){document.body.classList.add('ctb');
   const side=i=>{const left=goal-c.s[i];const turn=c.turn===i;
     return`<div class="ct-side${turn&&c.done==null?' on':''}${c.done===i?' win':''}"><button class="ct-hit" data-act="ctHit" data-i="${i}" ${c.done!=null?'disabled':''} aria-label="Шар игроку ${esc(c.p[i])}">
       <span class="ct-name">${esc(c.p[i])}</span>${cont?'':`<span class="ct-frs"><span class="ct-pips">${Array.from({length:c.wins},(_,k)=>`<i class="${k<c.f[i]?'on':''}"></i>`).join('')}</span><span class="ct-frl">партии ${c.f[i]} из ${c.wins}</span></span>`}<b class="ct-sc">${c.s[i]}</b>
-      <span class="ct-meta">${c.done===i?'Победа':left>0?`осталось ${left}`:''}${turn&&c.ser>1?` · серия ${c.ser}`:''}</span>${c.turn==null&&c.done==null&&!c.s[0]&&!c.s[1]&&!(c.f&&(c.f[0]||c.f[1]))?'<span class="ct-hint">забил шар — нажмите</span>':''}<span class="ct-best">лучшая серия ${c.best[i]}</span></button>
+      <span class="ct-meta">${c.done===i?'Победа':left>0?`осталось ${left}`:''}${turn&&c.ser>1?` · серия ${c.ser}`:''}</span>${c.turn==null&&c.done==null&&!c.s[0]&&!c.s[1]&&!(c.f&&(c.f[0]||c.f[1]))?'<span class="ct-hint">забил шар — нажмите</span>':''}${cont?`<span class="ct-best">лучшая серия ${c.best[i]}</span>`:''}</button>
       ${c.done!=null||/свободная/i.test(c.disc)?'':`<button class="ct-foul" data-act="ctFoul" data-i="${i}">Штраф</button>`}</div>`};
   return`<div class="ct"><div class="ct-top"><span class="ct-ttl"><b>${esc(c.disc)}</b><small>${cont?`до ${c.target} шаров`:`партия до ${c.fb} · матч до ${c.wins} побед`}</small></span><button class="ct-gear" data-act="ctSetup" aria-label="Настройки"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
     <div class="ct-main">${side(0)}${side(1)}</div>
     ${c.done!=null?`<div class="ct-res"><span class="ct-rl">${c.done<0?'Ничья':c.early?'Игра окончена · победа':'Победа'}</span><b class="ct-rn">${c.done<0?`${esc(c.p[0])} — ${esc(c.p[1])}`:esc(c.p[c.done])}</b><span class="ct-rs">${(()=>{const w=c.done<0?0:c.done;return cont?`${c.s[w]} : ${c.s[1-w]}`:`партии ${c.f[w]} : ${c.f[1-w]}${c.early?` · шары ${c.s[w]} : ${c.s[1-w]}`:''}`})()}</span>
-      <span class="ct-rb">Лучшая серия — ${esc(c.p[0])} ${c.best[0]} · ${esc(c.p[1])} ${c.best[1]}</span>
+      ${cont?`<span class="ct-rb">Лучшая серия — ${esc(c.p[0])} ${c.best[0]} · ${esc(c.p[1])} ${c.best[1]}</span>`:''}
       <button class="btn ct-share" data-act="ctShare"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Поделиться результатом</button>
       <div class="ct-ra"><button class="btn blue" data-act="ctNew">${cont?'Ещё партия':'Ещё матч'}</button><button class="btn ghost" data-act="ctSetup">Новые игроки</button></div>
       <button class="ct-ru" data-act="ctUndo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>${c.early?'Продолжить игру':'Отменить последний шар'}</button></div>`:''}
@@ -1201,7 +1201,7 @@ const CT_ACTS=({
     const big=cont?`${c.s[w]} : ${c.s[l]}`:`${c.f[w]} : ${c.f[l]}`;g.font=f(700,260);g.fillText(big,W/2,800);
     g.fillStyle='rgba(255,255,255,.7)';g.font=f(400,40);g.fillText(c.done<0?'':`${c.p[w]} — ${c.p[l]}`,W/2,880);
     if(!cont){g.fillStyle='rgba(255,255,255,.5)';g.font=f(400,32);g.fillText('счёт по партиям',W/2,935)}
-    g.fillStyle='rgba(255,255,255,.55)';g.font=f(400,34);g.fillText(`Лучшая серия: ${c.p[0]} ${c.best[0]} · ${c.p[1]} ${c.best[1]}`,W/2,1040);
+    g.fillStyle='rgba(255,255,255,.55)';g.font=f(400,34);if(cont)g.fillText(`Лучшая серия: ${c.p[0]} ${c.best[0]} · ${c.p[1]} ${c.best[1]}`,W/2,1040);
     const d=new Date();g.fillText(d.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'}),W/2,1095);
     g.fillStyle='#fff';g.font=f(700,44);g.fillText('kazbilliard',W/2,1240);g.fillStyle='rgba(255,255,255,.45)';g.font=f(400,28);g.fillText('счётчик для игроков · kazbilliard.com',W/2,1285);
     const blob=await new Promise(r=>cv.toBlob(r,'image/png'));const name=`kazbilliard-${c.p[0]}-${c.p[1]}.png`.replace(/[\\/:*?"<>|\s]+/g,'_');const file=new File([blob],name,{type:'image/png'});
