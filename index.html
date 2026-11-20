@@ -91,17 +91,28 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
   h2{font-size:28px}
 }
 @media(max-width:560px){
-  .wrap{padding-left:16px;padding-right:16px}
-  h1{font-size:36px}h1 em{white-space:normal}
-  .grid{grid-template-columns:1fr}
-  .f svg{margin-bottom:18px}
-  .demo{padding:16px}
+  .wrap{padding-left:20px;padding-right:20px}
+  .top{padding-top:14px;padding-bottom:14px}
+  .hero{padding-top:48px;padding-bottom:72px;gap:40px}
+  .eyebrow{font-size:12px;margin-bottom:14px}
+  h1{font-size:38px;margin-bottom:16px}h1 em{white-space:normal}
+  .lead{font-size:17px}
+  section{padding-bottom:72px}
+  h2{font-size:26px;margin-bottom:18px}
+  .demo{padding:18px}
+  .demo-f{display:none}
   .br{--h:69px;grid-template-columns:minmax(0,1fr) 12px 12px minmax(0,1fr)}
   .br-lab{grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr)}
   .m div{font-size:13px;padding:0 9px}
-  .slot{height:84px}
-  .ct{padding:20px}.ct h2{font-size:24px}.wa{width:100%;justify-content:center}
-  section{padding-bottom:56px}
+  .grid{grid-template-columns:1fr;gap:0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  .f{display:flex;align-items:center;gap:16px;padding:18px;border:0;border-radius:0}
+  .f+.f{border-top:1px solid var(--line)}
+  .f svg{margin:0;flex:none;width:24px;height:24px}
+  .f h3{font-size:16px;margin:0 0 2px}.f p{font-size:14px;color:var(--muted)}
+  .ct{padding:24px 20px;gap:20px}.ct h2{font-size:24px}.wa{width:100%;justify-content:center;padding-top:14px;padding-bottom:14px}
+  .sp{padding-top:32px}
+  .slot{height:80px;font-size:12px}.slot.has{padding:12px 20px}
+  footer{padding:20px 0 28px}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
@@ -117,11 +128,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
   <div>
     <p class="eyebrow">Платформа бильярдных турниров</p>
     <h1>Все турниры Казахстана — <em>счёт и сетки онлайн</em></h1>
-    <p class="lead">Кто с кем играет, какой счёт и кто следующий — видно с телефона в любую секунду. Сетка и счёт обновляются сами, пока идёт игра. Открываемся скоро.</p>
+    <p class="lead">Счёт, сетка и столы — с телефона, пока идёт игра.</p>
   </div>
   <div>
     <div class="demo" aria-label="Пример турнирной сетки">
-      <div class="demo-h"><div><b>Кубок клуба</b><br><span>Свободная пирамида · до 4 побед</span></div><span class="livepill">ИДЁТ ИГРА</span></div>
+      <div class="demo-h"><div><b>Кубок клуба</b><br><span>Пирамида · до 4 побед</span></div><span class="livepill">ИДЁТ ИГРА</span></div>
       <div class="br">
         <div class="br-lab"><span>Полуфинал</span><span>Финал</span></div>
         <div class="br-col">
@@ -138,26 +149,20 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 </div>
 
 <section><div class="wrap">
-  <h2>Что будет на платформе</h2>
+  <h2>Что будет</h2>
   <div class="grid">
-    <div class="f"><svg viewBox="0 0 24 24"><path d="M3 5h6v4H3zM3 15h6v4H3zM15 10h6v4h-6zM9 7h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9M13 12h2"/></svg>
-      <h3>Турнирные сетки онлайн</h3><p>До двух поражений, олимпийская, группы с плей-офф и круговая. Вся сетка на одном экране.</p></div>
-    <div class="f"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><path d="M7.5 7.5a6.4 6.4 0 0 0 0 9M16.5 7.5a6.4 6.4 0 0 1 0 9M4.5 4.5a10.6 10.6 0 0 0 0 15M19.5 4.5a10.6 10.6 0 0 1 0 15"/></svg>
-      <h3>Счёт в реальном времени</h3><p>Каждая партия появляется на сайте сразу. Обновлять страницу не нужно.</p></div>
-    <div class="f"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="6.2" cy="9.2" r=".6"/><circle cx="17.8" cy="9.2" r=".6"/><circle cx="6.2" cy="14.8" r=".6"/><circle cx="17.8" cy="14.8" r=".6"/><circle cx="12" cy="12" r="1.6"/></svg>
-      <h3>Столы и очередь матчей</h3><p>Видно, кто за каким столом играет и кого вызовут следующим.</p></div>
-    <div class="f"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
-      <h3>Турниры всех клубов</h3><p>Ближайшие, идущие и завершённые турниры клубов Казахстана в одном месте.</p></div>
-    <div class="f"><svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4"/></svg>
-      <h3>Рейтинг игроков <span class="tag">позже</span></h3><p>Рейтинговые турниры и общая таблица игроков появятся после запуска.</p></div>
-    <div class="f dark"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M11 17h2"/></svg>
-      <h3>Клубам</h3><p>Турнир создаётся за три шага, счёт ведётся с планшета. Сетку и расписание платформа строит сама.</p></div>
+    <div class="f"><svg viewBox="0 0 24 24"><path d="M3 5h6v4H3zM3 15h6v4H3zM15 10h6v4h-6zM9 7h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9M13 12h2"/></svg><div><h3>Сетки онлайн</h3><p>Вся сетка на одном экране</p></div></div>
+    <div class="f"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><path d="M7.5 7.5a6.4 6.4 0 0 0 0 9M16.5 7.5a6.4 6.4 0 0 1 0 9M4.5 4.5a10.6 10.6 0 0 0 0 15M19.5 4.5a10.6 10.6 0 0 1 0 15"/></svg><div><h3>Счёт в реальном времени</h3><p>Обновляется сам, без перезагрузки</p></div></div>
+    <div class="f"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="6.2" cy="9.2" r=".6"/><circle cx="17.8" cy="9.2" r=".6"/><circle cx="6.2" cy="14.8" r=".6"/><circle cx="17.8" cy="14.8" r=".6"/><circle cx="12" cy="12" r="1.6"/></svg><div><h3>Столы и очередь</h3><p>Кто играет и кто следующий</p></div></div>
+    <div class="f"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><div><h3>Турниры всех клубов</h3><p>Весь Казахстан в одном месте</p></div></div>
+    <div class="f"><svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4"/></svg><div><h3>Рейтинг игроков <span class="tag">позже</span></h3><p>Появится после запуска</p></div></div>
+    <div class="f dark"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M11 17h2"/></svg><div><h3>Клубам</h3><p>Турнир за три шага, счёт с планшета</p></div></div>
   </div>
 </div></section>
 
 <section><div class="wrap">
   <div class="ct">
-    <div><h2>Есть предложение?</h2><p>Хотите провести турнир на платформе, стать спонсором или предложить идею — напишите нам.</p></div>
+    <div><h2>Есть предложение?</h2><p>Турнир, спонсорство или идея — напишите нам.</p></div>
     <a class="wa" href="https://wa.me/77764308322?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5!%20%D0%9F%D0%B8%D1%88%D1%83%20%D0%BF%D0%BE%20%D0%BF%D0%BE%D0%B2%D0%BE%D0%B4%D1%83%20kazbilliard" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.2A9 9 0 1 0 12 3z"/><path d="M9 8.5c-.3 2.800 3.200 6.300 6.500 6.500l1-1.500-2-1-.8.800c-1-.4-2-1.400-2.500-2.500l.8-.8-1-2z"/></svg><span>Написать в WhatsApp<small>+7 776 430 83 22</small></span></a>
   </div>
 </div></section>
@@ -173,7 +178,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 </div></section>
 </main>
 
-<footer><div class="wrap"><span>© 2026 kazbilliard</span><span>Платформа бильярдных турниров Казахстана</span></div></footer>
+<footer><div class="wrap"><span>© 2026 kazbilliard</span></div></footer>
 
 </body>
 </html>
