@@ -492,15 +492,21 @@ body.ctb main{padding-top:12px}
 .ct-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}.ct-top b{font-size:20px;color:var(--ink)}
 .ct-main{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .ct-side{display:flex;flex-direction:column;gap:8px;min-height:0}
-.ct-hit{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:0;border-radius:18px;background:#123526;color:#fff;cursor:pointer;padding:18px 10px;font:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:transform .06s,background .2s;min-height:200px}
+.ct-hit{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:0;border-radius:18px;background:#123526;color:#fff;cursor:pointer;padding:18px 10px 60px;font:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:transform .06s,background .2s;min-height:200px}
 .ct-hit:active{transform:scale(.985)}.ct-side.on .ct-hit{background:#1C5B3D;box-shadow:inset 0 0 0 3px #F2C94C}.ct-side.win .ct-hit{background:#1C5B3D}
 .ct-name{font-size:clamp(16px,3.4vw,28px);font-weight:600;text-align:center}.ct-fr{font-size:13px;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.08em}
 .ct-sc{font-size:clamp(72px,19vw,220px);font-weight:600;line-height:.9;font-variant-numeric:tabular-nums}.ct-side.win .ct-sc{color:#F2C94C}
 .ct-meta{font-size:clamp(13px,2.4vw,18px);color:rgba(255,255,255,.8);min-height:1.3em}.ct-best{font-size:12px;color:rgba(255,255,255,.5)}
-.ct-foul{height:46px;border-radius:12px;border:1px solid var(--line2);background:#fff;font:inherit;font-size:14px;font-weight:600;color:var(--live-ink);cursor:pointer}
-.ct-bar{display:flex;gap:8px}.ct-bar button{flex:1;height:48px;border-radius:12px;border:1px solid var(--line2);background:#fff;font:inherit;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer}.ct-bar button:disabled{opacity:.4;cursor:default}
+.ct-side{position:relative}.ct-foul{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);height:38px;padding:0 16px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.18);font:inherit;font-size:13.5px;font-weight:600;color:#fff;cursor:pointer;white-space:nowrap}
+.ct-hint{font-size:12.5px;color:rgba(255,255,255,.55);margin-top:4px}
+.ct-gear{margin-left:12px;width:38px;height:38px;border-radius:10px;border:1px solid var(--line2);background:#fff;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}.ct-top span{flex:1;min-width:0}
+.ct-bar{display:grid;grid-template-columns:auto 1fr;gap:10px}
+.ct-undo{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:84px;height:64px;border-radius:14px;border:1px solid var(--line2);background:#fff;font:inherit;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer}.ct-undo:disabled{opacity:.35}
+.ct-miss{height:64px;border-radius:14px;border:0;background:var(--ink);color:#fff;font:inherit;font-size:18px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.ct-miss small{font-size:12.5px;font-weight:400;color:rgba(255,255,255,.65)}
+.ct-tip{display:flex;align-items:center;gap:8px;height:64px;border-radius:14px;background:var(--soft);font-size:14px;color:var(--sub);padding:0 10px}.ct-tip button{flex:1;min-width:0;height:46px;border-radius:10px;border:1px solid var(--line2);background:#fff;font:inherit;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.ctb footer{display:none}
 .ct-res{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}.ct-res b{font-size:17px}.ct-res div{display:flex;gap:8px}
-@media(max-width:560px){.ct-bar button{font-size:12.5px}.ct-hit{min-height:150px}}
+@media(max-width:560px){.ct-hit{min-height:150px;padding-bottom:60px}}
 nav.main a{white-space:nowrap}
 .ct-top b{white-space:nowrap}body.ctb #toast{bottom:150px}
 @media(max-width:480px){nav.main{gap:12px}nav.main a{font-size:12px}nav.main a.cta{padding:9px 12px;font-size:13px}nav.main .lg{display:none}.logo small{display:none}.logo b{font-size:18px}}
@@ -1153,12 +1159,13 @@ function renderCounter(){document.body.classList.add('ctb');
   const side=i=>{const left=goal-c.s[i];const turn=c.turn===i;
     return`<div class="ct-side${turn?' on':''}${c.done===i?' win':''}"><button class="ct-hit" data-act="ctHit" data-i="${i}" ${c.done!=null?'disabled':''} aria-label="Шар игроку ${esc(c.p[i])}">
       <span class="ct-name">${esc(c.p[i])}</span>${cont?'':`<span class="ct-fr">партии ${c.f[i]}</span>`}<b class="ct-sc">${c.s[i]}</b>
-      <span class="ct-meta">${c.done===i?'Победа':left>0?`осталось ${left}`:''}${turn&&c.ser>1?` · серия ${c.ser}`:''}</span><span class="ct-best">лучшая серия ${c.best[i]}</span></button>
-      <button class="ct-foul" data-act="ctFoul" data-i="${i}" ${c.done!=null?'disabled':''}>Штраф −1</button></div>`};
-  return`<div class="ct"><div class="ct-top"><span>${esc(c.disc)} · ${cont?`до ${c.target} шаров`:`партия до ${c.fb}, матч до ${c.wins} побед`}</span>${cont?'':`<b>${c.f[0]} : ${c.f[1]}</b>`}</div>
+      <span class="ct-meta">${c.done===i?'Победа':left>0?`осталось ${left}`:''}${turn&&c.ser>1?` · серия ${c.ser}`:''}</span>${c.turn==null&&c.done==null&&!c.s[0]&&!c.s[1]&&!(c.f&&(c.f[0]||c.f[1]))?'<span class="ct-hint">забил шар — нажмите</span>':''}<span class="ct-best">лучшая серия ${c.best[i]}</span></button>
+      ${c.done!=null?'':`<button class="ct-foul" data-act="ctFoul" data-i="${i}">−1 штраф</button>`}</div>`};
+  return`<div class="ct"><div class="ct-top"><span>${esc(c.disc)} · ${cont?`до ${c.target} шаров`:`партия до ${c.fb}, матч до ${c.wins}`}</span>${cont?'':`<b>${c.f[0]} : ${c.f[1]}</b>`}<button class="ct-gear" data-act="ctSetup" aria-label="Настройки"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
     <div class="ct-main">${side(0)}${side(1)}</div>
     ${c.done!=null?`<div class="ct-res"><b>${esc(c.p[c.done])} победил${cont?'':` · ${c.f[0]}:${c.f[1]}`}</b><div><button class="btn blue" data-act="ctNew">Ещё партия</button><button class="btn ghost" data-act="ctSetup">Новые игроки</button></div></div>`:''}
-    <div class="ct-bar"><button data-act="ctUndo" ${c.h&&c.h.length?'':'disabled'}>↶ Отменить</button><button data-act="ctMiss" ${c.done!=null||c.turn==null?'disabled':''}>Промах — ход сопернику</button><button data-act="ctSetup">Настройки</button></div></div>`}
+    ${c.done!=null?'':`<div class="ct-bar"><button class="ct-undo" data-act="ctUndo" ${c.h&&c.h.length?'':'disabled'} aria-label="Отменить последнее"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg><span>Отменить</span></button>
+      ${c.turn==null?`<div class="ct-tip"><span>Разбивает:</span><button data-act="ctTurn" data-i="0">${esc(c.p[0])}</button><button data-act="ctTurn" data-i="1">${esc(c.p[1])}</button></div>`:`<button class="ct-miss" data-act="ctMiss">Промах<small>ход переходит: ${esc(c.p[1-c.turn])}</small></button>`}</div>`}</div>`}
 function ctCheck(){const c=CT,cont=ctCont(c.disc);
   for(const i of [0,1]){if(cont&&c.s[i]>=c.target){c.done=i;return}
     if(!cont&&c.s[i]>=c.fb){c.f[i]++;if(c.f[i]>=c.wins){c.done=i;return}c.s=[0,0];c.ser=0;c.turn=null;toast(`Партия — ${c.p[i]}`);return}}}
@@ -1170,6 +1177,7 @@ const CT_ACTS=({
   _ctPush(){const c=CT;c.h=c.h||[];const {h,...snap}=c;c.h.push(JSON.stringify(snap));if(c.h.length>500)c.h.shift()},
   ctHit(el){const c=CT,i=+el.dataset.i;if(c.done!=null)return;A._ctPush();if(c.turn!==i){c.turn=i;c.ser=0}c.s[i]++;c.ser++;c.best[i]=Math.max(c.best[i],c.ser);ctCheck();ctSave();render();if(navigator.vibrate)navigator.vibrate(15)},
   ctFoul(el){const c=CT,i=+el.dataset.i;if(c.done!=null)return;A._ctPush();c.s[i]--;c.turn=1-i;c.ser=0;ctSave();render();toast(`Штраф −1 · ${c.p[i]}`)},
+  ctTurn(el){CT.turn=+el.dataset.i;CT.ser=0;ctSave();render()},
   ctMiss(){const c=CT;if(c.turn==null||c.done!=null)return;A._ctPush();c.turn=1-c.turn;c.ser=0;ctSave();render()},
   ctUndo(){const c=CT;if(!c.h||!c.h.length)return;const h=c.h;const snap=JSON.parse(h.pop());CT=Object.assign(snap,{h});ctSave();render()},
   ctNew(){const c=CT;Object.assign(c,{s:[0,0],f:[0,0],best:[0,0],turn:null,ser:0,done:null,h:[]});ctSave();render()},
