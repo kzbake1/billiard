@@ -1020,12 +1020,12 @@ function gridOpts(n){const N=nextPow2(Math.max(2,n)),o=[];[4,8,16].forEach(k=>{i
 function gridVal(u,n){if(u.format!=='de')return u.format;const k=u.playoff==='auto'?playoffK({playoff:'auto'},n):(+u.playoff?playoffK({playoff:u.playoff},n):0);return'de:'+k}
 function schExplain(u,n){const N=nextPow2(Math.max(2,n)),K=u.format==='de'?playoffK({playoff:u.playoff},n):0;const can3=u.format!=='rr'&&!(u.format==='de'&&!K);
   const cnt=fmtMatches(u.format,n,u.gc,u.playoff)+(u.third&&can3?1:0);const mt=`${u.format==='de'&&!K?'до ':''}${cnt} матч${plural(cnt)}`;
-  const S=K?(N>=16&&n<=N*3/4?N*3/4:N):N;const free=S-n;const fr=free>0?` ${free} мест${free===1?'о':free<5?'а':''} пуст${free===1?'ое':'ые'} — соперники проходят без игры.`:'';
-  if(u.format==='de'&&K)return[`${S}-${K}`,`Сетка на ${S} мест, играют до двух поражений. Когда останется ${K} игрок${plural(K)} — ${K/2} из верхней и ${K/2} из нижней сетки — дальше олимпийка до первого поражения.${fr}`,mt];
-  if(u.format==='de')return[`${N} · суперфинал`,`Верхняя и нижняя сетки до конца, в суперфинале встречаются их победители.${fr}`,mt];
+  const S=K?(N>=16&&n<=N*3/4?N*3/4:N):N;const free=S-n;const fr=free>0?` ${free} ${free===1?'пустое место':'пустых мест'+(free<5?'а':'')}.`:'';
+  if(u.format==='de'&&K)return[`${S}-${K}`,`До двух поражений. С ${K} игрок${plural(K)} — олимпийка.${fr}`,mt];
+  if(u.format==='de')return[`${N} · суперфинал`,`До двух поражений. В финале — победители верхней и нижней.${fr}`,mt];
   if(u.format==='se')return[`Олимпийка ${N}`,`Проиграл — выбыл.${fr}`,mt];
-  if(u.format==='gp')return['Группы + плей-офф',`${u.gc} групп${u.gc<5?'ы':''}, каждый с каждым. Из каждой выходят ${u.ga} — дальше олимпийка на ${nextPow2(u.gc*u.ga)}.`,mt];
-  return['Круговая','Каждый с каждым, места по таблице.',mt]}
+  if(u.format==='gp')return['Группы + плей-офф',`${u.gc} групп${u.gc<5?'ы':''} по кругу, из каждой ${u.ga} — в олимпийку.`,mt];
+  return['Круговая','Каждый с каждым.',mt]}
 function schHTML(T){const u=UI.sch;const n=T.players.length;const tmp={format:u.format,groups:{count:u.gc,advance:u.ga},playoff:u.playoff};const min=minPlayers(tmp);
   const can3=u.format!=='rr'&&!(u.format==='de'&&!playoffK({playoff:u.playoff},n));const [ttl,txt,mt]=schExplain(u,n);
   const st=(k,l)=>`<div class="field"><label>${l}</label><div class="stepper sm"><button class="pbtn" aria-label="Меньше" data-act="schNum" data-k="${k}" data-d="-1">−</button><span class="pl-s">${u[k]}</span><button class="pbtn plus" aria-label="Больше" data-act="schNum" data-k="${k}" data-d="1">+</button></div></div>`;
