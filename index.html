@@ -505,7 +505,10 @@ body.ctb main{padding-top:12px}
 .ct-miss{height:64px;border-radius:14px;border:0;background:var(--ink);color:#fff;font:inherit;font-size:18px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.ct-miss small{font-size:12.5px;font-weight:400;color:rgba(255,255,255,.65)}
 .ct-tip{display:flex;align-items:center;gap:8px;height:64px;border-radius:14px;background:var(--soft);font-size:14px;color:var(--sub);padding:0 10px}.ct-tip button{flex:1;min-width:0;height:46px;border-radius:10px;border:1px solid var(--line2);background:#fff;font:inherit;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 body.ctb footer{display:none}
-.ct-res{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}.ct-res b{font-size:17px}.ct-res div{display:flex;gap:8px}
+.ct-res{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 18px 14px}
+.ct-rl{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#B8860B}.ct-rn{font-size:26px;font-weight:600;line-height:1.2}.ct-rs{font-size:18px;font-weight:600;color:var(--sub);font-variant-numeric:tabular-nums}
+.ct-rb{font-size:13px;color:var(--muted);margin-top:4px}.ct-ra{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-top:14px}.ct-ra .btn{justify-content:center;height:52px;font-size:16px}
+.ct-ru{margin-top:8px;border:0;background:none;font:inherit;font-size:13px;color:var(--muted);cursor:pointer;padding:6px}
 @media(max-width:560px){.ct-hit{min-height:150px;padding-bottom:60px}}
 nav.main a{white-space:nowrap}
 .ct-top b{white-space:nowrap}body.ctb #toast{bottom:150px}
@@ -1163,7 +1166,10 @@ function renderCounter(){document.body.classList.add('ctb');
       ${c.done!=null?'':`<button class="ct-foul" data-act="ctFoul" data-i="${i}">−1 штраф</button>`}</div>`};
   return`<div class="ct"><div class="ct-top"><span>${esc(c.disc)} · ${cont?`до ${c.target} шаров`:`партия до ${c.fb}, матч до ${c.wins}`}</span>${cont?'':`<b>${c.f[0]} : ${c.f[1]}</b>`}<button class="ct-gear" data-act="ctSetup" aria-label="Настройки"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
     <div class="ct-main">${side(0)}${side(1)}</div>
-    ${c.done!=null?`<div class="ct-res"><b>${esc(c.p[c.done])} победил${cont?'':` · ${c.f[0]}:${c.f[1]}`}</b><div><button class="btn blue" data-act="ctNew">Ещё партия</button><button class="btn ghost" data-act="ctSetup">Новые игроки</button></div></div>`:''}
+    ${c.done!=null?`<div class="ct-res"><span class="ct-rl">Победа</span><b class="ct-rn">${esc(c.p[c.done])}</b><span class="ct-rs">${cont?`${c.s[c.done]} : ${c.s[1-c.done]}`:`партии ${c.f[c.done]} : ${c.f[1-c.done]}`}</span>
+      <span class="ct-rb">Лучшая серия — ${esc(c.p[0])} ${c.best[0]} · ${esc(c.p[1])} ${c.best[1]}</span>
+      <div class="ct-ra"><button class="btn blue" data-act="ctNew">${cont?'Ещё партия':'Ещё матч'}</button><button class="btn ghost" data-act="ctSetup">Новые игроки</button></div>
+      <button class="ct-ru" data-act="ctUndo">↶ Отменить последний шар</button></div>`:''}
     ${c.done!=null?'':`<div class="ct-bar"><button class="ct-undo" data-act="ctUndo" ${c.h&&c.h.length?'':'disabled'} aria-label="Отменить последнее"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg><span>Отменить</span></button>
       ${c.turn==null?`<div class="ct-tip"><span>Разбивает:</span><button data-act="ctTurn" data-i="0">${esc(c.p[0])}</button><button data-act="ctTurn" data-i="1">${esc(c.p[1])}</button></div>`:`<button class="ct-miss" data-act="ctMiss">Промах<small>ход переходит: ${esc(c.p[1-c.turn])}</small></button>`}</div>`}</div>`}
 function ctCheck(){const c=CT,cont=ctCont(c.disc);
