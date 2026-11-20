@@ -505,10 +505,11 @@ body.ctb main{padding-top:12px}
 .ct-undo{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:56px;border-radius:14px;border:1px solid var(--line2);background:#fff;font:inherit;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer}.ct-undo:disabled{opacity:.35}
 .ct-miss{height:64px;border-radius:14px;border:0;background:var(--ink);color:#fff;font:inherit;font-size:18px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.ct-miss small{font-size:12.5px;font-weight:400;color:rgba(255,255,255,.65)}
 .ct-tip{display:flex;align-items:center;gap:8px;height:64px;border-radius:14px;background:var(--soft);font-size:14px;color:var(--sub);padding:0 10px}.ct-tip button{flex:1;min-width:0;height:46px;border-radius:10px;border:1px solid var(--line2);background:#fff;font:inherit;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-body.ctb footer{display:none}
+body.ctb footer{display:none}html:has(body.ctb),body.ctb{overflow-x:hidden}.ct,.ct-main{max-width:100%;min-width:0}.ct-side,.ct-hit{min-width:0}.ct-name{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ct-res{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 18px 14px}
 .ct-rl{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#B8860B}.ct-rn{font-size:26px;font-weight:600;line-height:1.2}.ct-rs{font-size:18px;font-weight:600;color:var(--sub);font-variant-numeric:tabular-nums}
-.ct-rb{font-size:13px;color:var(--muted);margin-top:4px}.ct-ra{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-top:14px}.ct-ra .btn{justify-content:center;height:52px;font-size:16px}
+.ct-rb{font-size:13px;color:var(--muted);margin-top:4px}.ct-share{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:52px;margin-top:14px;background:#fff;border:1px solid var(--line2);color:var(--ink);font-size:16px}
+.ct-ra{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-top:8px}.ct-ra .btn{justify-content:center;height:52px;font-size:16px}
 .ct-ru{display:inline-flex;align-items:center;gap:6px;margin-top:8px;border:0;background:none;font:inherit;font-size:13px;color:var(--muted);cursor:pointer;padding:6px}
 @media(max-width:560px){.ct-hit{min-height:150px;padding-bottom:60px}}
 nav.main a{white-space:nowrap}
@@ -1169,6 +1170,7 @@ function renderCounter(){document.body.classList.add('ctb');
     <div class="ct-main">${side(0)}${side(1)}</div>
     ${c.done!=null?`<div class="ct-res"><span class="ct-rl">${c.done<0?'Ничья':c.early?'Игра окончена · победа':'Победа'}</span><b class="ct-rn">${c.done<0?`${esc(c.p[0])} — ${esc(c.p[1])}`:esc(c.p[c.done])}</b><span class="ct-rs">${(()=>{const w=c.done<0?0:c.done;return cont?`${c.s[w]} : ${c.s[1-w]}`:`партии ${c.f[w]} : ${c.f[1-w]}${c.early?` · шары ${c.s[w]} : ${c.s[1-w]}`:''}`})()}</span>
       <span class="ct-rb">Лучшая серия — ${esc(c.p[0])} ${c.best[0]} · ${esc(c.p[1])} ${c.best[1]}</span>
+      <button class="btn ct-share" data-act="ctShare"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Поделиться результатом</button>
       <div class="ct-ra"><button class="btn blue" data-act="ctNew">${cont?'Ещё партия':'Ещё матч'}</button><button class="btn ghost" data-act="ctSetup">Новые игроки</button></div>
       <button class="ct-ru" data-act="ctUndo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>${c.early?'Продолжить игру':'Отменить последний шар'}</button></div>`:''}
     ${c.done!=null?'':`<div class="ct-bar2"><button class="ct-undo" data-act="ctUndo" ${c.h&&c.h.length?'':'disabled'}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Отменить</button><button class="ct-end${UI.ctEnd?' sure':''}" data-act="ctEnd">${UI.ctEnd?'Точно закончить?':'Закончить игру'}</button></div>`}</div>`}
@@ -1185,6 +1187,26 @@ const CT_ACTS=({
   ctFoul(el){const c=CT,i=+el.dataset.i,o=1-i;if(c.done!=null)return;A._ctPush();c.s[o]++;c.turn=o;c.ser=0;ctCheck();ctSave();render();toast(`Штраф: ${c.p[i]} — шар со стола ${c.p[o]}`)},
   ctEnd(){const c=CT;if(c.done!=null)return;if(!UI.ctEnd){UI.ctEnd=1;render();clearTimeout(A._ce);A._ce=setTimeout(()=>{UI.ctEnd=0;if(location.hash==='#schet')render()},3000);return}
     UI.ctEnd=0;A._ctPush();const cont=ctCont(c.disc);let w=-1;if(!cont&&c.f[0]!==c.f[1])w=c.f[0]>c.f[1]?0:1;else if(c.s[0]!==c.s[1])w=c.s[0]>c.s[1]?0:1;c.done=w;c.early=true;ctSave();render()},
+  async ctShare(){const c=CT;if(c.done==null)return;const cont=ctCont(c.disc);const W=1080,H=1350;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+    const F=getComputedStyle(document.body).fontFamily;const f=(w,sz)=>`${w} ${sz}px ${F}`;
+    const gr=g.createRadialGradient(W/2,H*.45,50,W/2,H*.45,H*.8);gr.addColorStop(0,'#1C5B3D');gr.addColorStop(.6,'#123526');gr.addColorStop(1,'#0A1A12');g.fillStyle=gr;g.fillRect(0,0,W,H);
+    g.textAlign='center';g.textBaseline='alphabetic';
+    g.fillStyle='rgba(255,255,255,.6)';g.font=f(600,34);g.fillText(c.disc.toUpperCase(),W/2,150);
+    g.fillStyle='rgba(255,255,255,.45)';g.font=f(400,30);g.fillText(cont?`до ${c.target} шаров`:`матч до ${c.wins} побед`,W/2,200);
+    const w=c.done<0?0:c.done,l=1-w;
+    g.fillStyle='#F2C94C';g.font=f(700,40);g.fillText(c.done<0?'НИЧЬЯ':'ПОБЕДА',W/2,360);
+    const fit=(t,max,sz,wt)=>{let s=sz;g.font=f(wt,s);while(g.measureText(t).width>max&&s>30){s-=4;g.font=f(wt,s)}};
+    g.fillStyle='#fff';fit(c.done<0?`${c.p[0]} — ${c.p[1]}`:c.p[w],W-160,110,700);g.fillText(c.done<0?`${c.p[0]} — ${c.p[1]}`:c.p[w],W/2,490);
+    const big=cont?`${c.s[w]} : ${c.s[l]}`:`${c.f[w]} : ${c.f[l]}`;g.font=f(700,260);g.fillText(big,W/2,800);
+    g.fillStyle='rgba(255,255,255,.7)';g.font=f(400,40);g.fillText(c.done<0?'':`${c.p[w]} — ${c.p[l]}`,W/2,880);
+    if(!cont){g.fillStyle='rgba(255,255,255,.5)';g.font=f(400,32);g.fillText('счёт по партиям',W/2,935)}
+    g.fillStyle='rgba(255,255,255,.55)';g.font=f(400,34);g.fillText(`Лучшая серия: ${c.p[0]} ${c.best[0]} · ${c.p[1]} ${c.best[1]}`,W/2,1040);
+    const d=new Date();g.fillText(d.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'}),W/2,1095);
+    g.fillStyle='#fff';g.font=f(700,44);g.fillText('kazbilliard',W/2,1240);g.fillStyle='rgba(255,255,255,.45)';g.font=f(400,28);g.fillText('счётчик для игроков · kazbilliard.com',W/2,1285);
+    const blob=await new Promise(r=>cv.toBlob(r,'image/png'));const name=`kazbilliard-${c.p[0]}-${c.p[1]}.png`.replace(/[\\/:*?"<>|\s]+/g,'_');const file=new File([blob],name,{type:'image/png'});
+    const text=c.done<0?`Ничья ${big} · ${c.disc}`:`${c.p[w]} победил ${big} · ${c.disc}`;
+    try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text});return}}catch(e){if(e&&e.name==='AbortError')return}
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();toast('Картинка сохранена')},
   ctTurn(el){CT.turn=+el.dataset.i;CT.ser=0;ctSave();render()},
   ctMiss(){const c=CT;if(c.turn==null||c.done!=null)return;A._ctPush();c.turn=1-c.turn;c.ser=0;ctSave();render()},
   ctUndo(){const c=CT;if(!c.h||!c.h.length)return;const h=c.h;const snap=JSON.parse(h.pop());CT=Object.assign(snap,{h});if(CT.done==null)delete CT.early;ctSave();render()},
