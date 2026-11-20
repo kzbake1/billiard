@@ -121,11 +121,12 @@ body.gonly>header,body.gonly>#ticker,body.gonly>footer{display:none}body.gonly>m
 .tmenu .pop button:hover,.tmenu .pop a:hover{background:#F5F5F5}
 .tmenu .pop .del{color:var(--live-ink);border-top:1px solid #F0F0F0;border-radius:0 0 8px 8px;margin-top:4px}.tmenu .pop .del svg{color:var(--live-ink)}.tmenu .pop .del:hover{background:var(--live-soft)}
 .th-del{border:0;background:none;padding:0;font:inherit;font-size:13px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px}.th-del:hover{color:var(--live-ink)}
-.th-main{display:flex;justify-content:space-between;align-items:flex-end;gap:32px;flex-wrap:wrap}.th-l{min-width:0;flex:1 1 520px}
+.th-main{display:flex;justify-content:space-between;align-items:flex-start;gap:32px;flex-wrap:wrap}.th-l{min-width:0;flex:1 1 520px}
 .th-l h1{font-size:36px;line-height:1.1;margin:6px 0 0;letter-spacing:-.02em}
 .th-over{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sub)}.th-over i{width:3px;height:3px;border-radius:50%;background:#C4C4C4}
 .th-over .dot{width:8px;height:8px;border-radius:50%;background:#B5B5B5}.th-over .dot.live{background:var(--live);animation:pulse 1.4s infinite}.th-over .dot.done{background:var(--accent)}
 .th-side{flex:0 0 260px;display:flex;flex-direction:column;gap:3px;font-size:14px;color:var(--sub)}
+.th-org{display:flex;flex-direction:column;gap:3px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--line)}.th-org .lbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.th-side .th-org b{font-size:15px;font-weight:600;color:var(--ink);letter-spacing:0;line-height:1.3}.th-org a.wa{display:inline-flex;align-items:center;gap:6px;color:#128C4B;font-weight:600}.th-org a.wa svg{width:16px;height:16px}
 .th-side b.cn{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:2px}.th-side a{color:var(--accent-ink);text-decoration:none}.th-side a:hover{text-decoration:underline}
 .th-side .lbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .th-side b{font-size:30px;font-weight:600;line-height:1.1;letter-spacing:-.02em}.th-side b small{font-size:15px;font-weight:500;color:var(--muted);letter-spacing:0}.th-side b.nm{font-size:20px}
@@ -766,6 +767,7 @@ const IC=(()=>{const w=p=>`<svg width="18" height="18" viewBox="0 0 24 24" fill=
   share:w('<path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/>'),
   xls:w('<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5"/><path d="M9 12l6 6M15 12l-6 6"/>'),
   open:w('<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'),
+  wa:w('<path d="M4 20l1.3-4A8 8 0 1 1 8 18.7z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-1 .8a4 4 0 0 1-1.8-1.8l.8-1-1-2z"/>'),
   grid:w('<rect x="3" y="4" width="7" height="6" rx="1"/><rect x="3" y="14" width="7" height="6" rx="1"/><rect x="14" y="9" width="7" height="6" rx="1"/><path d="M10 7h2v10h-2M12 12h2"/>'),
   dice:w('<rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.2" fill="currentColor"/><circle cx="15" cy="15" r="1.2" fill="currentColor"/><circle cx="15" cy="9" r="1.2" fill="currentColor"/><circle cx="9" cy="15" r="1.2" fill="currentColor"/>'),
   print:w('<path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M7 14h10v6H7z"/>'),
@@ -818,7 +820,7 @@ function hRow(T,meta,right){return`<a class="hrow" href="#t-${T.id}">${hDate(T)}
 function hLive(T,b){const c=club(T.clubId);const lv=b.all.filter(m=>m.state==='live').length;
   return hRow(T,`${hCat(T)}${esc(c.name)} · ${esc(T.city)} · ${esc(tFmt(T,b))} · до ${T.raceTo} побед`,`<em class="lv"><i></i>идёт</em>${lv?`<span>${lv} за столами</span>`:''}${hTv(T)}`)}
 function hSoon(T){const c=club(T.clubId);
-  return hRow(T,`${T.dateEnd?esc(fdates(T))+' · ':''}${T.time?esc(T.time)+' · ':''}${hCat(T)}${esc(c.name)} · ${esc(T.city)} · ${esc(T.discipline)}`,`${hTv(T)}<em>${T.players.length} игрок${plural(T.players.length)}</em>${c.phone?`<span>запись ${esc(c.phone)}</span>`:''}`)}
+  return hRow(T,`${T.dateEnd?esc(fdates(T))+' · ':''}${T.time?esc(T.time)+' · ':''}${hCat(T)}${esc(c.name)} · ${esc(T.city)} · ${esc(T.discipline)}`,`${hTv(T)}<em>${T.players.length} игрок${plural(T.players.length)}</em>${T.orgPhone||c.phone?`<span>запись ${esc(T.orgPhone||c.phone)}</span>`:''}`)}
 function hDone(T,b){const c=club(T.clubId);const w=b.places&&b.places[0]&&b.places[0].ids[0];
   return hRow(T,`${hCat(T)}${esc(c.name)} · ${esc(T.city)} · ${esc(T.discipline)}`,w?`<span>победитель</span><em>${esc(pname(T,P(w)))}</em>`:'')}
 function renderFind(){const el=document.getElementById('find-res');if(!el)return;const q=(UI.pq||'').trim().toLowerCase();
@@ -875,7 +877,8 @@ function renderT(T){
   const champ=b.finished&&b.places&&b.places[0]&&b.places[0].ids[0]?pname(T,P(b.places[0].ids[0])):'';
   const place=[c.city,c.address].filter(Boolean).map(esc).join(', ');
   const cl=[`<b>${esc(c.name)}</b>`,place,c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:'',c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:''].filter(Boolean);
-  const side=`<div class="th-side"><b class="cn">${esc(c.name)}</b>${place?`<span>${place}</span>`:''}${c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:''}${c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:''}</div>`;
+  const org=T.orgPhone||T.orgName?`<div class="th-org"><span class="lbl">Организатор</span>${T.orgName?`<b>${esc(T.orgName)}</b>`:''}${T.orgPhone?`<a href="tel:${esc(T.orgPhone.replace(/[^+\d]/g,''))}">${esc(T.orgPhone)}</a><a class="wa" href="${waLink(T.orgPhone)}" target="_blank" rel="noopener">${IC.wa}WhatsApp</a>`:''}</div>`:'';
+  const side=`<div class="th-side">${org}<b class="cn">${esc(c.name)}</b>${place?`<span>${place}</span>`:''}${c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:''}${c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:''}</div>`;
   return`<div class="tband"><div class="th-top"><a class="back" href="#home">← Все турниры</a><div class="th-act">${own&&UI.confirm===cdel?`<span class="muted" style="font-size:13px">Удалить турнир?</span><button class="btn sm red" data-act="delT" data-id="${T.id}">Да, удалить</button><button class="btn sm ghost" data-act="cancelConfirm">Нет</button>`:`<div class="tmenu"><button class="dots" data-act="tmenu" aria-label="Действия" title="Действия"><i></i><i></i><i></i></button>${UI.tmenu===T.id?`<div class="pop"><button data-act="shareT">${IC.share}<span>Поделиться</span></button><button data-act="xlsT">${IC.xls}<span>Скачать в Excel</span></button><a href="#g-${T.id}" target="_blank" rel="noopener">${IC.open}<span>Открыть только сетку</span></a>${own?`<button data-act="editT">${IC.edit}<span>Изменить турнир</span></button>${T.status!=='reg'&&!Object.keys(T.results||{}).length?`<button data-act="schOpen">${IC.grid}<span>Изменить схему</span></button>`:''}<button class="del" data-act="askDel" data-id="${T.id}">${IC.del}<span>Удалить турнир</span></button>`:''}</div>`:''}</div>`}</div></div>
   <div class="th-main"><div class="th-l"><div class="th-over"><span class="dot ${st}"></span>${ST_LABEL[st]}<i></i>${esc(T.discipline)}${T.category?`<i></i>${esc(T.category)}`:''}${isPub(T)?'':'<i></i><span class="draft">черновик</span>'}</div><h1>${esc(T.title)}</h1>
   <div class="th-facts">${facts.map(f=>`<span>${f}</span>`).join('')}</div>
@@ -1110,7 +1113,7 @@ function renderCabinet(){
   <div class="panel">${info}</div></div>`;
 }
 /* ============ wizard ============ */
-function newWiz(){const c=club(S.session);return{step:1,title:'',disc:DISC[0],date:new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10),race:4,format:'de',playoff:'auto',gc:4,ga:2,city:c.city,players:[],seed:'list',q:'',time:'',dateEnd:'',cat:'Клубный',link:'',video:'',pub:true}}
+function newWiz(){const c=club(S.session);return{step:1,title:'',disc:DISC[0],date:new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10),race:4,format:'de',playoff:'auto',gc:4,ga:2,city:c.city,players:[],seed:'list',q:'',time:'',dateEnd:'',cat:'Клубный',link:'',video:'',pub:true,orgName:'',orgPhone:''}}
 function wizTour(){const w=UI.wiz;return{format:w.format,groups:{count:w.gc,advance:w.ga}}}
 function fmtMatches(f,n,gc,po){n=Math.max(n,2);if(f==='se')return n-1;if(f==='de'){const N=nextPow2(n),K=playoffK({playoff:po},n);return K?2*n-K/2-1:2*n-2}if(f==='rr')return n*(n-1)/2;const g=Math.ceil(n/gc);return gc*g*(g-1)/2+ (gc*2-1)}
 function renderCreate(){
@@ -1120,6 +1123,7 @@ function renderCreate(){
     <div class="wz-row2"><div class="field"><label>Дисциплина</label><select data-w="disc">${DISC.map(d=>`<option ${w.disc===d?'selected':''}>${d}</option>`).join('')}</select></div>
     <div class="field"><label>Категория</label><select data-w="cat">${CATS.map(d=>`<option ${w.cat===d?'selected':''}>${d}</option>`).join('')}</select></div></div>
     <div class="wz-row3"><div class="field"><label>Начало</label><input type="date" data-w="date" value="${w.date}"></div><div class="field"><label>Время</label><input type="time" data-w="time" value="${esc(w.time)}"></div><div class="field"><label>Окончание</label><input type="date" data-w="dateEnd" min="${w.date}" value="${esc(w.dateEnd)}"></div></div>
+    <div class="wz-row2"><div class="field"><label>Организатор <small>имя</small></label><input data-w="orgName" value="${esc(w.orgName)}" placeholder="Фамилия Имя"></div><div class="field"><label>Телефон / WhatsApp</label><input type="tel" inputmode="tel" data-w="orgPhone" value="${esc(w.orgPhone)}" placeholder="+7 700 000 00 00"></div></div>
     <div class="wz-row2"><div class="field"><label>Положение <small>ссылка, необязательно</small></label><input type="url" inputmode="url" data-w="link" value="${esc(w.link)}" placeholder="https://…"></div><div class="field"><label>Трансляция <small>YouTube, необязательно</small></label><input type="url" inputmode="url" data-w="video" value="${esc(w.video)}" placeholder="https://youtube.com/…"></div></div>
     <div class="field" style="margin-bottom:0"><label>Опубликовать</label><div class="fpills sm">${[[1,'Да, показывать на сайте'],[0,'Нет, пока черновик']].map(([k,l])=>`<button class="${(w.pub?1:0)===k?'on':''}" data-act="wPub" data-v="${k}">${l}</button>`).join('')}</div></div>
     <div class="err" id="w-err"></div>
@@ -1149,12 +1153,15 @@ async function loadAdminList(){
   if(r.error){el2.innerHTML=`<div class="err">${esc(r.error)}</div>`;return}
   el2.innerHTML=r.clubs.length?r.clubs.map(c=>`<div style="padding:12px 0;border-bottom:1px solid var(--soft)"><b>${esc(c.name)}</b> <span class="muted">· ${esc(c.city)} · ${c.tables} столов</span><div class="muted" style="font-size:13px;margin-bottom:8px">${esc(c.email)}</div><div style="display:flex;gap:8px"><input id="pw-${c.id}" placeholder="Новый пароль" autocomplete="off" style="flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 14px"><button class="btn sm ghost" data-act="setPass" data-id="${c.id}">Сменить</button></div></div>`).join(''):'<div class="muted">Клубов пока нет. Создайте первый справа.</div>';
 }
+const phErr=p=>p&&p.replace(/\D/g,'').length<10?'Проверьте телефон организатора':'';
+const waLink=p=>{let d=(p||'').replace(/\D/g,'');if(d.length===11&&d[0]==='8')d='7'+d.slice(1);if(d.length===10)d='7'+d;return'https://wa.me/'+d};
 function tErr(d,de,l,v){if(!d)return'Укажите дату начала';if(de&&de<d)return'Окончание раньше начала';if(!okUrl(normUrl(l)))return'Проверьте ссылку на положение';if(!okUrl(normUrl(v)))return'Проверьте ссылку на трансляцию';return''}
 function editTHTML(T){const pub=UI.ePub===undefined?isPub(T):UI.ePub;
   return`<div class="ed"><div class="pm-h"><div class="pm-ti"><b>Изменить турнир</b></div><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
   <div class="field"><label>Название</label><input id="e-title" value="${esc(T.title)}"></div>
   <div class="wz-row2"><div class="field"><label>Дисциплина</label><select id="e-disc">${DISC.map(d=>`<option ${T.discipline===d?'selected':''}>${d}</option>`).join('')}</select></div><div class="field"><label>Категория</label><select id="e-cat">${CATS.map(d=>`<option ${(T.category||'Клубный')===d?'selected':''}>${d}</option>`).join('')}</select></div></div>
   <div class="wz-row3"><div class="field"><label>Начало</label><input id="e-date" type="date" value="${esc(T.date)}"></div><div class="field"><label>Время</label><input id="e-time" type="time" value="${esc(T.time||'')}"></div><div class="field"><label>Окончание</label><input id="e-end" type="date" value="${esc(T.dateEnd||'')}"></div></div>
+  <div class="wz-row2"><div class="field"><label>Организатор</label><input id="e-org" value="${esc(T.orgName||'')}"></div><div class="field"><label>Телефон / WhatsApp</label><input id="e-oph" type="tel" value="${esc(T.orgPhone||'')}"></div></div>
   <div class="field"><label>Положение <small>ссылка</small></label><input id="e-link" type="url" value="${esc(T.link||'')}" placeholder="https://…"></div>
   <div class="field"><label>Трансляция <small>YouTube</small></label><input id="e-video" type="url" value="${esc(T.video||'')}" placeholder="https://youtube.com/…"></div>
   <div class="field"><label>Опубликовать</label><div class="fpills sm">${[[1,'Да'],[0,'Нет, черновик']].map(([k,l])=>`<button class="${(pub?1:0)===k?'on':''}" data-act="ePub" data-v="${k}">${l}</button>`).join('')}</div></div>
@@ -1164,7 +1171,7 @@ function addPlayer(T,c,first,last,birth,city,rank,x){
   if(p){if(T.players.some(q=>q.id===p.id))return'Этот игрок уже в турнире';Object.assign(p,Object.fromEntries(Object.entries(x||{}).filter(([k,v])=>v)))}
   else{p=mkPlayer(first,last,birth,city,rank,x);c.roster=c.roster||[];c.roster.push(p)}
   T.players.push(pub(Object.assign({},p,{city:city||p.city,rank:rank||p.rank})));return''}
-function wizMake(status){const w=UI.wiz;const T={id:uid(),title:w.title.trim(),clubId:S.session,city:w.city,discipline:w.disc,format:w.format,playoff:w.format==='de'?w.playoff:undefined,raceTo:w.race,date:w.date,time:w.time||'',dateEnd:w.dateEnd&&w.dateEnd!==w.date?w.dateEnd:'',category:w.cat,link:normUrl(w.link),video:normUrl(w.video),pub:w.pub,status,players:w.players.map(pub),applications:[],results:{},seedMode:w.seed,groups:{count:w.gc,advance:w.ga},createdAt:Date.now()};S.tournaments.unshift(T);UI.wiz=null;save();return T}
+function wizMake(status){const w=UI.wiz;const T={id:uid(),title:w.title.trim(),clubId:S.session,city:w.city,discipline:w.disc,format:w.format,playoff:w.format==='de'?w.playoff:undefined,raceTo:w.race,date:w.date,time:w.time||'',dateEnd:w.dateEnd&&w.dateEnd!==w.date?w.dateEnd:'',category:w.cat,link:normUrl(w.link),video:normUrl(w.video),pub:w.pub,orgName:(w.orgName||'').trim().slice(0,80),orgPhone:(w.orgPhone||'').trim().slice(0,30),status,players:w.players.map(pub),applications:[],results:{},seedMode:w.seed,groups:{count:w.gc,advance:w.ga},createdAt:Date.now()};S.tournaments.unshift(T);UI.wiz=null;save();return T}
 /* ============ pult ============ */
 function renderPult(T){
   const b=build(T);CUR={T,b};const c=club(T.clubId);const n=c.tables||6;
@@ -1305,7 +1312,7 @@ const A={
   wPo(el){const v=el.dataset.v;UI.wiz.playoff=v==='auto'?'auto':+v;render()},
   wSeed(el){UI.wiz.seed=el.dataset.v;render()},
   wPub(el){UI.wiz.pub=el.dataset.v==='1';render()},
-  wSave(){const w=UI.wiz;const e=document.getElementById('w-err');const er=tErr(w.date,w.dateEnd,w.link,w.video);if(er){e.textContent=er;return}
+  wSave(){const w=UI.wiz;const e=document.getElementById('w-err');const er=tErr(w.date,w.dateEnd,w.link,w.video)||phErr(w.orgPhone);if(er){e.textContent=er;return}
     if(!w.title.trim())w.title=w.disc+' · '+fdate(w.date).replace(/ \d{4}$/,'');w.format='de';w.playoff='auto';w.players=[];
     const T=wizMake('reg');UI.tab[T.id]='people';go('t-'+T.id);toast('Турнир сохранён')},
   wDrop(){UI.wiz=null;go('cabinet')},
@@ -1388,10 +1395,10 @@ const A={
     T.results[m.id]={a:m.a.id,b:m.b.id,sa,sb,live:true,done:false,table:tb,ts:Date.now()};save();closeModal();render();toast("Игроки вызваны к столу")},
   clearRes(el){const {T}=CUR;delete T.results[el.dataset.mid];save();closeModal();render();toast('Результат сброшен')},
   editT(){const T=CUR&&CUR.T;if(!T||!isOwner(T))return;UI.tmenu=null;UI.ePub=undefined;render();openModal(editTHTML(T))},
-  ePub(el){const T=CUR.T;const keep={};['e-title','e-disc','e-cat','e-date','e-time','e-end','e-link','e-video'].forEach(i=>keep[i]=document.getElementById(i).value);UI.ePub=el.dataset.v==='1';openModal(editTHTML(T));Object.keys(keep).forEach(i=>document.getElementById(i).value=keep[i])},
+  ePub(el){const T=CUR.T;const keep={};['e-title','e-disc','e-cat','e-date','e-time','e-end','e-org','e-oph','e-link','e-video'].forEach(i=>keep[i]=document.getElementById(i).value);UI.ePub=el.dataset.v==='1';openModal(editTHTML(T));Object.keys(keep).forEach(i=>document.getElementById(i).value=keep[i])},
   saveT(){const T=CUR&&CUR.T;if(!T||!isOwner(T))return;const v=i=>document.getElementById(i).value.trim();const e=document.getElementById('e-err');
-    const er=tErr(v('e-date'),v('e-end'),v('e-link'),v('e-video'));if(er){e.textContent=er;return}if(!v('e-title')){e.textContent='Введите название';return}
-    Object.assign(T,{title:v('e-title'),discipline:v('e-disc'),category:v('e-cat'),date:v('e-date'),time:v('e-time'),dateEnd:v('e-end')&&v('e-end')!==v('e-date')?v('e-end'):'',link:normUrl(v('e-link')),video:normUrl(v('e-video'))});
+    const er=tErr(v('e-date'),v('e-end'),v('e-link'),v('e-video'))||phErr(v('e-oph'));if(er){e.textContent=er;return}if(!v('e-title')){e.textContent='Введите название';return}
+    Object.assign(T,{title:v('e-title'),discipline:v('e-disc'),category:v('e-cat'),date:v('e-date'),time:v('e-time'),dateEnd:v('e-end')&&v('e-end')!==v('e-date')?v('e-end'):'',link:normUrl(v('e-link')),video:normUrl(v('e-video')),orgName:v('e-org').slice(0,80),orgPhone:v('e-oph').slice(0,30)});
     if(UI.ePub!==undefined)T.pub=UI.ePub;UI.ePub=undefined;save();closeModal();render();toast('Сохранено')},
   pubT(){const T=CUR&&CUR.T;if(!T||!isOwner(T))return;T.pub=true;save();render();toast('Турнир опубликован')},
   askDel(el){UI.confirm='del-'+el.dataset.id;UI.tmenu=null;render()},
