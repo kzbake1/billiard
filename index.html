@@ -181,7 +181,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .cap{position:absolute;left:2px;right:0;top:100%;margin-top:3px;font-size:11px;line-height:14px;color:#A3A3A3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .uni{position:relative;overflow-x:auto;padding:4px 4px 18px}
 .uni-in{display:flex;align-items:stretch;gap:28px;width:max-content}
-.bk-in{display:flex;gap:28px;flex:0 0 auto;margin:0 auto}
+.bk-in{display:flex;gap:28px;flex:0 0 auto;margin:0 auto}.de-h+.bracket .bk-in{margin-left:0}
 .uni-in{margin:0 auto}
 
 .uni .bracket{overflow:visible;flex:0 0 auto;padding:0}
@@ -221,6 +221,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .m.s-bye{cursor:default}
 .m.s-ready.nofree{border-color:var(--line);background:#fff}
 .m .row.wo .n{color:#B5B5B5}
+.de-h{font-size:15px;font-weight:600;margin:28px 0 12px}.de-h:first-of-type{margin-top:0}
 .final-box{max-width:260px}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
 .legend i{font-style:normal}.legend .r{color:var(--live-ink)}.legend .g{color:var(--ok)}
@@ -907,15 +908,11 @@ const LEGEND=`<div class="legend"><i><span class="r">●</span> играют</i>
 function renderGridTab(T,b){
   if(T.format==='se')return`<div class="withside"><div class="wm"><div style="margin-bottom:14px"><div class="lz">${LEGEND}${zoomCtl()}</div></div>${bracketHTML(T,b.rounds,capSE(b.rounds))}</div></div>`;
   if(T.format==='de'&&b.K){
-    const seg=`<div class="seg">${[['lb','← Нижняя сетка'],['wb','Верхняя сетка'],['gf','Олимпийка · '+b.K+' →']].map(([k,l])=>`<button data-act="uniGo" data-v="${k}">${l}</button>`).join('')}</div>`;
     return`<div style="display:flex;justify-content:flex-end;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px"><div class="lz">${LEGEND}${zoomCtl()}</div></div>${uniHTML(T,b)}`}
-  if(T.format==='de'){const v=UI.de[T.id]||'wb';
-    const seg=`<div class="seg">${[['wb','Верхняя сетка'],['lb','Нижняя сетка'],['gf',b.K?'Олимпийка · '+b.K:'Финал']].map(([k,l])=>`<button class="${k===v?'on':''}" data-act="deView" data-id="${T.id}" data-v="${k}">${l}</button>`).join('')}</div>`;
-    let inner;
-    if(v==='wb')inner=(b.K?`<p class="muted" style="margin:0 0 10px;font-size:13px">Сетка ${b.name}: ${b.K/2} победителя верхней выходят в олимпийку.</p>`:'')+bracketHTML(T,b.wb);else if(v==='lb')inner=`<p class="muted" style="margin:0 0 10px;font-size:13px">Одно поражение уже есть, второе — выбывание.</p>`+bracketHTML(T,b.lb);
-    else if(b.K)inner=`<p class="muted" style="margin:0 0 10px;font-size:13px">${b.K/2} из верхней сетки и ${b.K/2} из нижней. Дальше — до первого поражения.${b.draw?(b.drawn?' Пары определены жеребьёвкой.':' Пары определит жеребьёвка — сайт проведёт её сам, когда станут известны все '+b.K+'.'):''}</p>`+bracketHTML(T,b.rounds);
-    else inner=`<div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;margin-top:8px"><div class="final-box" style="flex:1 1 230px"><div class="round-title">Суперфинал</div><div style="padding-top:8px">${mCard(T,b.gf)}</div></div>${b.gf2?`<div class="final-box" style="flex:1 1 230px"><div class="round-title">Повторный финал</div><div style="padding-top:8px">${mCard(T,b.gf2)}</div></div>`:''}</div><p class="muted" style="font-size:13px;max-width:560px">Победитель верхней сетки против победителя нижней. Если выигрывает игрок из нижней — у обоих по одному поражению, играется повторный финал.</p>`;
-    return`<div class="withside"><div class="wm"><div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px">${seg}<div class="lz">${LEGEND}${zoomCtl()}</div></div>${inner}</div></div>`;}
+  if(T.format==='de'){const hd=t=>`<h3 class="de-h">${t}</h3>`;
+    const fin=`<div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start"><div class="final-box" style="flex:0 1 260px"><div class="round-title">Суперфинал</div><div style="padding-top:8px">${mCard(T,b.gf)}</div></div>${b.gf2?`<div class="final-box" style="flex:0 1 260px"><div class="round-title">Повторный финал</div><div style="padding-top:8px">${mCard(T,b.gf2)}</div></div>`:''}</div>`;
+    return`<div class="withside"><div class="wm"><div style="display:flex;justify-content:flex-end;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px"><div class="lz">${LEGEND}${zoomCtl()}</div></div>
+    ${hd('Верхняя сетка')}${bracketHTML(T,b.wb)}${hd('Нижняя сетка')}${bracketHTML(T,b.lb)}${hd('Финал')}${fin}</div></div>`;}
   if(T.format==='rr'){const g=b.groups[0];return`<div class="two"><div class="panel"><h3>Таблица</h3>${standingsHTML(T,g)}</div><div>${g.rounds.map(rd=>`<div class="panel" style="margin-bottom:12px"><h3>${rd.title}</h3><div class="mlist" style="margin:0">${rd.matches.map(m=>mRow(T,m)).join('')}</div></div>`).join('')}</div></div>`}
   return`<div class="sec"><div class="sec-h"><h2>Группы</h2><span class="muted">в плей-офф выходят ${b.K} из каждой группы</span></div>
   <div class="groups">${b.groups.map(g=>`<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0">${g.name}</h3>${g.complete?'<span class="st done">сыграна</span>':`<span class="muted" style="font-size:12px">${g.matches.filter(m=>m.state==='done').length}/${g.matches.length} матчей</span>`}</div>
