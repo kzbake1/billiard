@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="robots" content="noindex">
+<title>Пример сетки — kazbilliard</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #F7F7F7; --card: #fff; --ink: #111111; --muted: #6E6E6E; --sub: #4D4D4D; --line: #E4E4E4; --line2: #D0D0D0; --soft: #F0F0F0; --accent: #1667FF; --accent-ink: #0F4FD9; --accent-soft: #E6EEFF; --live: #D93A26; --live-ink: #C4321F; --live-soft: #FDECEA; --ok: #0B7A47; --ok-soft: #E3F3EA; --gold: #111111; --gold-bg: #111111; }
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.45;-webkit-text-size-adjust:100%}
+body{display:flex;flex-direction:column;overflow:hidden}
+*{box-sizing: border-box;}
+@keyframes pulse { 
+  50% { opacity: 0.25; }
+}
+.bracket{display: flex; gap: 28px; overflow-x: auto; padding: 4px 4px 18px;}
+.round{display: flex; flex-direction: column; flex: 0 0 212px;}
+.round-title small{display: block; margin-top: 3px; font-size: 11px; font-weight: 400; letter-spacing: 0px; text-transform: none; color: rgb(163, 163, 163); white-space: nowrap;}
+.round-title{font-family: Inter, sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 6px;}
+.round-body{flex: 1 1 0%; display: flex; flex-direction: column;}
+.pair{flex: 1 1 0%; display: flex; flex-direction: column; position: relative;}
+.slot{flex: 1 1 0%; display: flex; flex-direction: column; justify-content: center; position: relative; padding: 18px 0px;}
+.round-body{padding-top: 8px;}
+.sw{position: relative; transition: opacity 0.12s;}
+.bracket,.uni{touch-action: pan-x pan-y;}
+.cap{position: absolute; left: 2px; right: 0px; top: 100%; margin-top: 3px; font-size: 11px; line-height: 14px; color: rgb(163, 163, 163); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.uni{position: relative; overflow-x: auto; padding: 4px 4px 18px;}
+.uni-in{display: flex; align-items: stretch; gap: 28px; width: max-content;}
+.uni-in{margin: 0px auto;}
+.uni .bracket{overflow: visible; flex: 0 0 auto; padding: 0px;}
+.uni .slot{padding: 26px 0px;}
+.uni .mir{transform: scaleX(-1);}
+.uni .mir .round-title,.uni .mir .sw{transform: scaleX(-1);}
+.uni .po-start .round-title,.uni .ub .round:first-child .round-title{color: var(--accent);}
+.round.conn .slot::after{content: ""; position: absolute; right: -14px; top: 50%; width: 14px; border-top: 1px solid var(--line2);}
+.round.instub .slot::before{content: ""; position: absolute; left: -14px; top: 50%; width: 14px; border-top: 1px solid var(--line2);}
+.round.conn .pair.join::after{content: ""; position: absolute; right: -14px; top: 25%; bottom: 25%; border-right: 1px solid var(--line2);}
+.m{background: rgb(255, 255, 255); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; cursor: pointer; transition: border-color 0.15s;}
+.m:hover{border-color: var(--ink);}
+.m .row{display: grid; grid-template-columns: minmax(0px, 1fr) 28px; align-items: center; gap: 6px; padding: 4px 12px; font-size: 14.5px;}
+.m .row + .row{border-top: 1px solid rgb(240, 240, 240);}
+.mw{position: relative;}
+.m-meta{position: absolute; left: 2px; right: 2px; bottom: 100%; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 11px; line-height: 14px; color: rgb(163, 163, 163); white-space: nowrap;}
+.m-meta > span:first-child{display: inline-flex; align-items: center; gap: 5px;}
+.mst.live{color: var(--live-ink); font-weight: 600;}
+.mk{display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0px 4px; box-sizing: border-box; border-radius: 5px; color: rgb(255, 255, 255); font-size: 10px; font-weight: 700; line-height: 1; font-style: normal;}
+.mk.b{background: var(--accent);}
+.cap{display: flex; align-items: center; gap: 5px;}
+.cap b:not(.mk){color: var(--ink); font-weight: 600;}
+.m .n{overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-weight: 400;}
+.m .sc{font-family: Inter, sans-serif; font-weight: 600; font-size: 14.5px; text-align: right; font-variant-numeric: tabular-nums;}
+.m .win .sc{color: var(--ok);}
+.m .lose .sc{color: var(--live-ink);}
+.m .tbd .n{color: rgb(166, 166, 166); font-style: italic;}
+.m.s-live{border-color: var(--live); background: rgb(254, 246, 245);}
+.m.s-live .row + .row{border-top-color: rgba(0, 0, 0, 0.07);}
+.round-body{position: relative;}
+.round.conn .pair.join .slot::after{display: none;}
+.round.conn .pair.join::before{content: ""; position: absolute; right: -14px; top: 25%; height: 25%; width: 14px; box-sizing: border-box; border-top: 1px solid var(--line2); border-right: 1px solid var(--line2); border-top-right-radius: 12px;}
+.round.conn .pair.join::after{content: ""; position: absolute; right: -14px; top: 50%; bottom: auto; height: 25%; width: 14px; box-sizing: border-box; border-bottom: 1px solid var(--line2); border-right: 1px solid var(--line2); border-bottom-right-radius: 12px;}
+/* просмотр */
+.bar{flex:none;display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border-bottom:1px solid var(--line);font-size:13.5px}
+.bar .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.bar .t small{font-weight:400;color:var(--muted);font-size:12.5px;margin-left:6px}
+.bar .lg{display:inline-flex;align-items:center;gap:6px;color:var(--sub);white-space:nowrap;margin-left:auto}
+.bar .lg i{width:8px;height:8px;border-radius:50%;background:var(--live);display:inline-block}
+.zb{display:inline-flex;align-items:center;border:1px solid var(--line2);border-radius:10px;overflow:hidden;background:#fff;flex:none}
+.zb button{border:0;background:none;font:inherit;font-size:17px;width:38px;height:36px;cursor:pointer;color:var(--ink)}
+.zb button:hover{background:var(--soft)}
+.zb span{min-width:50px;text-align:center;font-size:13px;font-weight:600;border-left:1px solid var(--line);border-right:1px solid var(--line);line-height:36px}
+.bar a{color:var(--ink);text-decoration:none;font-weight:600;white-space:nowrap;border:1px solid var(--line2);border-radius:10px;padding:0 12px;line-height:36px;flex:none}
+.bar a:hover{border-color:var(--ink)}
+.uni{flex:1 1 auto;min-height:0;overflow:auto!important;-webkit-overflow-scrolling:touch;padding:18px 16px 28px!important;margin:0!important;cursor:grab;touch-action:pan-x pan-y;max-width:none!important}
+.uni.drag{cursor:grabbing;user-select:none}
+.uni *{cursor:inherit!important}
+@media(max-width:560px){.bar{gap:8px;padding:8px 10px}.bar .lg{display:none}.bar .t small{display:none}.zb{margin-left:auto}.zb button{width:36px}.zb span{min-width:44px}.bar a{padding:0 10px}}
+</style>
+</head>
+<body>
+<div class="bar">
+  <a id="back" href="/" hidden>← Назад</a>
+  <div class="t">Осенний турнир<small>пример · 16 игроков</small></div>
+  <span class="lg"><i></i>играют</span>
+  <div class="zb"><button id="zo" aria-label="Уменьшить">−</button><span id="zv">100%</span><button id="zi" aria-label="Увеличить">+</button></div>
+  <a id="full" href="/demo.html" target="_top" hidden>На весь экран</a>
+</div>
+<div class="uni" id="uni"><div class="uni-in zm" style="zoom:1"><div class="bracket mir"><div class="round conn"><div class="round-title">Нижняя · раунд 1<small>проигравший — 13–16 место</small></div><div class="round-body"><div class="pair"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№15 · стол 2</span></div><div class="m s-done" data-mid="l1-0"><div class="row win" data-pid="iqflqvw"><span class="n">Калиев Ж.</span><span class="sc">4</span></div><div class="row lose" data-pid="xkzrqpi"><span class="n">Сулейменов А.</span><span class="sc">0</span></div></div></div></div></div></div><div class="pair"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№16 · стол 8</span></div><div class="m s-done" data-mid="l1-1"><div class="row win" data-pid="3fri4be"><span class="n">Касымов Б.</span><span class="sc">4</span></div><div class="row lose" data-pid="quzuc90"><span class="n">Тулегенов А.</span><span class="sc">2</span></div></div></div></div></div></div><div class="pair"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№17 · стол 8</span></div><div class="m s-done" data-mid="l1-2"><div class="row lose" data-pid="yclqaow"><span class="n">Иванов С.</span><span class="sc">3</span></div><div class="row win" data-pid="cra3dn4"><span class="n">Байжанов К.</span><span class="sc">4</span></div></div></div></div></div></div><div class="pair"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№18 · стол 2</span></div><div class="m s-done" data-mid="l1-3"><div class="row lose" data-pid="msa2wyb"><span class="n">Досжанов С.</span><span class="sc">1</span></div><div class="row win" data-pid="m7zh3s8"><span class="n">Ахметов М.</span><span class="sc">4</span></div></div></div></div></div></div></div></div><div class="round conn instub"><div class="round-title">Нижняя · раунд 2<small>проигравший — 9–12 место</small></div><div class="round-body"><div class="pair join"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№19 · стол 6</span></div><div class="m s-done" data-mid="l2-0"><div class="row lose" data-pid="iqflqvw"><span class="n">Калиев Ж.</span><span class="sc">0</span></div><div class="row win" data-pid="vqrrodl"><span class="n">Оспанов Н.</span><span class="sc">4</span></div></div></div></div></div><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№20 · стол 6</span></div><div class="m s-done" data-mid="l2-1"><div class="row win" data-pid="3fri4be"><span class="n">Касымов Б.</span><span class="sc">4</span></div><div class="row lose" data-pid="s0cej3s"><span class="n">Цой В.</span><span class="sc">3</span></div></div></div></div></div></div><div class="pair join"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№21 · стол 3</span></div><div class="m s-done" data-mid="l2-2"><div class="row win" data-pid="cra3dn4"><span class="n">Байжанов К.</span><span class="sc">4</span></div><div class="row lose" data-pid="tunxz8s"><span class="n">Мусин И.</span><span class="sc">0</span></div></div></div></div></div><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№22 · стол 5</span></div><div class="m s-done" data-mid="l2-3"><div class="row win" data-pid="m7zh3s8"><span class="n">Ахметов М.</span><span class="sc">4</span></div><div class="row lose" data-pid="6q0g3qx"><span class="n">Ермеков Р.</span><span class="sc">1</span></div></div></div></div></div></div></div></div><div class="round conn instub"><div class="round-title">Нижняя · раунд 3<small>проигравший — 7–8 место</small></div><div class="round-body"><div class="pair"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№23 · стол 8</span></div><div class="m s-done" data-mid="l3-0"><div class="row win" data-pid="vqrrodl"><span class="n">Оспанов Н.</span><span class="sc">4</span></div><div class="row lose" data-pid="3fri4be"><span class="n">Касымов Б.</span><span class="sc">2</span></div></div></div></div></div></div><div class="pair"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№24 · стол 3</span></div><div class="m s-done" data-mid="l3-1"><div class="row win" data-pid="cra3dn4"><span class="n">Байжанов К.</span><span class="sc">4</span></div><div class="row lose" data-pid="m7zh3s8"><span class="n">Ахметов М.</span><span class="sc">2</span></div></div></div></div></div></div></div></div><div class="round instub"><div class="round-title">Нижняя · раунд 4<small>проигравший — 5–6 место</small></div><div class="round-body"><div class="pair"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№25 · стол 5</span></div><div class="m s-done" data-mid="l4-0"><div class="row lose" data-pid="vqrrodl"><span class="n">Оспанов Н.</span><span class="sc">1</span></div><div class="row win" data-pid="13uyq40"><span class="n">Кузнецов Д.</span><span class="sc">4</span></div></div></div><div class="cap">победитель на <b class="mk b">№28</b></div></div></div></div><div class="pair"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№26 · стол 1</span></div><div class="m s-done" data-mid="l4-1"><div class="row lose" data-pid="cra3dn4"><span class="n">Байжанов К.</span><span class="sc">0</span></div><div class="row win" data-pid="s6pvqab"><span class="n">Петров А.</span><span class="sc">4</span></div></div></div><div class="cap">победитель на <b class="mk b">№27</b></div></div></div></div></div></div></div><div class="bracket ub"><div class="round conn"><div class="round-title">Верхняя · раунд 1<small>&nbsp;</small></div><div class="round-body"><div class="pair join"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№1 · стол 2</span></div><div class="m s-done" data-mid="w1-0"><div class="row win" data-pid="blw763a"><span class="n">Ким О.</span><span class="sc">4</span></div><div class="row lose" data-pid="iqflqvw"><span class="n">Калиев Ж.</span><span class="sc">2</span></div></div></div></div></div><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№2 · стол 2</span></div><div class="m s-done" data-mid="w1-1"><div class="row win" data-pid="6q0g3qx"><span class="n">Ермеков Р.</span><span class="sc">4</span></div><div class="row lose" data-pid="xkzrqpi"><span class="n">Сулейменов А.</span><span class="sc">1</span></div></div></div></div></div></div><div class="pair join"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№3 · стол 2</span></div><div class="m s-done" data-mid="w1-2"><div class="row lose" data-pid="3fri4be"><span class="n">Касымов Б.</span><span class="sc">3</span></div><div class="row win" data-pid="13uyq40"><span class="n">Кузнецов Д.</span><span class="sc">4</span></div></div></div></div></div><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№4 · стол 2</span></div><div class="m s-done" data-mid="w1-3"><div class="row lose" data-pid="quzuc90"><span class="n">Тулегенов А.</span><span class="sc">0</span></div><div class="row win" data-pid="tunxz8s"><span class="n">Мусин И.</span><span class="sc">4</span></div></div></div></div></div></div><div class="pair join"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№5 · стол 5</span></div><div class="m s-done" data-mid="w1-4"><div class="row lose" data-pid="yclqaow"><span class="n">Иванов С.</span><span class="sc">1</span></div><div class="row win" data-pid="oewnbv6"><span class="n">Утепов А.</span><span class="sc">4</span></div></div></div></div></div><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№6 · стол 1</span></div><div class="m s-done" data-mid="w1-5"><div class="row lose" data-pid="cra3dn4"><span class="n">Байжанов К.</span><span class="sc">0</span></div><div class="row win" data-pid="s0cej3s"><span class="n">Цой В.</span><span class="sc">4</span></div></div></div></div></div></div><div class="pair join"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№7 · стол 8</span></div><div class="m s-done" data-mid="w1-6"><div class="row win" data-pid="vqrrodl"><span class="n">Оспанов Н.</span><span class="sc">4</span></div><div class="row lose" data-pid="msa2wyb"><span class="n">Досжанов С.</span><span class="sc">0</span></div></div></div></div></div><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№8 · стол 2</span></div><div class="m s-done" data-mid="w1-7"><div class="row win" data-pid="s6pvqab"><span class="n">Петров А.</span><span class="sc">4</span></div><div class="row lose" data-pid="m7zh3s8"><span class="n">Ахметов М.</span><span class="sc">2</span></div></div></div></div></div></div></div></div><div class="round conn instub"><div class="round-title">Верхняя · раунд 2<small>&nbsp;</small></div><div class="round-body"><div class="pair join"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№9 · стол 2</span></div><div class="m s-done" data-mid="w2-0"><div class="row win" data-pid="blw763a"><span class="n">Ким О.</span><span class="sc">4</span></div><div class="row lose" data-pid="6q0g3qx"><span class="n">Ермеков Р.</span><span class="sc">0</span></div></div></div><div class="cap">проигравший на №22</div></div></div><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№10 · стол 6</span></div><div class="m s-done" data-mid="w2-1"><div class="row win" data-pid="13uyq40"><span class="n">Кузнецов Д.</span><span class="sc">4</span></div><div class="row lose" data-pid="tunxz8s"><span class="n">Мусин И.</span><span class="sc">3</span></div></div></div><div class="cap">проигравший на №21</div></div></div></div><div class="pair join"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№11 · стол 3</span></div><div class="m s-done" data-mid="w2-2"><div class="row win" data-pid="oewnbv6"><span class="n">Утепов А.</span><span class="sc">4</span></div><div class="row lose" data-pid="s0cej3s"><span class="n">Цой В.</span><span class="sc">3</span></div></div></div><div class="cap">проигравший на №20</div></div></div><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№12 · стол 6</span></div><div class="m s-done" data-mid="w2-3"><div class="row lose" data-pid="vqrrodl"><span class="n">Оспанов Н.</span><span class="sc">2</span></div><div class="row win" data-pid="s6pvqab"><span class="n">Петров А.</span><span class="sc">4</span></div></div></div><div class="cap">проигравший на №19</div></div></div></div></div></div><div class="round conn instub"><div class="round-title">Верхняя · раунд 3<small>&nbsp;</small></div><div class="round-body"><div class="pair"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№13 · стол 5</span></div><div class="m s-done" data-mid="w3-0"><div class="row win" data-pid="blw763a"><span class="n">Ким О.</span><span class="sc">4</span></div><div class="row lose" data-pid="13uyq40"><span class="n">Кузнецов Д.</span><span class="sc">0</span></div></div></div><div class="cap">проигравший на №25</div></div></div></div><div class="pair"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№14 · стол 8</span></div><div class="m s-done" data-mid="w3-1"><div class="row win" data-pid="oewnbv6"><span class="n">Утепов А.</span><span class="sc">4</span></div><div class="row lose" data-pid="s6pvqab"><span class="n">Петров А.</span><span class="sc">2</span></div></div></div><div class="cap">проигравший на №26</div></div></div></div></div></div><div class="round conn instub po-start"><div class="round-title">1/2 финала<small>проигравший — 3–4 место</small></div><div class="round-body"><div class="pair join"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span><b class="mk b">№27</b> · стол 2</span></div><div class="m s-done" data-mid="p1-0"><div class="row lose" data-pid="blw763a"><span class="n">Ким О.</span><span class="sc">3</span></div><div class="row win" data-pid="s6pvqab"><span class="n">Петров А.</span><span class="sc">4</span></div></div></div><div class="cap"><b>Полуфинал</b></div></div></div><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span><b class="mk b">№28</b> · стол 3</span><span class="mst live">● играют</span></div><div class="m s-live" data-mid="p1-1"><div class="row " data-pid="oewnbv6"><span class="n">Утепов А.</span><span class="sc">3</span></div><div class="row " data-pid="13uyq40"><span class="n">Кузнецов Д.</span><span class="sc">2</span></div></div></div><div class="cap"><b>Полуфинал</b></div></div></div></div></div></div><div class="round instub"><div class="round-title">Финал<small>&nbsp;</small></div><div class="round-body"><div class="pair"><div class="slot"><div class="sw"><div class="mw"><div class="m-meta"><span>№29</span></div><div class="m s-wait" data-mid="p2-0"><div class="row " data-pid="s6pvqab"><span class="n">Петров А.</span><span class="sc"></span></div><div class="row tbd"><span class="n">&nbsp;</span><span class="sc"></span></div></div></div><div class="cap"><b>Финал</b></div></div></div></div></div></div></div></div></div>
+<script>
+(function(){
+var u=document.getElementById('uni'),inn=u.firstElementChild,zv=document.getElementById('zv');
+var emb=window.self!==window.top;document.getElementById(emb?'full':'back').hidden=false;
+var z=1,MIN=.4,MAX=2;
+function set(nz,cx,cy){nz=Math.max(MIN,Math.min(MAX,nz));var r=u.getBoundingClientRect();
+  if(cx==null){cx=r.left+r.width/2;cy=r.top+r.height/2}
+  var px=(u.scrollLeft+cx-r.left)/z,py=(u.scrollTop+cy-r.top)/z;
+  z=nz;inn.style.zoom=z;zv.textContent=Math.round(z*100)+'%';
+  u.scrollLeft=px*z-(cx-r.left);u.scrollTop=py*z-(cy-r.top)}
+document.getElementById('zi').onclick=function(){set(z+.15)};
+document.getElementById('zo').onclick=function(){set(z-.15)};
+u.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey){e.preventDefault();set(z*(e.deltaY<0?1.08:.926),e.clientX,e.clientY)}},{passive:false});
+var d0=0,z0=1;function dist(t){return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY)}
+u.addEventListener('touchstart',function(e){if(e.touches.length===2){d0=dist(e.touches);z0=z}},{passive:true});
+u.addEventListener('touchmove',function(e){if(e.touches.length===2&&d0){e.preventDefault();var t=e.touches;set(z0*dist(t)/d0,(t[0].clientX+t[1].clientX)/2,(t[0].clientY+t[1].clientY)/2)}},{passive:false});
+u.addEventListener('touchend',function(e){if(e.touches.length<2)d0=0});
+['gesturestart','gesturechange'].forEach(function(n){document.addEventListener(n,function(e){e.preventDefault()})});
+var md=null;u.addEventListener('mousedown',function(e){md={x:e.clientX,y:e.clientY,l:u.scrollLeft,t:u.scrollTop};u.classList.add('drag')});
+window.addEventListener('mousemove',function(e){if(md){u.scrollLeft=md.l-(e.clientX-md.x);u.scrollTop=md.t-(e.clientY-md.y)}});
+window.addEventListener('mouseup',function(){md=null;u.classList.remove('drag')});
+// старт: верхняя сетка, 1-й раунд слева
+var small=window.innerWidth<700;if(small)set(.8);
+var ub=u.querySelector('.ub');var col=ub&&(ub.closest('.round')||ub);
+if(col){var r=u.getBoundingClientRect(),c=col.getBoundingClientRect();u.scrollLeft+=c.left-r.left-14}
+})();
+</script>
+</body>
+</html>
