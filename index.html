@@ -363,6 +363,8 @@ footer button{border:0;background:none;color:var(--muted);text-decoration:underl
 .pm-acts{display:flex;gap:8px;margin-top:20px}.pm-acts .btn{flex:1;justify-content:center;text-align:center}.pm-acts .btn.ghost{flex:0 0 auto;min-width:120px}
 .pm-tools{display:flex;align-items:center;gap:18px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-size:13px}
 .pm-tools button:not(.btn),.pm-tools a{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:0;font:inherit;color:var(--sub);cursor:pointer;text-decoration:none}.pm-tools button:not(.btn):hover,.pm-tools a:hover{color:var(--ink)}.pm-tools .rs{margin-left:auto}.pm-tools .rs:hover{color:var(--live-ink)}
+.pm-tp{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}.pm-tp-h{font-size:13px;font-weight:600;margin-bottom:10px}.pm-tp select{margin-top:10px;width:100%;height:38px;font:inherit;font-size:14px;padding:0 10px;border:1px solid var(--line2);border-radius:8px;background:#fff}
+.m .sc em.tp{font-style:normal;font-size:12px;font-weight:700;color:var(--live-ink);letter-spacing:.02em}
 .pm-tools.cf{gap:8px}.pm-tools.cf span{flex:1;color:var(--sub)}
 .pm-done{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 0 4px;text-align:center}.pm-done .mut{font-size:13px;color:var(--muted)}.pm-done b{font-size:19px;font-weight:600}.pm-done .sc{font-size:32px;font-weight:600;color:var(--ok)}
 #printbox{display:none}@media print{body.pp>*:not(#printbox){display:none!important}body.pp #printbox{display:block}}
@@ -508,6 +510,9 @@ const fdate=d=>{if(!d)return'';const [y,m,dd]=d.split('-');return +dd+' '+MONTHS
 const BYE={t:'bye'};
 const P=id=>({t:'p',id});
 const TBD=label=>({t:'tbd',label});
+const TPR={no:'неявка',refuse:'отказ от игры',dq:'дисквалификация',other:'другое'};
+const tpOf=(r,side)=>r&&r.tp&&(r.tp==='both'||r.tp===side);
+const scTxt=(r,side)=>r&&r.tp?(tpOf(r,side)?'<em class="tp">ТП</em>':''):(r?r['s'+side]:'');
 function nextPow2(n){let p=1;while(p<n)p*=2;return p}
 function seedOrder(N){let a=[1];while(a.length<N){const L=a.length*2,b=[];for(const x of a)b.push(x,L+1-x);a=b}return a}
 function placeSeeds(slots){const N=nextPow2(Math.max(2,slots.length));return seedOrder(N).map(s=>slots[s-1]||BYE)}
@@ -520,7 +525,7 @@ function mk(ctx,id,a,b,meta){
   else if(b.t==='bye'&&a.t==='p'){m.state='bye';m.winner=a;m.loser=BYE}
   else if(a.t==='p'&&b.t==='p'){
     const ok=r&&r.a===a.id&&r.b===b.id;
-    if(ok&&r.done){m.state='done';m.res=r;const aw=r.sa>r.sb;m.winner=aw?a:b;m.loser=aw?b:a}
+    if(ok&&r.done){m.state='done';m.res=r;if(r.tp==='both'){m.winner=BYE;m.loser=BYE}else{const aw=r.tp?r.tp==='b':r.sa>r.sb;m.winner=aw?a:b;m.loser=aw?b:a}}
     else{m.state=ok&&(r.live||r.call)?'live':'ready';if(ok&&(r.live||r.call))m.res=r;m.winner=TBD('Поб. №'+no);m.loser=TBD('Пр. №'+no)}
   } else {
     m.state='wait';m.winner=TBD('Поб. №'+no);
@@ -584,8 +589,8 @@ function buildRR(ctx,ids,prefix){
     rounds.push({title:'Тур '+(r+1),matches:ms});arr=[arr[0],arr[n-1],...arr.slice(1,n-1)]}
   const st={};ids.forEach(id=>st[id]={id,pl:0,w:0,l:0,ff:0,fa:0});
   for(const m of matches)if(m.state==='done'){const r=m.res,A=st[m.a.id],B=st[m.b.id];
-    A.pl++;B.pl++;A.ff+=r.sa;A.fa+=r.sb;B.ff+=r.sb;B.fa+=r.sa;if(r.sa>r.sb){A.w++;B.l++}else{B.w++;A.l++}}
-  const h2h=(x,y)=>{const m=matches.find(m=>m.state==='done'&&((m.a.id===x&&m.b.id===y)||(m.a.id===y&&m.b.id===x)));return m?(m.winner.id===x?-1:1):0};
+    A.pl++;B.pl++;A.ff+=r.sa;A.fa+=r.sb;B.ff+=r.sb;B.fa+=r.sa;if(r.tp==='both'){A.l++;B.l++}else if(r.tp?r.tp==='b':r.sa>r.sb){A.w++;B.l++}else{B.w++;A.l++}}
+  const h2h=(x,y)=>{const m=matches.find(m=>m.state==='done'&&((m.a.id===x&&m.b.id===y)||(m.a.id===y&&m.b.id===x)));return m&&m.winner.t==='p'?(m.winner.id===x?-1:1):0};
   const standings=Object.values(st).sort((x,y)=>y.w-x.w||((y.ff-y.fa)-(x.ff-x.fa))||y.ff-x.ff||h2h(x.id,y.id));
   return{rounds,matches,standings,complete:matches.every(m=>m.state==='done'),ids};
 }
@@ -871,7 +876,7 @@ function mCard(T,m,mk){
   const row=(s,sc)=>`<div class="row ${cls(s)}"${s.t==='p'?` data-pid="${s.id}"`:''}><span class="n">${s.t==='tbd'?'&nbsp;':s.t==='bye'?'—':esc(s.t==='p'?sname(pname(T,s)):pname(T,s))}</span><span class="sc">${showSc?sc:''}</span></div>`;
   const tm=m.state==='done'&&r&&r.ts?new Date(r.ts).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}):'';
   const st={live:m.res&&m.res.paused?'<span class="mst">пауза</span>':`<span class="mst live">● играют</span>`,ready:hasFree(T)?'<span class="mst ok">● на очереди</span>':'<span class="mst">ждут стол</span>',bye:''}[m.state]||'';
-  const rcls=m.state==='ready'&&!hasFree(T)?' nofree':'';return`<div class="mw"><div class="m-meta"><span>${mk?`<b class="mk ${mk.c}">${mk.n}</b>`:'№'+m.no}${(m.state==='done'||m.state==='live')&&r&&r.table?' · стол '+r.table:''}</span>${st}</div><div class="m s-${m.state}${rcls}" data-act="match" data-mid="${m.id}">${row(m.a,r?r.sa:'')}${row(m.b,r?r.sb:'')}</div></div>`;
+  const rcls=m.state==='ready'&&!hasFree(T)?' nofree':'';return`<div class="mw"><div class="m-meta"><span>${mk?`<b class="mk ${mk.c}">${mk.n}</b>`:'№'+m.no}${(m.state==='done'||m.state==='live')&&r&&r.table?' · стол '+r.table:''}</span>${st}</div><div class="m s-${m.state}${rcls}" data-act="match" data-mid="${m.id}">${row(m.a,scTxt(r,'a'))}${row(m.b,scTxt(r,'b'))}</div></div>`;
 }
 function bracketHTML(T,rounds,opt){opt=opt||{};
   const rs=rounds.map((rd,i)=>{const n=rd.matches.length,nx=rounds[i+1]?rounds[i+1].matches.length:0;const join=!!nx&&n===nx*2;const step=join?2:1;const groups=[];
@@ -980,7 +985,7 @@ function stageMap(b){const st={};const put=(arr,f)=>(arr||[]).forEach((rd,i)=>(r
 function renderSheet(T,b){const st=stageMap(b);const ms=b.all.filter(m=>m.state!=='bye').sort((x,y)=>x.no-y.no);
   const nm=s=>s.t==='p'?esc(pname(T,s)):'';const stl={live:'<span class="mst live">● играют</span>',ready:'<span class="mst ok">● на очереди</span>',done:'сыгран',wait:''};
   const rows=ms.map(m=>{const r=m.res,d=m.state==='done',w=s=>d&&m.winner.t==='p'&&m.winner.id===s.id;
-    return`<tr data-act="match" data-mid="${m.id}" style="cursor:pointer"><td class="pos">${m.no}</td><td class="mut">${esc(st[m.id]||'')}</td><td class="c">${r&&r.table?r.table:''}</td><td class="r">${w(m.a)?'<b>'+nm(m.a)+'</b>':nm(m.a)}</td><td class="c sc">${r&&(d||m.state==='live')?r.sa+' : '+r.sb:''}</td><td>${w(m.b)?'<b>'+nm(m.b)+'</b>':nm(m.b)}</td><td class="mut">${stl[m.state]||''}</td></tr>`}).join('');
+    return`<tr data-act="match" data-mid="${m.id}" style="cursor:pointer"><td class="pos">${m.no}</td><td class="mut">${esc(st[m.id]||'')}</td><td class="c">${r&&r.table?r.table:''}</td><td class="r">${w(m.a)?'<b>'+nm(m.a)+'</b>':nm(m.a)}</td><td class="c sc">${r&&r.tp&&d?'ТП'+(r.tp==='both'?' обоим':'')+' · '+TPR[r.reason||'no']:r&&(d||m.state==='live')?r.sa+' : '+r.sb:''}</td><td>${w(m.b)?'<b>'+nm(m.b)+'</b>':nm(m.b)}</td><td class="mut">${stl[m.state]||''}</td></tr>`}).join('');
   return`<div class="panel sheet"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px"><h3 style="margin:0">Ведомость · ${ms.filter(m=>m.state==='done').length} из ${ms.length}</h3><button class="btn sm ghost noprint" data-act="print">Печать</button></div>
   <div style="overflow-x:auto"><table class="tb"><thead><tr><th class="pos">№</th><th>Стадия</th><th class="c">Стол</th><th class="r">Игрок</th><th class="c">Счёт</th><th>Игрок</th><th>Статус</th></tr></thead><tbody>${rows}</tbody></table></div></div>`}
 const byear=p=>p.birth?p.birth.slice(0,4):'';
@@ -1164,10 +1169,15 @@ function mdur(r){if(!r||!mstart(r))return'';const end=r.done?(r.end||r.ts):r.pau
 const PI=(()=>{const w=p=>`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;return{
   print:w('<path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M7 14h10v6H7z"/>'),
   board:w('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>'),
+  tp:w('<circle cx="12" cy="12" r="8.5"/><path d="M6 18 18 6"/>'),
   reset:w('<path d="M4 5v5h5"/><path d="M4.6 10A8 8 0 1 1 6 17"/>')}})();
 function pmTools(T,m,live){
   if(UI.pmConfirm===m.id)return`<div class="pm-tools cf"><span>Сбросить счёт и вернуть матч в очередь?</span><button class="btn sm red" data-act="resetYes" data-mid="${m.id}">Сбросить</button><button class="btn sm ghost" data-act="resetNo">Нет</button></div>`;
-  return`<div class="pm-tools"><button data-act="printM" data-mid="${m.id}">${PI.print}Протокол</button><a href="#s-${T.id}-${m.id}" target="_blank" rel="noopener">${PI.board}Табло</a>${live?`<button class="rs" data-act="resetM" data-mid="${m.id}">${PI.reset}Сбросить матч</button>`:''}</div>`}
+  if(UI.tpM===m.id){const t=UI.tpSel||{},nm=x=>esc(sname(pname(CUR.T,x)));
+    return`<div class="pm-tp"><div class="pm-tp-h">Техническое поражение</div><div class="fpills sm">${[['a',nm(m.a)],['b',nm(m.b)],['both','Обоим']].map(([k,l])=>`<button class="${t.who===k?'on':''}" data-act="tpWho" data-v="${k}">${l}</button>`).join('')}</div>
+    <select id="tp-r" data-tpr="1">${Object.keys(TPR).map(k=>`<option value="${k}" ${t.reason===k?'selected':''}>${TPR[k][0].toUpperCase()+TPR[k].slice(1)}</option>`).join('')}</select>
+    <div class="pm-acts" style="margin-top:12px"><button class="btn red" data-act="tpApply" data-mid="${m.id}" ${t.who?'':'disabled'}>Подтвердить</button><button class="btn ghost" data-act="tpCancel">Отмена</button></div></div>`}
+  return`<div class="pm-tools"><button data-act="printM" data-mid="${m.id}">${PI.print}Протокол</button><button data-act="tpOpen" data-mid="${m.id}">${PI.tp}ТП</button><a href="#s-${T.id}-${m.id}" target="_blank" rel="noopener">${PI.board}Табло</a>${live?`<button class="rs" data-act="resetM" data-mid="${m.id}">${PI.reset}Сбросить матч</button>`:''}</div>`}
 function pultHTML(T,m){const r=m.res||{};const c=club(T.clubId);const n=c.tables||6;const busy=busyTables(T.clubId,m.id);
   const stg=CUR&&CUR.b?stageMap(CUR.b)[m.id]:'';
   const head=chip=>`<div class="pm-h"><div class="pm-ti"><b>Матч №${m.no}</b>${stg?`<span>${esc(stg)}</span>`:''}</div>${chip}<button class="x" data-act="close" aria-label="Закрыть">×</button></div>`;
@@ -1190,8 +1200,8 @@ function protoHTML(T,m){const r=m.res||{};const c=club(T.clubId);const stg=CUR&&
   <div style="font-size:11px;color:#777;text-transform:uppercase;letter-spacing:.08em">Протокол встречи</div>
   <div style="font-size:22px;font-weight:700;margin:4px 0 2px">${esc(T.title)}</div>
   <div style="font-size:13px;color:#444;margin-bottom:18px">${esc(c.name||'')} · ${esc(T.discipline)} · ${fdate(T.date)}</div>
-  <table style="width:100%;border-collapse:collapse;border-top:2px solid #111;border-bottom:1px solid #ccc"><tr>${f('Матч','№'+m.no)}${f('Стадия',esc(stg))}${f('Стол',r.table?'№'+r.table:'')}${f('Игра до',mrace(T,m)+' побед')}</tr><tr>${f('Начало',m.res&&mstart(r)?hhmm(mstart(r)):'')}${f('Окончание',d?hhmm(r.end||r.ts):'')}${f('Длительность',d?mdur(r):'')}${f('Победитель',d?esc(sname(pname(T,m.winner))):'')}</tr></table>
-  <table style="width:100%;border-collapse:collapse;margin-top:10px">${pl(m.a,r.sa)}${pl(m.b,r.sb)}</table>
+  <table style="width:100%;border-collapse:collapse;border-top:2px solid #111;border-bottom:1px solid #ccc"><tr>${f('Матч','№'+m.no)}${f('Стадия',esc(stg))}${f('Стол',r.table?'№'+r.table:'')}${f('Игра до',mrace(T,m)+' побед')}</tr><tr>${f('Начало',m.res&&mstart(r)?hhmm(mstart(r)):'')}${f('Окончание',d?hhmm(r.end||r.ts):'')}${f('Длительность',d?mdur(r):'')}${f(r.tp&&d?'Результат':'Победитель',d?(r.tp?'ТП · '+TPR[r.reason||'no']:esc(sname(pname(T,m.winner)))):'')}</tr></table>
+  <table style="width:100%;border-collapse:collapse;margin-top:10px">${pl(m.a,r.tp?(tpOf(r,'a')?'ТП':''):r.sa)}${pl(m.b,r.tp?(tpOf(r,'b')?'ТП':''):r.sb)}</table>
   <table style="width:100%;border-collapse:collapse"><tr>${sign('Подпись игрока')}${sign('Подпись игрока')}${sign('Судья'+((T.judges||[]).find(j=>j.role!=='hall')?' · '+esc(T.judges.find(j=>j.role!=='hall').name):''))}</tr></table></div>`}
 function renderBoard(T,mid){const b=build(T);CUR={T,b};document.body.classList.add('gonly','sbd');const m=b.all.find(x=>x.id===mid);if(!m)return'<div class="sb"><div class="sb-foot">Матч не найден</div></div>';const r=m.res||{};
   const R=mrace(T,m),d=m.state==='done',stg=stageMap(b)[m.id]||'';const c=club(T.clubId);
@@ -1204,14 +1214,17 @@ function renderBoard(T,mid){const b=build(T);CUR={T,b};document.body.classList.a
 function refreshPult(){if(!UI.pm||!CUR||!document.getElementById('modal').classList.contains('open'))return;const m=CUR.b.all.find(x=>x.id===UI.pm);if(!m||m.state==='wait'){closeModal();return}openModal(pultHTML(CUR.T,m))}
 /* ============ modal ============ */
 function openModal(html){const m=document.getElementById('modal');m.innerHTML=`<div class="dlg">${html}</div>`;m.classList.add('open')}
-function closeModal(){UI.pm=null;UI.pmRace=null;UI.pmConfirm=null;const m=document.getElementById('modal');m.classList.remove('open');m.innerHTML=''}
+function closeModal(){UI.pm=null;UI.pmRace=null;UI.pmConfirm=null;UI.tpM=null;UI.tpSel=null;const m=document.getElementById('modal');m.classList.remove('open');m.innerHTML=''}
 function openMatch(mid){
   const {T,b}=CUR;const m=b.all.find(x=>x.id===mid);if(!m)return;const own=isOwner(T);
   const head=`<div class="dlg-h"><h3>Матч №${m.no}</h3><button class="x" data-act="close">×</button></div>`;
   if(m.state==='wait'||m.state==='bye'){openModal(head+`<p>${esc(pname(T,m.a))} — ${esc(pname(T,m.b))}</p><p class="muted">${m.state==='bye'?'Свободный проход: соперника нет, игрок проходит дальше без игры.':'Матч ждёт, пока определятся оба соперника.'}</p>`);return}
   const r=m.res||{};
-  if(!own){openModal(head+`<div class="score"><span class="nm">${esc(pname(T,m.a))}</span><span style="font-size:22px;font-weight:800;text-align:center">${m.res?r.sa:'—'}</span></div><div class="score"><span class="nm">${esc(pname(T,m.b))}</span><span style="font-size:22px;font-weight:800;text-align:center">${m.res?r.sb:'—'}</span></div><p class="muted" style="font-size:13px">${m.state==='live'?`Идёт${r.table?' за столом '+r.table:''}. `:''}${m.state==='done'?'Матч завершён.':m.state==='ready'?'Ожидает вызова к столу.':''} Игра до ${mrace(T,m)} побед.</p>`);return}
+  if(!own){openModal(head+`<div class="score"><span class="nm">${esc(pname(T,m.a))}</span><span style="font-size:22px;font-weight:800;text-align:center">${m.res?(r.tp?(tpOf(r,'a')?'ТП':''):r.sa):'—'}</span></div><div class="score"><span class="nm">${esc(pname(T,m.b))}</span><span style="font-size:22px;font-weight:800;text-align:center">${m.res?(r.tp?(tpOf(r,'b')?'ТП':''):r.sb):'—'}</span></div><p class="muted" style="font-size:13px">${m.state==='live'?`Идёт${r.table?' за столом '+r.table:''}. `:''}${m.state==='done'?'Матч завершён.':m.state==='ready'?'Ожидает вызова к столу.':''} Игра до ${mrace(T,m)} побед.</p>`);return}
   if(m.state!=='done'||(UI.undo&&UI.undo.mid===m.id&&UI.undo.tid===T.id)){UI.pm=m.id;openModal(pultHTML(T,m));return}
+  if(r.tp){openModal(head+`<p style="margin-top:0">Техническое поражение${r.tp==='both'?' обоим':': <b>'+esc(pname(T,r.tp==='a'?m.a:m.b))+'</b>'} · ${TPR[r.reason||'no']}</p>
+    <div class="acts"><button class="btn ghost" data-act="clearRes" data-mid="${m.id}">Отменить ТП</button><button class="btn ghost" data-act="printM" data-mid="${m.id}">Протокол</button></div>
+    <p class="muted" style="font-size:12px;margin-bottom:0">Матч вернётся в очередь; следующие матчи с участием этих игроков сбросятся.</p>`);return}
   openModal(head+`<p class="muted" style="margin-top:0;font-size:13px">Матч сыгран. Здесь можно исправить счёт, если ошиблись. Игра до ${mrace(T,m)} побед.</p>
   <div class="score"><span class="nm">${esc(pname(T,m.a))}</span><input id="sa" type="number" min="0" inputmode="numeric" value="${r.sa??''}"></div>
   <div class="score"><span class="nm">${esc(pname(T,m.b))}</span><input id="sb" type="number" min="0" inputmode="numeric" value="${r.sb??''}"></div>
@@ -1246,6 +1259,12 @@ const A={
   pauseM(el){const {T}=CUR;const r=T.results[el.dataset.mid];if(!r||r.done)return;if(r.paused){r.pausedMs=(r.pausedMs||0)+Date.now()-r.pauseAt;r.paused=false;delete r.pauseAt}else{r.paused=true;r.pauseAt=Date.now()}save();render();refreshPult()},
   pmStart(el){const {T}=CUR;const r=T.results[el.dataset.mid];if(!r||!el.value)return;const [hh,mm]=el.value.split(':').map(Number);const d=new Date(mstart(r));d.setHours(hh,mm,0,0);if(+d>Date.now()){toast('Время начала ещё не наступило');refreshPult();return}r.start=+d;save();refreshPult()},
   resetM(el){const {T}=CUR;const r=T.results[el.dataset.mid];if(r&&r.sa+r.sb===0){A.uncall(el);return}UI.pmConfirm=el.dataset.mid;refreshPult()},
+  tpOpen(el){UI.tpM=el.dataset.mid;UI.tpSel={reason:'no'};UI.pmConfirm=null;refreshPult()},
+  tpWho(el){UI.tpSel.who=el.dataset.v;const r=document.getElementById('tp-r');if(r)UI.tpSel.reason=r.value;refreshPult()},
+  tpCancel(){UI.tpM=null;UI.tpSel=null;refreshPult()},
+  tpApply(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);const t=UI.tpSel;if(!m||!t||!t.who||m.a.t!=='p'||m.b.t!=='p')return;const rr=document.getElementById('tp-r');
+    const o=T.results[m.id]||{};T.results[m.id]={a:m.a.id,b:m.b.id,sa:0,sb:0,done:true,live:false,tp:t.who,reason:rr?rr.value:t.reason,table:o.ok===undefined?o.table:o.table,start:o.start,end:Date.now(),ts:Date.now()};
+    UI.tpM=null;UI.tpSel=null;save();closeModal();render();toast(`Матч №${m.no}: техническое поражение`)},
   resetNo(){UI.pmConfirm=null;refreshPult()},
   resetYes(el){UI.pmConfirm=null;A.uncall(el);toast('Матч сброшен')},
   printM(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m)return;let box=document.getElementById('printbox');if(!box){box=document.createElement('div');box.id='printbox';document.body.appendChild(box)}
@@ -1432,7 +1451,7 @@ document.addEventListener('change',e=>{
   if(a==='pmTable'||a==='pmRace'||a==='pmScore'||a==='pmStart')A[a](e.target);
   if(a==='callSel'&&e.target.value){A.callT({dataset:{mid:e.target.dataset.mid,t:e.target.value}})}
 });
-document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.sch&&UI.sch)A.schIn(e.target)});
+document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.tpr&&UI.tpSel)UI.tpSel.reason=e.target.value;if(e.target.dataset&&e.target.dataset.sch&&UI.sch)A.schIn(e.target)});
 document.addEventListener('input',e=>{if(e.target.id==='pq'){UI.pq=e.target.value;renderFind()}if(e.target.id==='q'){UI.filter.q=e.target.value;renderGrid()}if(e.target.id==='rs-q')renderRoster();if(e.target.id==='wq'&&UI.wiz){UI.wiz.q=e.target.value;renderWizRoster()}if(e.target.dataset&&e.target.dataset.w&&UI.wiz){UI.wiz[e.target.dataset.w]=e.target.value;const t=document.getElementById('ws-title');if(t&&e.target.dataset.w==='title')t.textContent=e.target.value||'Без названия'}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='Enter'&&e.target.id==='lg-pass'){const b=document.querySelector('[data-act=login]');b&&b.click()}if(e.key==='Enter'&&document.getElementById('sa')&&document.getElementById('modal').classList.contains('open')){const b=document.querySelector('[data-act=saveRes]');b&&b.click()}});
 window.addEventListener('hashchange',()=>{closeModal();UI.confirm=null;render();window.scrollTo(0,0)});
