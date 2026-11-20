@@ -463,6 +463,7 @@ button.step3 i{background:var(--accent);color:#fff}
 .sch-sum{background:var(--soft);border-radius:10px;padding:14px 16px;margin:4px 0 0;font-size:13.5px;color:var(--sub);line-height:1.5}.sch-sh{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:4px}.sch-sh b{font-size:15px;color:var(--ink)}.sch-sh span{font-size:13px;color:var(--muted);white-space:nowrap}.sch-sum p{margin:0}.sch-sum p.warn{margin-top:6px;color:var(--live-ink)}
 .rules{white-space:pre-wrap;font-size:15px;line-height:1.6;margin-bottom:14px}.rl{display:inline-flex;align-items:center;gap:7px}
 .field textarea{width:100%;box-sizing:border-box;font:inherit;font-size:14.5px;padding:10px 12px;border:1px solid var(--line2);border-radius:8px;resize:vertical}
+.about>*+*{margin-top:16px}.about .panel{max-width:none!important}
 .jl{display:flex;flex-direction:column}.ji{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:14px 0}.ji+.ji{border-top:1px solid #F0F0F0}.ji div{display:flex;flex-direction:column;gap:3px}.ji b{font-size:16px;font-weight:600}.ji .jr{font-size:13.5px;color:var(--accent-ink);font-weight:500}.ji .jd{font-size:13px;color:var(--muted)}
 .wz-more{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
 @media(max-width:640px){.wz-row3,.wz-row2{grid-template-columns:1fr}}
@@ -862,8 +863,8 @@ function renderGrid(){
 /* ============ tournament page ============ */
 function renderT(T){
   const b=build(T);CUR={T,b};const st=tStatus(T,b);const c=club(T.clubId);const own=isOwner(T);
-  const showR=own||T.rules||T.link,showJ=own||(T.judges||[]).length;
-  const tabs=T.status==='reg'?[['people','Участники',T.players.length],...(showR?[['rules','Регламент']]:[]),...(showJ?[['judges','Судьи']]:[])]:[['grid','Сетка'],['tables','Столы',b.all.filter(m=>m.state==='live').length||''],['sheet','Ведомость'],['people','Участники',T.players.length],...(showR?[['rules','Регламент']]:[]),...(showJ?[['judges','Судьи']]:[]),...(b.finished?[['result','Итоги']]:[])];
+  const showA=own||T.rules||T.link||(T.judges||[]).length;
+  const tabs=T.status==='reg'?[['people','Участники',T.players.length],...(showA?[['about','О турнире']]:[])]:[['grid','Сетка'],['tables','Столы',b.all.filter(m=>m.state==='live').length||''],['sheet','Ведомость'],['people','Участники',T.players.length],...(showA?[['about','О турнире']]:[]),...(b.finished?[['result','Итоги']]:[])];
   let tab=UI.tab[T.id];if(!tabs.some(t=>t[0]===tab))tab=tabs[0][0];
   const cdel='del-'+T.id;
   let body='';
@@ -871,8 +872,7 @@ function renderT(T){
   else if(tab==='tables')body=renderTablesTab(T,b);
   else if(tab==='sheet')body=renderSheet(T,b);
   else if(tab==='people')body=renderPeople(T,b);
-  else if(tab==='rules')body=renderRules(T);
-  else if(tab==='judges')body=renderJudges(T);
+  else if(tab==='about')body=`<div class="about">${own||T.rules||T.link?renderRules(T):''}${own||(T.judges||[]).length?renderJudges(T):''}</div>`;
   else body=renderResult(T,b);
   const done=b.all.filter(m=>m.state==='done').length,tot=b.all.filter(m=>m.state!=='bye').length;
   const fmt=tFmt(T,b);
