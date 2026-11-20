@@ -647,11 +647,23 @@ const pub=p=>({id:p.id,first:p.first,last:p.last,name:p.name,city:p.city,rank:p.
 function tData(T){const d=Object.assign({},T);delete d.id;delete d.clubId;return d}
 function tFromRow(r){return Object.assign({},r.data,{id:r.id,clubId:r.club_id})}
 function save(){if(S.session)S.tournaments.forEach(t=>{if(t.clubId===S.session&&t.draw&&!t.poPerm&&maybeDraw(t))setTimeout(()=>toast('Жеребьёвка олимпийки проведена'),50)});pending++;saveQ=saveQ.then(doSave).catch(()=>{}).then(()=>{pending--})}
+const jsq=x=>JSON.stringify(x);
+function merge3(b,l,s){b=b||{};l=l||{};s=s||{};const out={};const ks=o=>Object.keys(o||{});
+  for(const k of new Set([...ks(b),...ks(l),...ks(s)])){if(k==='results')continue;const v=jsq(l[k])!==jsq(b[k])?l[k]:s[k];if(v!==undefined)out[k]=v}
+  const rb=b.results||{},rl=l.results||{},rs=s.results||{},R={};
+  for(const k of new Set([...ks(rb),...ks(rl),...ks(rs)])){const v=jsq(rl[k])!==jsq(rb[k])?rl[k]:rs[k];if(v!==undefined)R[k]=v}
+  out.results=R;return out}
+function applyData(T,d){Object.keys(T).forEach(k=>{if(k!=='id'&&k!=='clubId')delete T[k]});Object.assign(T,JSON.parse(jsq(d)))}
+async function saveT1(T){const base=JSON.parse(SNAP.t[T.id]);const sent=tData(T);
+  const {data:row,error}=await sb.from('tournament').select('data').eq('id',T.id).maybeSingle();if(error)return{error};
+  const merged=merge3(base,sent,(row&&row.data)||base);const r=await sb.from('tournament').update({data:merged}).eq('id',T.id);
+  if(!r.error){SNAP.t[T.id]=jsq(merged);OWN_TS[T.id]=Date.now();const now=tData(T);const fin=merge3(sent,now,merged);if(jsq(fin)!==jsq(now)){applyData(T,fin);softRender()}}
+  return r}
 async function doSave(){
   if(!S.session||!sb)return;const jobs=[];const me=S.clubs.find(c=>c.id===S.session);
   for(const T of S.tournaments){if(T.clubId!==S.session)continue;const j=JSON.stringify(tData(T));
     if(SNAP.t[T.id]===undefined)jobs.push(sb.from('tournament').insert({id:T.id,club_id:T.clubId,data:tData(T)}).then(r=>{if(!r.error){SNAP.t[T.id]=j;SNAP.own[T.id]=1;OWN_TS[T.id]=Date.now()}return r}));
-    else if(SNAP.t[T.id]!==j)jobs.push(sb.from('tournament').update({data:tData(T)}).eq('id',T.id).then(r=>{if(!r.error){SNAP.t[T.id]=j;OWN_TS[T.id]=Date.now()}return r}))}
+    else if(SNAP.t[T.id]!==j)jobs.push(saveT1(T))}
   for(const id of Object.keys(SNAP.own)){if(!S.tournaments.some(t=>t.id===id))jobs.push(sb.from('tournament').update({deleted_at:new Date().toISOString()}).eq('id',id).then(r=>{if(!r.error){delete SNAP.own[id];delete SNAP.t[id]}return r}))}
   if(me){const cj=JSON.stringify([me.name,me.city,me.tables,me.address,me.phone,me.instagram]);if(SNAP.club!==cj)jobs.push(sb.from('club').update({name:me.name,city:me.city,tables:me.tables,address:me.address||'',phone:me.phone||'',instagram:me.instagram||''}).eq('id',me.id).then(r=>{if(!r.error)SNAP.club=cj;return r}));
     const rj=JSON.stringify(me.roster||[]);if(SNAP.roster!==rj)jobs.push(sb.from('club_private').update({roster:me.roster||[]}).eq('club_id',me.id).then(r=>{if(!r.error)SNAP.roster=rj;return r}))}
@@ -678,8 +690,9 @@ function softRender(){const ae=document.activeElement;const typing=ae&&/^(INPUT|
 function onRemote(p){
   const r=p.new;if(!r||!r.id)return;const i=S.tournaments.findIndex(t=>t.id===r.id);
   if(r.deleted_at){if(i>=0){S.tournaments.splice(i,1);delete SNAP.t[r.id];delete SNAP.own[r.id];softRender()}return}
-  if(r.club_id===S.session&&(pending>0||Date.now()-(OWN_TS[r.id]||0)<3000))return;
   const T=tFromRow(r),j=JSON.stringify(tData(T));if(SNAP.t[r.id]===j&&i>=0)return;
+  if(r.club_id===S.session&&i>=0&&SNAP.t[r.id]!==undefined){const cur=S.tournaments[i];const loc=tData(cur);const m=merge3(JSON.parse(SNAP.t[r.id]),loc,tData(T));SNAP.t[r.id]=j;
+    if(jsq(m)!==jsq(loc)){applyData(cur,m);softRender()}if(jsq(m)!==j)save();return}
   SNAP.t[r.id]=j;if(i>=0){const old=S.tournaments[i];Object.keys(old).forEach(k=>delete old[k]);Object.assign(old,T)}else S.tournaments.unshift(T);
   if(r.club_id===S.session)SNAP.own[r.id]=1;softRender();
 }
