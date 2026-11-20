@@ -501,6 +501,7 @@ body.ctb main{padding-top:12px}
 .ct-hint{font-size:12.5px;color:rgba(255,255,255,.55);margin-top:4px}
 .ct-gear{margin-left:12px;width:38px;height:38px;border-radius:10px;border:1px solid var(--line2);background:#fff;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}.ct-top span{flex:1;min-width:0}
 .ct-bar{display:grid;grid-template-columns:auto 1fr;gap:10px}
+.ct-bar2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ct-end{height:56px;border-radius:14px;border:1px solid var(--line2);background:#fff;font:inherit;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer}.ct-end.sure{background:var(--live);border-color:var(--live);color:#fff}
 .ct-undo{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:56px;border-radius:14px;border:1px solid var(--line2);background:#fff;font:inherit;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer}.ct-undo:disabled{opacity:.35}
 .ct-miss{height:64px;border-radius:14px;border:0;background:var(--ink);color:#fff;font:inherit;font-size:18px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.ct-miss small{font-size:12.5px;font-weight:400;color:rgba(255,255,255,.65)}
 .ct-tip{display:flex;align-items:center;gap:8px;height:64px;border-radius:14px;background:var(--soft);font-size:14px;color:var(--sub);padding:0 10px}.ct-tip button{flex:1;min-width:0;height:46px;border-radius:10px;border:1px solid var(--line2);background:#fff;font:inherit;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1160,17 +1161,17 @@ function renderCounter(){document.body.classList.add('ctb');
     ${CT&&CT.setup&&CT.s?'<button class="btn ghost" style="width:100%;justify-content:center;margin-top:8px" data-act="ctBack">Вернуться к игре</button>':''}</div>`}
   const c=CT,cont=ctCont(c.disc);const goal=cont?c.target:c.fb;
   const side=i=>{const left=goal-c.s[i];const turn=c.turn===i;
-    return`<div class="ct-side${turn?' on':''}${c.done===i?' win':''}"><button class="ct-hit" data-act="ctHit" data-i="${i}" ${c.done!=null?'disabled':''} aria-label="Шар игроку ${esc(c.p[i])}">
+    return`<div class="ct-side${turn&&c.done==null?' on':''}${c.done===i?' win':''}"><button class="ct-hit" data-act="ctHit" data-i="${i}" ${c.done!=null?'disabled':''} aria-label="Шар игроку ${esc(c.p[i])}">
       <span class="ct-name">${esc(c.p[i])}</span>${cont?'':`<span class="ct-fr">партии ${c.f[i]}</span>`}<b class="ct-sc">${c.s[i]}</b>
       <span class="ct-meta">${c.done===i?'Победа':left>0?`осталось ${left}`:''}${turn&&c.ser>1?` · серия ${c.ser}`:''}</span>${c.turn==null&&c.done==null&&!c.s[0]&&!c.s[1]&&!(c.f&&(c.f[0]||c.f[1]))?'<span class="ct-hint">забил шар — нажмите</span>':''}<span class="ct-best">лучшая серия ${c.best[i]}</span></button>
       ${c.done!=null?'':`<button class="ct-foul" data-act="ctFoul" data-i="${i}">−1 штраф</button>`}</div>`};
   return`<div class="ct"><div class="ct-top"><span>${esc(c.disc)} · ${cont?`до ${c.target} шаров`:`партия до ${c.fb}, матч до ${c.wins}`}</span>${cont?'':`<b>${c.f[0]} : ${c.f[1]}</b>`}<button class="ct-gear" data-act="ctSetup" aria-label="Настройки"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
     <div class="ct-main">${side(0)}${side(1)}</div>
-    ${c.done!=null?`<div class="ct-res"><span class="ct-rl">Победа</span><b class="ct-rn">${esc(c.p[c.done])}</b><span class="ct-rs">${cont?`${c.s[c.done]} : ${c.s[1-c.done]}`:`партии ${c.f[c.done]} : ${c.f[1-c.done]}`}</span>
+    ${c.done!=null?`<div class="ct-res"><span class="ct-rl">${c.done<0?'Ничья':c.early?'Игра окончена · победа':'Победа'}</span><b class="ct-rn">${c.done<0?`${esc(c.p[0])} — ${esc(c.p[1])}`:esc(c.p[c.done])}</b><span class="ct-rs">${(()=>{const w=c.done<0?0:c.done;return cont?`${c.s[w]} : ${c.s[1-w]}`:`партии ${c.f[w]} : ${c.f[1-w]}${c.early?` · шары ${c.s[w]} : ${c.s[1-w]}`:''}`})()}</span>
       <span class="ct-rb">Лучшая серия — ${esc(c.p[0])} ${c.best[0]} · ${esc(c.p[1])} ${c.best[1]}</span>
       <div class="ct-ra"><button class="btn blue" data-act="ctNew">${cont?'Ещё партия':'Ещё матч'}</button><button class="btn ghost" data-act="ctSetup">Новые игроки</button></div>
-      <button class="ct-ru" data-act="ctUndo">↶ Отменить последний шар</button></div>`:''}
-    ${c.done!=null?'':`<button class="ct-undo" data-act="ctUndo" ${c.h&&c.h.length?'':'disabled'}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Отменить последнее</button>`}</div>`}
+      <button class="ct-ru" data-act="ctUndo">${c.early?'↶ Продолжить игру':'↶ Отменить последний шар'}</button></div>`:''}
+    ${c.done!=null?'':`<div class="ct-bar2"><button class="ct-undo" data-act="ctUndo" ${c.h&&c.h.length?'':'disabled'}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Отменить</button><button class="ct-end${UI.ctEnd?' sure':''}" data-act="ctEnd">${UI.ctEnd?'Точно закончить?':'Закончить игру'}</button></div>`}</div>`}
 function ctCheck(){const c=CT,cont=ctCont(c.disc);
   for(const i of [0,1]){if(cont&&c.s[i]>=c.target){c.done=i;return}
     if(!cont&&c.s[i]>=c.fb){c.f[i]++;if(c.f[i]>=c.wins){c.done=i;return}c.s=[0,0];c.ser=0;c.turn=null;toast(`Партия — ${c.p[i]}`);return}}}
@@ -1182,10 +1183,12 @@ const CT_ACTS=({
   _ctPush(){const c=CT;c.h=c.h||[];const {h,...snap}=c;c.h.push(JSON.stringify(snap));if(c.h.length>500)c.h.shift()},
   ctHit(el){const c=CT,i=+el.dataset.i;if(c.done!=null)return;A._ctPush();if(c.turn!==i){c.turn=i;c.ser=0}c.s[i]++;c.ser++;c.best[i]=Math.max(c.best[i],c.ser);ctCheck();ctSave();render();if(navigator.vibrate)navigator.vibrate(15)},
   ctFoul(el){const c=CT,i=+el.dataset.i;if(c.done!=null)return;A._ctPush();c.s[i]--;c.turn=1-i;c.ser=0;ctSave();render();toast(`Штраф −1 · ${c.p[i]}`)},
+  ctEnd(){const c=CT;if(c.done!=null)return;if(!UI.ctEnd){UI.ctEnd=1;render();clearTimeout(A._ce);A._ce=setTimeout(()=>{UI.ctEnd=0;if(location.hash==='#schet')render()},3000);return}
+    UI.ctEnd=0;A._ctPush();const cont=ctCont(c.disc);let w=-1;if(!cont&&c.f[0]!==c.f[1])w=c.f[0]>c.f[1]?0:1;else if(c.s[0]!==c.s[1])w=c.s[0]>c.s[1]?0:1;c.done=w;c.early=true;ctSave();render()},
   ctTurn(el){CT.turn=+el.dataset.i;CT.ser=0;ctSave();render()},
   ctMiss(){const c=CT;if(c.turn==null||c.done!=null)return;A._ctPush();c.turn=1-c.turn;c.ser=0;ctSave();render()},
-  ctUndo(){const c=CT;if(!c.h||!c.h.length)return;const h=c.h;const snap=JSON.parse(h.pop());CT=Object.assign(snap,{h});ctSave();render()},
-  ctNew(){const c=CT;Object.assign(c,{s:[0,0],f:[0,0],best:[0,0],turn:null,ser:0,done:null,h:[]});ctSave();render()},
+  ctUndo(){const c=CT;if(!c.h||!c.h.length)return;const h=c.h;const snap=JSON.parse(h.pop());CT=Object.assign(snap,{h});if(CT.done==null)delete CT.early;ctSave();render()},
+  ctNew(){const c=CT;Object.assign(c,{s:[0,0],f:[0,0],best:[0,0],turn:null,ser:0,done:null,early:false,h:[]});ctSave();render()},
   ctSetup(){CT.setup=true;ctSave();render()},
   ctBack(){CT.setup=false;ctSave();render()}
 });
