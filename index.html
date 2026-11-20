@@ -454,6 +454,7 @@ button.step3 i{background:var(--accent);color:#fff}
 .prep-a{display:flex;gap:8px;flex-wrap:wrap}.prep-a .btn,.ptools button{display:inline-flex;align-items:center;gap:7px}
 .ph{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}.ph h3{margin:0}
 .ptools{display:flex;gap:14px;flex-wrap:wrap}.ptools button{border:0;background:none;padding:0;font:inherit;font-size:13px;color:var(--sub);cursor:pointer}.ptools button:hover{color:var(--ink)}.ptools svg{width:16px;height:16px}
+.tb tr.ped{cursor:pointer}.tb tr.ped:hover td{background:#FAFAFA}.star{border:0;background:none;padding:0 4px;font-size:16px;line-height:1;color:#D0D0D0;cursor:pointer}.star.on{color:#E8A600}.star:hover{color:#E8A600}
 .tb-wrap{overflow-x:auto;margin:0 -4px}.tb-wrap .tb{min-width:720px}
 .chk{display:inline-flex;align-items:center;gap:10px;font-size:14.5px;cursor:pointer;margin:2px 0 16px}.chk input{width:18px;height:18px;accent-color:var(--accent);margin:0}
 .sch-row{display:flex;gap:16px;flex-wrap:wrap}.sch-g{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start}.sch-g select{height:44px}.sch-g+.sch-g{grid-template-columns:auto auto;justify-content:start}
@@ -1016,10 +1017,10 @@ function renderPeople(T,b){
   const cmp={pos:(a,b)=>no(a.p,a.i)-no(b.p,b.i),name:(a,b)=>a.p.name.localeCompare(b.p.name,'ru'),sex:(a,b)=>(a.p.sex||'').localeCompare(b.p.sex||'')||a.i-b.i,birth:(a,b)=>(byear(a.p)||'9999').localeCompare(byear(b.p)||'9999'),country:(a,b)=>(a.p.country||'').localeCompare(b.p.country||'','ru')||a.i-b.i,city:(a,b)=>(a.p.city||'').localeCompare(b.p.city||'','ru')||a.i-b.i,club:(a,b)=>(a.p.club||'').localeCompare(b.p.club||'','ru')||a.i-b.i,rank:(a,b)=>ri(b.p.rank)-ri(a.p.rank)||a.i-b.i};
   const list0=T.players.map((p,i)=>({p,i})).sort((a,b)=>cmp[so.k](a,b)*so.d);
   const th=(k,t,cl)=>`<th class="${cl||''} srt${so.k===k?' on':''}"><button data-act="psort" data-k="${k}">${t}<i>${so.k===k?(so.d>0?'↑':'↓'):''}</i></button></th>`;
-  const rows=list0.map(({p,i})=>`<tr><td class="pos">${T.drawn?(p.no||'—'):i+1}</td><td><b>${esc(p.name)}</b></td><td class="c">${esc(p.sex||'')}</td><td class="c">${byear(p)}</td><td>${esc(p.country||'')}</td><td>${esc(p.city||'')}</td><td>${esc(p.club||'')}</td><td>${esc(p.rank||'')}</td>${ed?`<td class="c"><button class="x" data-act="rmP" data-id="${p.id}" title="Удалить">×</button></td>`:''}</tr>`).join('');
+  const rows=list0.map(({p,i})=>`<tr${own?` class="ped" data-act="editP" data-id="${p.id}" title="Изменить"`:''}><td class="pos">${T.drawn?(p.no||'—'):i+1}</td>${ed?`<td class="c"><button class="star${p.seed?' on':''}" data-act="seedP" data-id="${p.id}" title="${p.seed?'Убрать из сеяных':'Сеяный'}">★</button></td>`:''}<td><b>${esc(p.name)}</b></td><td class="c">${esc(p.sex||'')}</td><td class="c">${byear(p)}</td><td>${esc(p.country||'')}</td><td>${esc(p.city||'')}</td><td>${esc(p.club||'')}</td><td>${esc(p.rank||'')}</td>${ed?`<td class="c"><button class="x" data-act="rmP" data-id="${p.id}" title="Удалить">×</button></td>`:''}</tr>`).join('');
   const f=T.players.filter(p=>p.sex==='Ж').length;
   const tools=`<div class="ptools"><button data-act="printList">${IC.print}Печать</button><button data-act="xlsList">${IC.xls}Excel</button>${ed?`<button data-act="impList">${IC.up}Загрузить из Excel</button><input type="file" id="imp-file" accept=".xlsx" hidden>`:''}</div>`;
-  const list=`<div class="panel"><div class="ph"><h3>Участники · ${T.players.length}${f?` <span class="muted" style="font-weight:400;font-size:13px">из них женщин ${f}</span>`:''}</h3>${T.players.length?tools:''}</div>${T.players.length?`<div class="tb-wrap"><table class="tb"><thead><tr>${th('pos',T.drawn?'Жр.':'#','pos')}${th('name','Игрок')}${th('sex','Пол','c')}${th('birth','Г.р.','c')}${th('country','Страна')}${th('city','Город')}${th('club','Клуб')}${th('rank','Звание')}${ed?'<th></th>':''}</tr></thead><tbody>${rows}</tbody></table></div>`:`<div class="muted">${ed?'Пока никого. Добавьте участников справа или загрузите список из Excel.':'Участники появятся, когда клуб их зарегистрирует.'}</div>${ed?`<div class="ptools" style="margin-top:12px"><button data-act="impList">${IC.up}Загрузить из Excel</button><input type="file" id="imp-file" accept=".xlsx" hidden></div>`:''}`}</div>`;
+  const list=`<div class="panel"><div class="ph"><h3>Участники · ${T.players.length}${f?` <span class="muted" style="font-weight:400;font-size:13px">из них женщин ${f}</span>`:''}</h3>${T.players.length?tools:''}</div>${T.players.length?`<div class="tb-wrap"><table class="tb"><thead><tr>${th('pos',T.drawn?'Жр.':'#','pos')}${ed?'<th class="c" title="Сеяные">★</th>':''}${th('name','Игрок')}${th('sex','Пол','c')}${th('birth','Г.р.','c')}${th('country','Страна')}${th('city','Город')}${th('club','Клуб')}${th('rank','Звание')}${ed?'<th></th>':''}</tr></thead><tbody>${rows}</tbody></table></div>`:`<div class="muted">${ed?'Пока никого. Добавьте участников справа или загрузите список из Excel.':'Участники появятся, когда клуб их зарегистрирует.'}</div>${ed?`<div class="ptools" style="margin-top:12px"><button data-act="impList">${IC.up}Загрузить из Excel</button><input type="file" id="imp-file" accept=".xlsx" hidden></div>`:''}`}</div>`;
   if(!ed)return list;
   const c=club(T.clubId);
   const side=`<div class="panel" style="margin-bottom:14px"><h3>Новый участник</h3>
@@ -1033,7 +1034,7 @@ function renderPeople(T,b){
 }
 function prepBar(T){const n=T.players.length;const late=T.drawn&&T.players.some(p=>!p.no);
   return`<div class="prep"><div class="prep-t"><b>Подготовка</b><span>${n} участник${plural(n)} · ${T.drawn?(late?'<em>после жеребьёвки добавлены новые — проведите её заново</em>':'жеребьёвка проведена'):'<em>проведите жеребьёвку, чтобы задать схему</em>'} · судей ${(T.judges||[]).length}</span></div>
-  <div class="prep-a"><button class="btn ghost" data-act="drawT" ${n<2?'disabled':''}>${IC.dice}${T.drawn?'Жеребьёвка заново':'Жеребьёвка'}</button><button class="btn blue" data-act="schOpen" ${n<2||!T.drawn||late?`disabled title="Сначала проведите жеребьёвку"`:''}>${IC.grid}Задать схему турнира</button></div></div>`}
+  <div class="prep-a"><button class="btn ghost" data-act="drawOpen" ${n<2?'disabled':''}>${IC.dice}${T.drawn?'Жеребьёвка заново':'Жеребьёвка'}</button><button class="btn blue" data-act="schOpen" ${n<2||!T.drawn||late?`disabled title="Сначала проведите жеребьёвку"`:''}>${IC.grid}Задать схему турнира</button></div></div>`}
 function gridOpts(n){const N=nextPow2(Math.max(2,n)),o=[];[4,8,16].forEach(k=>{if(playoffK({playoff:k},n)===k)o.push(['de:'+k,deName(n,k)])});
   o.push(['de:0',N+' · суперфинал'],['se','Олимпийка '+N],['gp','Группы + плей-офф'],['rr','Круговая']);return o}
 function gridVal(u,n){if(u.format!=='de')return u.format;const k=u.playoff==='auto'?playoffK({playoff:'auto'},n):(+u.playoff?playoffK({playoff:u.playoff},n):0);return'de:'+k}
@@ -1054,6 +1055,20 @@ function schHTML(T){const u=UI.sch;const n=T.players.length;const tmp={format:u.
   ${can3?`<label class="chk"><input type="checkbox" data-sch="third" ${u.third?'checked':''}><span>Матч за 3 место</span></label>`:''}
   <div class="sch-sum"><div class="sch-sh"><b>${esc(ttl)}</b><span>${mt}</span></div><p>${txt}</p>${n<min?`<p class="warn">Нужно минимум ${min} участник${plural(min)}.</p>`:''}${T.status!=='reg'?'<p class="warn">Сетка будет построена заново.</p>':''}</div>
   <div class="err" id="sch-err"></div><div class="pm-acts"><button class="btn blue" data-act="schApply" ${n<min?'disabled':''}>Применить</button><button class="btn ghost" data-act="close">Отмена</button></div></div>`}
+function drawHTML(T){const u=UI.dr;const n=T.players.length;const st=T.players.filter(p=>p.seed).length;const opts=[0,2,4,8,16].filter(k=>k<=n/2);
+  const who=u.how==='rank'?'по званию, при равенстве — жребий':'отмеченные ★ в таблице'+(st?` (сейчас ${st})`:' — пока никто не отмечен');
+  return`<div class="ed"><div class="pm-h"><div class="pm-ti"><b>Жеребьёвка</b><span>${n} участник${plural(n)}</span></div><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
+  <div class="wz-row2"><div class="field"><label>Сеяные</label><select data-dr="k">${opts.map(k=>`<option value="${k}" ${u.k===k?'selected':''}>${k?k+' сеяных':'Без посева'}</option>`).join('')}</select></div>
+  ${u.k?`<div class="field"><label>Кто сеяный</label><select data-dr="how"><option value="rank" ${u.how==='rank'?'selected':''}>По званию</option><option value="star" ${u.how==='star'?'selected':''}>Отмеченные ★</option></select></div>`:''}</div>
+  <div class="sch-sum"><p>${u.k?`Сеяные получат номера 1–${u.k} — ${who} — и разойдутся по разным частям сетки. Остальные — случайно.`:'Все номера случайно.'}</p>${u.k&&u.how==='star'&&st!==u.k?`<p class="warn">Отметьте ★ ровно ${u.k} участник${plural(u.k)} — сейчас ${st}.</p>`:''}</div>
+  <div class="pm-acts"><button class="btn blue" data-act="drawApply" ${u.k&&u.how==='star'&&st!==u.k?'disabled':''}>${T.drawn?'Провести заново':'Провести жеребьёвку'}</button><button class="btn ghost" data-act="close">Отмена</button></div></div>`}
+function editPHTML(T,p){const reg=T.status==='reg';
+  return`<div class="ed"><div class="pm-h"><div class="pm-ti"><b>Участник</b>${p.no?`<span>жребий №${p.no}</span>`:''}</div><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
+  <div class="wz-row2"><div class="field"><label>Фамилия</label><input id="ep-last" value="${esc(p.last||p.name.split(' ')[0])}"></div><div class="field"><label>Имя</label><input id="ep-first" value="${esc(p.first||p.name.split(' ').slice(1).join(' '))}"></div></div>
+  <div class="wz-row2"><div class="field"><label>Пол</label><select id="ep-sex"><option ${p.sex!=='Ж'?'selected':''}>М</option><option ${p.sex==='Ж'?'selected':''}>Ж</option></select></div><div class="field"><label>Год рождения</label><input id="ep-birth" type="number" inputmode="numeric" value="${esc(byear(p))}"></div></div>
+  <div class="wz-row2"><div class="field"><label>Страна</label><input id="ep-country" value="${esc(p.country||'')}"></div><div class="field"><label>Город</label><input id="ep-city" value="${esc(p.city||'')}"></div></div>
+  <div class="wz-row2"><div class="field"><label>Клуб</label><input id="ep-club" value="${esc(p.club||'')}"></div><div class="field"><label>Звание</label><select id="ep-rank">${RANKS.map(r=>`<option ${p.rank===r?'selected':''}>${r}</option>`).join('')}</select></div></div>
+  <div class="err" id="ep-err"></div><div class="pm-acts"><button class="btn blue" data-act="saveP" data-id="${p.id}">Сохранить</button>${reg?`<button class="btn ghost" data-act="rmP" data-id="${p.id}">Удалить</button>`:'<button class="btn ghost" data-act="close">Отмена</button>'}</div></div>`}
 function renderRules(T){const own=isOwner(T);
   if(own&&UI.rulesEd!==T.id&&!T.rules&&!T.link)UI.rulesEd=T.id;
   if(own&&UI.rulesEd===T.id)return`<div class="panel" style="max-width:820px"><h3>Регламент турнира</h3>
@@ -1432,6 +1447,18 @@ const A={
     const x={sex:v('np-sex'),country:v('np-country'),club:v('np-club')};
     const r=addPlayer(T,c,first,last,String(y),v('np-city'),v('np-rank'),x);if(r){e.textContent=r;return}
     save();render();toast('Участник зарегистрирован');const f=document.getElementById('np-last');f&&f.focus()},
+  drawOpen(){const T=CUR.T;const st=T.players.filter(p=>p.seed).length;UI.dr={k:st&&st<=T.players.length/2&&[2,4,8,16].includes(st)?st:0,how:st?'star':'rank'};openModal(drawHTML(T))},
+  drawIn(el){const u=UI.dr;if(el.dataset.dr==='k')u.k=+el.value;else u.how=el.value;openModal(drawHTML(CUR.T))},
+  drawApply(){const T=CUR.T,u=UI.dr;const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+    let seeds=[];if(u.k){const pool=sh(T.players.slice());seeds=u.how==='rank'?pool.sort((x,y)=>RANKS.indexOf(y.rank)-RANKS.indexOf(x.rank)).slice(0,u.k):pool.filter(p=>p.seed);if(u.how==='rank')T.players.forEach(p=>p.seed=seeds.includes(p))}
+    const rest=sh(T.players.filter(p=>!seeds.includes(p)));seeds.forEach((p,i)=>p.no=i+1);rest.forEach((p,i)=>p.no=seeds.length+i+1);
+    T.players.sort((x,y)=>x.no-y.no);T.drawn=true;T.seeds=seeds.length;UI.psort={k:'pos',d:1};save();closeModal();render();toast(seeds.length?`Жеребьёвка проведена, сеяных ${seeds.length}`:'Жеребьёвка проведена')},
+  seedP(el){const T=CUR.T;const p=T.players.find(x=>x.id===el.dataset.id);if(!p)return;p.seed=!p.seed;save();render()},
+  editP(el){const T=CUR.T;if(!isOwner(T))return;const p=T.players.find(x=>x.id===el.dataset.id);if(p)openModal(editPHTML(T,p))},
+  saveP(el){const T=CUR.T,c=club(T.clubId);const p=T.players.find(x=>x.id===el.dataset.id);if(!p)return;const v=id=>document.getElementById(id).value.trim();const e=document.getElementById('ep-err');
+    const last=v('ep-last'),first=v('ep-first'),y=+v('ep-birth');if(!last||!first){e.textContent='Введите фамилию и имя';return}if(!(y>=1920&&y<=new Date().getFullYear())){e.textContent='Укажите год рождения';return}
+    const upd={last,first,name:last+' '+first,sex:v('ep-sex'),birth:String(y),country:v('ep-country'),city:v('ep-city'),club:v('ep-club'),rank:v('ep-rank')};Object.assign(p,upd);
+    const r=(c.roster||[]).find(x=>x.id===p.id);if(r)Object.assign(r,upd);save();closeModal();render();toast('Сохранено')},
   drawT(){const T=CUR.T;const a=T.players.map((p,i)=>i+1);for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
     T.players.forEach((p,i)=>p.no=a[i]);T.players.sort((x,y)=>x.no-y.no);T.drawn=true;UI.psort={k:'pos',d:1};save();render();toast('Жеребьёвка проведена')},
   schOpen(){const T=CUR.T;UI.tmenu=null;UI.sch={third:!!T.third,format:T.format||'de',playoff:T.playoff===undefined?'auto':T.playoff,gc:(T.groups&&T.groups.count)||4,ga:(T.groups&&T.groups.advance)||2,race:T.raceTo||4};if(document.querySelector('.pop'))render();openModal(schHTML(T))},
@@ -1462,7 +1489,7 @@ const A={
     T.judges=T.judges||[];T.judges.push({id:uid(),name:n.slice(0,80),role:document.getElementById('j-role').value});save();render();toast('Судья добавлен')},
   rmJ(el){const T=CUR.T;T.judges=(T.judges||[]).filter(j=>j.id!==el.dataset.id);save();render()},
   addR(el){const T=CUR.T,c=club(T.clubId);const p=c.roster.find(x=>x.id===el.dataset.id);if(!p)return;T.players.push(pub(Object.assign({country:'Казахстан',club:c.name},p)));save();render();toast(p.name+' в турнире')},
-  rmP(el){const T=CUR.T;T.players=T.players.filter(p=>p.id!==el.dataset.id);save();render()},
+  rmP(el){const T=CUR.T;if(T.status!=='reg')return;T.players=T.players.filter(p=>p.id!==el.dataset.id);if(document.getElementById('modal').classList.contains('open'))closeModal();save();render()},
   saveClub(){const c=club(S.session);const v=id=>document.getElementById(id).value.trim();const n=Math.floor(+v('cl-tables'));
     if(!v('cl-name')||!(n>=1&&n<=60)){document.getElementById('cl-err').textContent='Проверьте название и число столов (1–60)';return}
     c.name=v('cl-name');c.city=v('cl-city');c.tables=n;c.address=v('cl-addr').slice(0,200);c.phone=v('cl-phone').slice(0,40);c.instagram=v('cl-insta').replace(/^@/,'').replace(/^https?:\/\/(www\.)?instagram\.com\//,'').replace(/\/.*$/,'').slice(0,60);UI.clubEdit=false;save();render();toast('Сохранено')},
@@ -1485,7 +1512,7 @@ document.addEventListener('change',e=>{
   if(a==='pmTable'||a==='pmRace'||a==='pmScore'||a==='pmStart')A[a](e.target);
   if(a==='callSel'&&e.target.value){A.callT({dataset:{mid:e.target.dataset.mid,t:e.target.value}})}
 });
-document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.tpr&&UI.tpSel)UI.tpSel.reason=e.target.value;if(e.target.dataset&&e.target.dataset.sch&&UI.sch)A.schIn(e.target)});
+document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.dr&&UI.dr)A.drawIn(e.target);if(e.target.dataset&&e.target.dataset.tpr&&UI.tpSel)UI.tpSel.reason=e.target.value;if(e.target.dataset&&e.target.dataset.sch&&UI.sch)A.schIn(e.target)});
 document.addEventListener('input',e=>{if(e.target.id==='pq'){UI.pq=e.target.value;renderFind()}if(e.target.id==='q'){UI.filter.q=e.target.value;renderGrid()}if(e.target.id==='rs-q')renderRoster();if(e.target.id==='wq'&&UI.wiz){UI.wiz.q=e.target.value;renderWizRoster()}if(e.target.dataset&&e.target.dataset.w&&UI.wiz){UI.wiz[e.target.dataset.w]=e.target.value;const t=document.getElementById('ws-title');if(t&&e.target.dataset.w==='title')t.textContent=e.target.value||'Без названия'}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='Enter'&&e.target.id==='lg-pass'){const b=document.querySelector('[data-act=login]');b&&b.click()}if(e.key==='Enter'&&document.getElementById('sa')&&document.getElementById('modal').classList.contains('open')){const b=document.querySelector('[data-act=saveRes]');b&&b.click()}});
 window.addEventListener('hashchange',()=>{closeModal();UI.confirm=null;render();window.scrollTo(0,0)});
