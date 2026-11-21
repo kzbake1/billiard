@@ -1395,6 +1395,7 @@ function renderT(T){
   else if(tab==='people')body=renderPeople(T,b);
   else if(tab==='about')body=`<div class="about">${renderOrg(T,own)}${own||T.rules?renderRules(T):''}${own||(T.judges||[]).length?renderJudges(T):''}</div>`;
   else body=renderResult(T,b);
+  if(isOwner(T)&&T.closed&&!b.finished)body=`<div class="cbar done" style="margin-bottom:16px"><span><b>Турнир закрыт</b>, но сыграны не все матчи. Откройте его, чтобы доиграть.</span><button class="lnk" data-act="reopenT">Открыть для правок</button></div>`+body;
   const done=b.all.filter(m=>m.state==='done').length,tot=b.all.filter(m=>m.state!=='bye').length;
   const fmt=tFmt(T,b);
   const n=T.players.length,pw=n%10===1&&n%100!==11?'игрок':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?'игрока':'игроков');
@@ -1672,7 +1673,6 @@ function renderRoster(){
 }
 function minPlayers(T){if(T.format==='se')return 2;if(T.format==='gp')return T.groups.count*Math.max(2,T.groups.advance+1);return 3}
 function renderResult(T,b){
-  if(!b.finished&&T.closed&&isOwner(T))return`<div class="cbar done"><span><b>Турнир закрыт</b>, но сыграны не все матчи. Откройте его, чтобы доиграть.</span><button class="lnk" data-act="reopenT">Открыть для правок</button></div>`;
   if(!b.finished){
     if(T.format==='rr')return`<div class="note">Турнир ещё идёт — ниже текущая таблица.</div><div class="panel" style="max-width:720px">${standingsHTML(T,b.groups[0])}</div>`;
     const done=b.all.filter(m=>m.state==='done').length,tot=b.all.filter(m=>m.state!=='bye').length;
