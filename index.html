@@ -1672,6 +1672,7 @@ function renderRoster(){
 }
 function minPlayers(T){if(T.format==='se')return 2;if(T.format==='gp')return T.groups.count*Math.max(2,T.groups.advance+1);return 3}
 function renderResult(T,b){
+  if(!b.finished&&T.closed&&isOwner(T))return`<div class="cbar done"><span><b>Турнир закрыт</b>, но сыграны не все матчи. Откройте его, чтобы доиграть.</span><button class="lnk" data-act="reopenT">Открыть для правок</button></div>`;
   if(!b.finished){
     if(T.format==='rr')return`<div class="note">Турнир ещё идёт — ниже текущая таблица.</div><div class="panel" style="max-width:720px">${standingsHTML(T,b.groups[0])}</div>`;
     const done=b.all.filter(m=>m.state==='done').length,tot=b.all.filter(m=>m.state!=='bye').length;
@@ -2513,7 +2514,7 @@ const A={
   resetYes(el){UI.pmConfirm=null;A.uncall(el);toast('Матч сброшен')},
   printM(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m)return;let box=document.getElementById('printbox');if(!box){box=document.createElement('div');box.id='printbox';document.body.appendChild(box)}
     box.innerHTML=protoHTML(T,m);document.body.classList.add('pp');const off=()=>{document.body.classList.remove('pp');window.removeEventListener('afterprint',off)};window.addEventListener('afterprint',off);window.print()},
-  undo(){const u=UI.undo;if(!u)return;const T=tById(u.tid);if(T){T.results[u.mid]=u.prev;save()}UI.undo=null;render();refreshPult();toast('Отменено')},
+  undo(){const u=UI.undo;if(!u)return;const T=tById(u.tid);if(T&&T.closed){UI.undo=null;render();toast('Турнир закрыт — сначала откройте его для правок');return}if(T){T.results[u.mid]=u.prev;save()}UI.undo=null;render();refreshPult();toast('Отменено')},
   newT(){if(subBlocked())return;UI.wiz=newWiz();go('create')},
   wDisc(el){UI.wiz.disc=el.dataset.v;render()},
   wRace(el){UI.wiz.race=Math.max(1,Math.min(25,UI.wiz.race+(+el.dataset.d)));render()},
@@ -2630,7 +2631,7 @@ const A={
   openT(el){location.hash='#t-'+el.dataset.id},
   goT(el){UI.tab[el.dataset.id]=el.dataset.tab;location.hash='#t-'+el.dataset.id},
   closeAsk(){openModal(`<div class="pm"><div class="pm-h"><div class="pm-ti"><b>Закрыть турнир?</b><span>${esc(CUR.T.title)}</span></div><button class="x" data-act="close" aria-label="Закрыть">×</button></div><p class="pm-note" style="margin-top:0">Итоги станут окончательными: счёт матчей и сетку больше нельзя будет изменить. Если понадобится, откройте турнир снова в «Итогах».</p><div class="pm-acts"><button class="btn blue" data-act="closeT">Да, закрыть</button><button class="btn ghost" data-act="close">Отмена</button></div></div>`)},
-  closeT(){const T=CUR.T;if(!isOwner(T))return;T.closed=true;T.closedAt=Date.now();save();closeModal();render();toast('Турнир закрыт')},
+  closeT(){const T=CUR.T;if(!isOwner(T))return;T.closed=true;T.closedAt=Date.now();UI.undo=null;clearTimeout(A._u);save();closeModal();render();toast('Турнир закрыт')},
   reopenT(){const T=CUR.T;if(!isOwner(T))return;delete T.closed;delete T.closedAt;save();render();toast('Турнир открыт для правок')},
   saveRes(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);const sa=num('sa'),sb=num('sb'),tb=num('tbl');const e=document.getElementById('m-err');
     if(sa===null||sb===null||sa<0||sb<0){e.textContent='Введите счёт обоих игроков';return}
