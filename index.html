@@ -705,6 +705,7 @@ nav.main a.cta{background:#fff;color:var(--ink);border:1px solid var(--line2)}
 .lg-grid{display:grid;grid-template-columns:minmax(0,460px) minmax(0,420px);gap:24px;align-items:start}.lg-fg{margin:16px 0 0;font-size:14px;color:var(--muted)}.lg-fg a{color:var(--accent-ink)}
 .lg-new{background:var(--accent-soft);border-radius:16px;padding:28px}.lg-new h3{margin:0;font-size:20px;font-weight:600}.lg-new p{margin:8px 0 22px;color:var(--sub);font-size:15px}.lg-new ul{list-style:none;padding:0;margin:18px 0 22px;display:flex;flex-direction:column;gap:12px}.lg-new li{display:flex;align-items:center;gap:10px;font-size:15px}.lg-new li svg{color:var(--accent);flex:none}.lg-new .btn{display:inline-flex;align-items:center;gap:8px}
 @media(max-width:800px){.lg-grid{grid-template-columns:1fr}}
+.lg-fgf{margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}.lg-fgf>b{font-size:16px;font-weight:600}.lg-fgf>p{margin:4px 0 14px;font-size:14px;color:var(--muted)}.ok-msg{margin-top:10px;font-size:14px;color:var(--ok)}
 </style>
 </head>
 <body>
@@ -946,7 +947,7 @@ async function adminCall(body){
 }
 async function boot(){
   const app=document.getElementById('app');app.innerHTML='<div class="empty" role="status">Загружаем турниры…</div>';
-  try{sb=window.supabase.createClient(SB_URL,SB_KEY);await load()}
+  try{sb=window.supabase.createClient(SB_URL,SB_KEY);sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){UI.recovery=true;if(location.hash!=='#reset')location.hash='#reset';else render()}});await load()}
   catch(e){console.error(e);app.innerHTML='<div class="empty"><b>Не удалось загрузить данные.</b><br>Проверьте интернет.<br><br><button class="btn dark" data-act="reload">Повторить</button></div>';return}
   render();
   sb.channel('t').on('postgres_changes',{event:'*',schema:'public',table:'tournament'},onRemote).subscribe();
@@ -1036,7 +1037,7 @@ function render(){RENDER_N++;setTimeout(tabsIntoView,0);
   const h=location.hash.slice(1)||'home';
   const nav=document.getElementById('nav');
   const me=S.session?club(S.session):null;
-  nav.innerHTML=`<a href="#home" class="${h==='home'||h.startsWith('t-')?'on':''}">Турниры</a>${me?`<div class="acc-w"><button class="acc" data-act="accMenu" aria-expanded="${UI.acc?'true':'false'}"><i>${esc(ini(me.name))}</i><span class="acc-t">${esc(me.name)}<small>Кабинет клуба</small></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>${UI.acc?`<div class="acc-dd"><a href="#cabinet" data-act="accGo" data-to="">Кабинет клуба</a><a href="#cabinet" data-act="accGo" data-to="cab-i">О клубе</a><button class="r" data-act="logout">Выйти</button></div>`:''}</div>`:`<a href="${S.admin?'#admin':'#cabinet'}" class="cta">${S.admin?'Админ<span class="lg">истратор</span>':'Вход<span class="lg"> для клубов</span>'}</a>`}`;
+  nav.innerHTML=`<a href="#home" class="${h==='home'||h.startsWith('t-')?'on':''}">Турниры</a>${me?`<div class="acc-w"><button class="acc" data-act="accMenu" aria-expanded="${UI.acc?'true':'false'}"><i>${esc(ini(me.name))}</i><span class="acc-t">${esc(me.name)}<small>Кабинет клуба</small></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>${UI.acc?`<div class="acc-dd"><a href="#cabinet" data-act="accGo" data-to="">Кабинет клуба</a><a href="#cabinet" data-act="accGo" data-to="cab-i">О клубе</a><button data-act="pwOpen">Сменить пароль</button><button class="r" data-act="logout">Выйти</button></div>`:''}</div>`:`<a href="${S.admin?'#admin':'#cabinet'}" class="cta">${S.admin?'Админ<span class="lg">истратор</span>':'Вход<span class="lg"> для клубов</span>'}</a>`}`;
   renderTicker(false);
   const app=document.getElementById('app');
   document.body.classList.remove('gonly','sbd','ctb');
@@ -1044,6 +1045,9 @@ function render(){RENDER_N++;setTimeout(tabsIntoView,0);
   if(h.startsWith('g-')){const T=tById(h.slice(2));if(T){app.innerHTML=renderGridOnly(T);return}}
   if(h.startsWith('t-')){const T=tById(h.slice(2));if(T&&!isPub(T)&&!isOwner(T)){app.innerHTML='<div class="empty">Турнир ещё не опубликован. <a href="#home">Все турниры</a></div>';return}if(T){app.innerHTML=renderT(T);renderRoster();return}}
   if(h==='schet'){app.innerHTML=renderCounter();ctWake();return}
+  if(/access_token=|type=recovery/.test(h)){app.innerHTML='<div class="empty">Открываем смену пароля…</div>';return}
+  if(/error_code=|error=/.test(h)){app.innerHTML=`<div style="max-width:460px"><h1>Ссылка не сработала</h1><p class="muted lead">Ссылка для смены пароля устарела или уже использована. Запросите новую на странице входа.</p><a class="btn blue big" href="#cabinet">Ко входу</a></div>`;return}
+  if(h==='reset'){app.innerHTML=renderReset();return}
   if(h==='cabinet'){app.innerHTML=renderCabinet();return}
   if(h==='admin'){app.innerHTML=renderAdmin();loadAdminList();return}
   if(h==='create'){app.innerHTML=S.session?renderCreate():renderCabinet();renderWizRoster();return}
@@ -1548,7 +1552,7 @@ function renderCabinet(){
     if(S.admin)return`<div class="empty">Вы вошли как администратор. <a href="#admin">Перейти к клубам</a></div>`;
     return`<h1>Вход для клубов</h1><p class="muted lead">Клуб создаёт турниры, вносит игроков и ведёт счёт.</p>
     <div class="lg-grid"><div class="panel"><div class="field"><label>Почта</label><input id="lg-email" type="email" autocomplete="username"></div><div class="field"><label>Пароль</label><input id="lg-pass" type="password" autocomplete="current-password"></div><button class="btn blue big" data-act="login">Войти</button><div class="err" id="lg-err"></div>
-    <p class="lg-fg">Забыли пароль? <a href="https://wa.me/77764308322?text=${encodeURIComponent('Здравствуйте! Забыл пароль от кабинета клуба')}" target="_blank" rel="noopener">Напишите нам в WhatsApp</a></p></div>
+    ${UI.fg?`<div class="lg-fgf"><b>Восстановить пароль</b><p>Пришлём на почту клуба ссылку для нового пароля.</p><div class="field"><label>Почта клуба</label><input id="fg-email" type="email" autocomplete="username"></div><button class="btn blue" data-act="fgSend">Прислать ссылку</button> <button class="btn ghost" data-act="fgToggle">Отмена</button><div class="err" id="fg-err"></div><div class="ok-msg" id="fg-ok"></div><p class="lg-fg">Не приходит письмо? <a href="https://wa.me/77764308322?text=${encodeURIComponent('Здравствуйте! Не могу восстановить пароль от кабинета клуба')}" target="_blank" rel="noopener">Напишите нам в WhatsApp</a></p></div>`:`<p class="lg-fg"><button class="lnk" data-act="fgToggle">Забыли пароль?</button></p>`}</div>
     <div class="lg-new"><h3>Ещё нет аккаунта?</h3><p>Подключим ваш клуб и выдадим почту и пароль для входа.</p><a class="btn blue" href="https://wa.me/77764308322?text=${encodeURIComponent('Здравствуйте! Хочу подключить клуб к kazbilliard')}" target="_blank" rel="noopener">${IC.wa}Подключить клуб в WhatsApp</a></div></div>`;
   }
   const c=club(S.session);const mine=S.tournaments.filter(t=>t.clubId===c.id&&!t.parent);
@@ -1567,6 +1571,9 @@ function renderCabinet(){
 function ovHTML(d,de,skip){if(!d||!S.session)return'';const a=d,b2=de&&de>=d?de:d;
   const L=S.tournaments.filter(T=>T.clubId===S.session&&T.id!==skip&&!T.parent&&T.date&&tStatus(T)!=='done'&&T.date<=b2&&(T.dateEnd&&T.dateEnd>=T.date?T.dateEnd:T.date)>=a);
   return L.length?`<div class="ov">В эти даты ${L.length>1?'идут турниры':'идёт турнир'} ${L.map(T=>'«'+esc(T.title)+'»').join(', ')} — столы будут общие. Занятый стол в другом турнире показывается как «Занят».</div>`:''}
+function renderReset(){
+  if(!S.session&&!UI.recovery)return`<div style="max-width:460px"><h1>Новый пароль</h1><p class="muted lead">Откройте ссылку из письма ещё раз или запросите новую на странице входа.</p><a class="btn blue big" href="#cabinet">Ко входу</a></div>`;
+  return`<div style="max-width:460px"><h1>Новый пароль</h1><p class="muted lead">Придумайте пароль для входа в кабинет клуба — не короче 8 символов.</p><div class="panel"><div class="field"><label>Новый пароль</label><input id="np1" type="password" autocomplete="new-password"></div><div class="field"><label>Повторите пароль</label><input id="np2" type="password" autocomplete="new-password"></div><button class="btn blue big" data-act="pwSave">Сохранить пароль</button><div class="err" id="np-err"></div></div></div>`}
 function cabNow(mine){const today=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
   const live=mine.find(T=>tStatus(T)==='live');
   if(live){const b=build(live);const pl=b.all.filter(m=>m.state!=='bye');const lv=pl.filter(m=>m.state==='live').length,rd=pl.filter(m=>m.state==='ready').length,dn=pl.filter(m=>m.state==='done').length;
@@ -1904,6 +1911,18 @@ const A={
   deView(el){UI.de[el.dataset.id]=el.dataset.v;render()},
   match(el){if(el.classList.contains('hid'))return;openMatch(el.dataset.mid)},
   close(){closeModal()},
+  fgToggle(){const g=id=>{const x=document.getElementById(id);return x?x.value:''};const em=g('lg-email')||g('fg-email'),pw=g('lg-pass');UI.fg=!UI.fg;render();const a=document.getElementById('lg-email'),b=document.getElementById('fg-email'),c=document.getElementById('lg-pass');if(a)a.value=em;if(c)c.value=pw;if(b){b.value=em;b.focus()}},
+  async fgSend(el){const em=(document.getElementById('fg-email').value||'').trim();const er=document.getElementById('fg-err'),ok=document.getElementById('fg-ok');er.textContent='';ok.textContent='';
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){er.textContent='Проверьте почту';return}
+    el.disabled=true;const r=await sb.auth.resetPasswordForEmail(em,{redirectTo:location.origin+location.pathname});el.disabled=false;
+    if(r.error&&/rate|limit|429/i.test(r.error.message||'')){er.textContent='Слишком много запросов. Попробуйте через час или напишите нам в WhatsApp';return}
+    ok.textContent='Если такая почта есть в kazbilliard, письмо придёт в течение пары минут. Проверьте и папку «Спам».'},
+  async pwSave(el){const a=document.getElementById('np1').value,b=document.getElementById('np2').value,er=document.getElementById('np-err');er.textContent='';
+    if(a.length<8){er.textContent='Пароль должен быть не короче 8 символов';return}if(a!==b){er.textContent='Пароли не совпадают';return}
+    el.disabled=true;const r=await sb.auth.updateUser({password:a});el.disabled=false;
+    if(r.error){er.textContent=/different|same/i.test(r.error.message||'')?'Новый пароль совпадает со старым':'Не получилось сохранить. Запросите новую ссылку';return}
+    UI.recovery=false;closeModal();if(!S.session)await loadSession();toast('Пароль сохранён');if(location.hash==='#reset')location.hash='#cabinet';else render()},
+  pwOpen(){UI.acc=false;render();openModal(`<div class="pm"><div class="pm-h"><div class="pm-ti"><b>Сменить пароль</b><span>Для входа в кабинет клуба</span></div><button class="x" data-act="close" aria-label="Закрыть">×</button></div><div class="field"><label>Новый пароль</label><input id="np1" type="password" autocomplete="new-password"></div><div class="field"><label>Повторите пароль</label><input id="np2" type="password" autocomplete="new-password"></div><div class="err" id="np-err"></div><div class="pm-acts"><button class="btn blue" data-act="pwSave">Сохранить</button><button class="btn ghost" data-act="close">Отмена</button></div></div>`)},
   accMenu(){UI.acc=!UI.acc;render()},
   accGo(el){UI.acc=false;const to=el.dataset.to;if(location.hash!=='#cabinet')location.hash='#cabinet';render();if(to)setTimeout(()=>{const e=document.getElementById(to);e&&e.scrollIntoView({behavior:'smooth',block:'start'})},60)},
   scrollTo(el){const e=document.getElementById(el.dataset.to);e&&e.scrollIntoView({behavior:'smooth',block:'start'})},
