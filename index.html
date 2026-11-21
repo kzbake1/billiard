@@ -643,6 +643,7 @@ nav.main a{white-space:nowrap}
 .pm-vid{display:block;margin:4px 0 12px}.pm-vid span{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}.pm-vid input{width:100%}
 .tcard{position:relative}.tc-tv{position:absolute;right:16px;top:46px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--live-ink,#C4321F);text-decoration:none;background:#fff}.tc-tv svg{width:16px;height:16px}
 .strow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--line);color:var(--ink);text-decoration:none}.strow span{display:flex;flex-direction:column;gap:2px;font-size:15px}.strow b{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.strow svg{color:var(--live-ink,#C4321F);flex:none}
+.org-r{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.org-r>div{display:flex;flex-direction:column;gap:4px}.org-r b{font-size:18px;font-weight:600}.org-r>div a{color:var(--sub);text-decoration:none}.org-r .btn{display:inline-flex;align-items:center;gap:8px}.org-r .btn svg{width:18px;height:18px}.about>.org-p{margin-bottom:20px}
 </style>
 </head>
 <body>
@@ -1061,7 +1062,7 @@ function renderGrid(){
 /* ============ tournament page ============ */
 function renderT(T){
   const b=build(T);CUR={T,b};const st=tStatus(T,b);const c=club(T.clubId);const own=isOwner(T);
-  const showA=own||T.rules||(T.judges||[]).length;
+  const showA=own||T.rules||(T.judges||[]).length||T.orgName||T.orgPhone;
   const tabs=T.stages?[['stages','Этапы'],['people','Участники',T.players.length],...(showA?[['about','О турнире']]:[]),...(b.finished?[['result','Итоги']]:[])]:T.status==='reg'?[['people','Участники',T.players.length],...(showA?[['about','О турнире']]:[])]:[['grid','Сетка'],['tables','Столы',b.all.filter(m=>m.state==='live').length||''],['sheet','Ведомость'],['people','Участники',T.players.length],...(showA?[['about','О турнире']]:[]),...(b.finished?[['result','Итоги']]:[])];
   let tab=UI.tab[T.id];if(!tabs.some(t=>t[0]===tab))tab=tabs[0][0];
   const cdel='del-'+T.id;
@@ -1071,7 +1072,7 @@ function renderT(T){
   else if(tab==='tables')body=renderTablesTab(T,b);
   else if(tab==='sheet')body=renderSheet(T,b);
   else if(tab==='people')body=renderPeople(T,b);
-  else if(tab==='about')body=`<div class="about">${own||T.rules?renderRules(T):''}${own||(T.judges||[]).length?renderJudges(T):''}</div>`;
+  else if(tab==='about')body=`<div class="about">${renderOrg(T,own)}${own||T.rules?renderRules(T):''}${own||(T.judges||[]).length?renderJudges(T):''}</div>`;
   else body=renderResult(T,b);
   const done=b.all.filter(m=>m.state==='done').length,tot=b.all.filter(m=>m.state!=='bye').length;
   const fmt=tFmt(T,b);
@@ -1081,7 +1082,7 @@ function renderT(T){
   const place=[c.city,c.address].filter(Boolean).map(esc).join(', ');
   const cl=[`<b>${esc(c.name)}</b>`,place,c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:'',c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:''].filter(Boolean);
   const org=T.orgPhone||T.orgName?`<div class="th-org"><span class="lbl">Организатор</span>${T.orgName?`<b>${esc(T.orgName)}</b>`:''}${T.orgPhone?`<a href="tel:${esc(T.orgPhone.replace(/[^+\d]/g,''))}">${esc(T.orgPhone)}</a><a class="wa" href="${waLink(T.orgPhone)}" target="_blank" rel="noopener">${IC.wa}WhatsApp</a>`:''}</div>`:'';
-  const side=`<div class="th-side">${org}<b class="cn">${esc(c.name)}</b>${place?`<span>${place}</span>`:''}${c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:''}${c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:''}</div>`;
+  const side=`<div class="th-side"><b class="cn">${esc(c.name)}</b>${place?`<span>${place}</span>`:''}${c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:''}${c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:''}</div>`;
   return`<div class="tband"><div class="th-hero"><div class="th-top"><a class="back" href="#${T.parent?'t-'+T.parent:'home'}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:4px"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>${T.parent?'Все этапы':'Все турниры'}</a><div class="th-act">${own&&UI.confirm===cdel?`<span class="muted" style="font-size:13px">Удалить турнир?</span><button class="btn sm red" data-act="delT" data-id="${T.id}">Да, удалить</button><button class="btn sm ghost" data-act="cancelConfirm">Нет</button>`:`${own?`<button class="btn sm ghost th-ed" data-act="editT">${IC.edit}<span>Изменить</span></button>`:''}<div class="tmenu"><button class="dots" data-act="tmenu" aria-label="Действия" title="Действия"><i></i><i></i><i></i></button>${UI.tmenu===T.id?`<div class="pop"><button data-act="shareT">${IC.share}<span>Поделиться</span></button><button data-act="xlsT">${IC.xls}<span>Скачать в Excel</span></button><a href="#g-${T.id}" target="_blank" rel="noopener">${IC.open}<span>Открыть только сетку</span></a>${own?`${T.status!=='reg'&&!Object.keys(T.results||{}).length?`<button data-act="schOpen">${IC.grid}<span>Изменить схему</span></button>`:''}<button class="del" data-act="askDel" data-id="${T.id}">${IC.del}<span>Удалить турнир</span></button>`:''}</div>`:''}</div>`}</div></div>
   <div class="th-main"><div class="th-l"><div class="th-over"><span class="dot ${st}"></span>${ST_LABEL[st]}<i></i>${esc(T.discipline)}${T.category?`<i></i>${esc(T.category)}`:''}${isPub(T)?'':'<i></i><span class="draft">черновик</span>'}</div><h1>${esc(T.title)}</h1>
   <ul class="th-info"><li>${IC.cal}<span>${facts[0]}</span></li>${facts[1]?`<li>${IC.net}<span>${facts[1]}</span></li>`:''}<li>${IC.users}<span>${n} ${pw}</span></li>${champ?`<li>${IC.trophy}<span>Победитель — ${esc(champ)}</span></li>`:''}</ul>
@@ -1325,6 +1326,8 @@ function renderRules(T){const own=isOwner(T);
   return`<div class="panel" style="max-width:820px"><div class="ph"><h3>Регламент турнира</h3>${own?'<button class="btn sm ghost" data-act="rulesEdit">Изменить</button>':''}</div>
     ${T.rules?`<div class="rules">${esc(T.rules)}</div>`:''}</div>`}
 const JR={chief:['Главный судья','Судейский стол: ведёт сетку, вызывает игроков, выдаёт протоколы, завершает встречи'],hall:['Судья в зале','Следит за играми, разбирает спорные моменты и вопросы по правилам'],both:['Главный судья и судья в зале','Судейский стол и работа в зале']};
+function renderOrg(T,own){if(!T.orgName&&!T.orgPhone)return own?`<div class="panel" style="max-width:820px"><h3>Организатор</h3><div class="muted">Не указан. <button class="lnk" style="color:var(--accent-ink)" data-act="editT">Добавить</button> — имя и телефон увидят игроки.</div></div>`:'';
+  const ph=T.orgPhone;return`<div class="panel org-p" style="max-width:820px"><h3>Организатор</h3><div class="org-r"><div>${T.orgName?`<b>${esc(T.orgName)}</b>`:''}${ph?`<a href="tel:${esc(ph.replace(/[^+\d]/g,''))}">${esc(ph)}</a>`:''}</div>${ph?`<a class="btn ghost" href="${waLink(ph)}" target="_blank" rel="noopener">${IC.wa}Написать в WhatsApp</a>`:''}</div></div>`}
 function renderJudges(T){const own=isOwner(T);const J=T.judges||[];
   const list=J.length?`<div class="jl">${J.map(j=>`<div class="ji"><div><b>${esc(j.name)}</b><span class="jr">${JR[j.role][0]}</span><span class="jd">${JR[j.role][1]}</span></div>${own?`<button class="x" data-act="rmJ" data-id="${j.id}" title="Удалить">×</button>`:''}</div>`).join('')}</div>`:'<div class="muted">Судьи пока не назначены.</div>';
   return`<div class="${own?'two':''}"><div class="panel" style="max-width:820px"><h3>Судейская бригада</h3>${list}</div>
