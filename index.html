@@ -376,6 +376,23 @@ footer button{border:0;background:none;color:var(--muted);text-decoration:underl
 .pm-done{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 0 4px;text-align:center}.pm-done .mut{font-size:13px;color:var(--muted)}.pm-done b{font-size:19px;font-weight:600}.pm-done .sc{font-size:32px;font-weight:600;color:var(--ok)}
 #printbox{display:none}@media print{body.pp>*:not(#printbox){display:none!important}body.pp #printbox{display:block}}
 body.sbd{background:#0B1220}body.sbd>main{padding:0!important}
+html.obs,body.obs{background:transparent!important;min-height:0}body.obs>main{padding:0!important}body.obs #toast{display:none}
+.ob{position:fixed;inset:0;font-size:calc(100vw / 120);font-family:Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums;overflow:hidden;pointer-events:none}
+.ob-lg{position:absolute;top:3.5em;right:4em;height:3em;width:auto}
+.ob-w{position:absolute;left:50%;bottom:6em;transform:translateX(-50%);width:82.5em}
+.ob-c{border-radius:.75em;overflow:hidden;box-shadow:0 .75em 2.5em rgba(17,17,17,.14)}
+.ob-t{height:4.5em;background:#fff;display:flex}
+.ob-p{flex:1;min-width:0;display:flex;align-items:center;gap:1em;padding:0 1.25em}.ob-p.l{justify-content:flex-end}
+.ob-n{font-size:1.5625em;font-weight:700;letter-spacing:-.01em;color:#111;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.ob-f{width:2.25em;height:1.6875em;border-radius:.25em;box-shadow:0 0 0 1px #E4E4E4;flex:none;display:block}
+.ob-b{width:2.15em;flex:none;text-align:center;font-size:1.875em;font-weight:700;color:#1667FF}
+.ob-sp{width:16.25em;flex:none}
+.ob-m{height:2.25em;background:#ECECEC;border-top:1px solid #E4E4E4;display:flex;align-items:center;justify-content:center;font-size:1em;font-weight:600;color:#4D4D4D;white-space:nowrap;overflow:hidden;padding:0 1em}
+.ob-s{position:absolute;left:50%;transform:translateX(-50%);top:-1.25em;width:16.25em;height:5.75em;background:#1667FF;border-radius:.75em .75em 0 0;box-shadow:0 .75em 2.5em rgba(17,17,17,.14);display:flex;align-items:center;justify-content:center;gap:1.125em;color:#fff}
+.ob-s b{font-size:3.5em;font-weight:700;line-height:1}.ob-s i{font-style:normal;font-size:2.5em;font-weight:600;color:#C9DAFF}.ob-s span{font-size:1.375em;font-weight:600}
+.tc-hr{display:flex;align-items:center;gap:8px}.tc-obs{width:28px;height:28px;flex:none;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--sub);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}.tc-obs:hover{color:var(--accent);border-color:var(--accent)}.tc-obs svg{width:16px;height:16px}
+.obs-l{display:flex;flex-direction:column;gap:8px;margin-top:14px;max-height:52vh;overflow:auto}.obs-r{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px}.obs-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.obs-r b{white-space:nowrap}.obs-r code{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--muted);font-family:inherit}@media(max-width:600px){.obs-r{flex-wrap:wrap}.obs-t{flex-basis:100%}}
+.obs-h{background:var(--bg);border-radius:10px;padding:12px 14px;font-size:13.5px;color:var(--sub);margin-top:12px}.obs-h ol{margin:6px 0 0;padding-left:18px}
 .sb{min-height:100vh;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;gap:3vh;padding:4vh 5vw;color:#fff;background:#0B1220;}
 .sb-head{display:flex;justify-content:space-between;align-items:flex-start;gap:3vw}.sb-head div{display:flex;flex-direction:column;gap:.6vh;min-width:0}.sb-head b{font-size:clamp(16px,2.4vw,38px);font-weight:600;letter-spacing:-.01em}.sb-head div span{font-size:clamp(11px,1.3vw,20px);color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.12em}
 .sb-chip{display:inline-flex;align-items:center;gap:.6em;font-size:clamp(11px,1.3vw,20px);text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:.55em 1.1em;white-space:nowrap}.sb-chip.live{color:#fff;border-color:var(--live);background:var(--live)}.sb-chip.live i{width:.6em;height:.6em;border-radius:50%;background:#fff;animation:pulse 1.4s infinite}
@@ -1135,7 +1152,8 @@ function render(){RENDER_N++;setTimeout(()=>{tabsIntoView();addEyes()},0);
   if(ADM&&!S.admin)nav.innerHTML='';
   renderTicker(false);
   const app=document.getElementById('app');
-  document.body.classList.remove('gonly','sbd','ctb');
+  document.body.classList.remove('gonly','sbd','ctb','obs');document.documentElement.classList.remove('obs');
+  if(h.startsWith('tablo-')){app.innerHTML=renderObs(h.slice(6));setTimeout(fitObs,0);return}
   if(h.startsWith('s-')){const x=h.slice(2),i=x.indexOf('-');const T=tById(x.slice(0,i));if(T){app.innerHTML=renderBoard(T,x.slice(i+1));return}}
   if(h.startsWith('g-')){const T=tById(h.slice(2));if(T){app.innerHTML=renderGridOnly(T);return}}
   if(h.startsWith('t-')){const T=tById(h.slice(2));if(T&&!isPub(T)&&!isOwner(T)){app.innerHTML='<div class="empty">Турнир ещё не опубликован. <a href="#home">Все турниры</a></div>';return}if(T){app.innerHTML=renderT(T);renderRoster();return}}
@@ -1427,12 +1445,13 @@ function renderGridTab(T,b){
 }
 function clubLive(clubId,exceptMid){const out=[];S.tournaments.filter(t=>t.clubId===clubId&&t.status!=='reg').forEach(t=>build(t).all.forEach(m=>{if((m.state==='live'||m.state==='call')&&m.res.table&&!(CUR&&t===CUR.T&&m.id===exceptMid))out.push({t,m})}));return out}
 function busyTables(clubId,exceptMid){return new Set(clubLive(clubId,exceptMid).map(x=>x.m.res.table))}
+const VID='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>';
 function tablesBoard(T){const c=club(T.clubId);const n=c.tables||6;const map={};clubLive(T.clubId).forEach(x=>{if(x.t===T)map[x.m.res.table]=x});
   const busy=Object.keys(map).length;const occ=busyTables(T.clubId);const own=isOwner(T);const q=own&&CUR&&CUR.b?CUR.b.all.filter(m=>m.state==='ready').sort((x,y)=>x.no-y.no):[];
   const freeK=Array.from({length:n},(_,i)=>i+1).filter(k=>!occ.has(k));const nextOf={};freeK.forEach((k,i)=>{if(q[i])nextOf[k]=q[i]});
   const fill=own&&Object.keys(nextOf).length>1?`<button class="btn sm blue" data-act="callAll">Вызвать на все свободные · ${Object.keys(nextOf).length}</button>`:'';
   const card=k=>{const x=map[k];const stg=CUR&&CUR.b?stageMap(CUR.b):{};
-  const hd=(pill)=>`<div class="tc-h"><b>Стол ${k}</b>${pill}</div>`;
+  const hd=(pill)=>`<div class="tc-h"><b>Стол ${k}</b><span class="tc-hr">${own?`<button class="tc-obs" data-act="obsCopy" data-t="${k}" title="Скопировать ссылку на табло для трансляции" aria-label="Ссылка на табло для трансляции, стол ${k}">${VID}</button>`:''}${pill}</span></div>`;
   if(x){const live=x.m.state==='live';const sub=[`Матч №${x.m.no}`,stg[x.m.id]||'',x.m.res.paused?'пауза':''].filter(Boolean).join(' · ');
     return`<div class="tcard ${live?'live':'call'}" data-act="match" data-mid="${x.m.id}">${x.m.res.video?`<a class="tc-tv" data-act="ext" href="${esc(x.m.res.video)}" target="_blank" rel="noopener">${IC.play}Смотреть</a>`:''}${hd(live?'<span class="tpill live"><i></i>Идёт</span>':'<span class="tpill call"><i></i>Вызваны</span>')}<div class="tc-s">${esc(sub)}</div><div class="tc-p">${live?`<span>${esc(pname(T,x.m.a))}</span><b>${x.m.res.sa}</b><span>${esc(pname(T,x.m.b))}</span><b>${x.m.res.sb}</b>`:`<span>${esc(pname(T,x.m.a))}</span><span>${esc(pname(T,x.m.b))}</span>`}</div></div>`}
   if(occ.has(k))return`<div class="tcard off">${hd('<span class="tpill">Занят</span>')}<div class="tc-e">Идёт матч другого турнира клуба</div></div>`;
@@ -1442,7 +1461,7 @@ function tablesBoard(T){const c=club(T.clubId);const n=c.tables||6;const map={};
   const fr=floorRanges(c);const F=fr&&UI.floorF!=null&&fr[UI.floorF]?UI.floorF:null;const all=Array.from({length:n},(_,i)=>i+1);
   const grid=ks=>`<div class="tables">${ks.map(card).join('')}</div>`;
   const body=fr?`${fr.length?`<div class="fpills sm tfl"><button class="${F==null?'on':''}" data-act="floorF" data-v="">Все</button>${fr.map((x,i)=>`<button class="${F===i?'on':''}" data-act="floorF" data-v="${i}">${esc(x.name)}</button>`).join('')}</div>`:''}${fr.map((x,i)=>{if(F!=null&&F!==i)return'';const ks=all.filter(k=>k>=x.a&&k<=x.b);const bz=ks.filter(k=>occ.has(k)).length;return`<div class="tfloor"><b>${esc(x.name)}</b><span>столы ${x.a}–${x.b} · ${bz?'занято '+bz+' из '+ks.length:'все свободны'}</span></div>${grid(ks)}`}).join('')}`:grid(all);
-  return`<div class="sec"><div class="sec-h"><h2>Столы</h2><span class="muted">${busy?'играют за '+busy+' из '+n:'все '+n+' свободны'}</span><span class="tb-right">${own?`<label class="chk sm"><input type="checkbox" data-act="autoPr" ${T.autoPrint?'checked':''}><span>Печатать протокол при вызове</span></label>`:''}${fill}</span></div>${body}</div>`}
+  return`<div class="sec"><div class="sec-h"><h2>Столы</h2><span class="muted">${busy?'играют за '+busy+' из '+n:'все '+n+' свободны'}</span><span class="tb-right">${own?`<button class="btn sm ghost" data-act="obsLinks">${VID}Табло для трансляции</button>`:''}${own?`<label class="chk sm"><input type="checkbox" data-act="autoPr" ${T.autoPrint?'checked':''}><span>Печатать протокол при вызове</span></label>`:''}${fill}</span></div>${body}</div>`}
 function renderTablesTab(T,b){
   const ready=b.all.filter(m=>m.state==='ready');
   return tablesBoard(T)+
@@ -1475,7 +1494,7 @@ function renderPeople(T,b){
   const side=`<div class="panel" style="margin-bottom:14px"><h3>Новый участник</h3>
    <div class="row2"><div class="field"><label>Фамилия</label><input id="np-last"></div><div class="field"><label>Имя</label><input id="np-first"></div></div>
    <div class="row2"><div class="field"><label>Пол</label><select id="np-sex"><option>М</option><option>Ж</option></select></div><div class="field"><label>Год рождения</label><input id="np-birth" type="number" inputmode="numeric" min="1920" max="2025" placeholder="1990"></div></div>
-   <div class="row2"><div class="field"><label>Страна</label><input id="np-country" value="Казахстан"></div><div class="field"><label>Город</label><input id="np-city" value="${esc(c.city)}"></div></div>
+   <div class="row2"><div class="field"><label>Страна</label><input id="np-country" value="Казахстан" list="ctry-l" autocomplete="off">${ctryList()}</div><div class="field"><label>Город</label><input id="np-city" value="${esc(c.city)}"></div></div>
    <div class="row2"><div class="field"><label>Клуб</label><input id="np-club" value="${esc(c.name)}"></div><div class="field"><label>Звание</label><select id="np-rank">${RANKS.map(r=>`<option>${r}</option>`).join('')}</select></div></div>
    <div class="row2"><div class="field"><label>Уровень</label><select id="np-lvl"><option value="">—</option>${LVLS.map(l=>`<option value="${l}" >${l} · ${LVL_T[l]}</option>`).join('')}</select></div><div></div></div>
    <button class="btn blue" data-act="addP">+ Зарегистрировать</button><div class="err" id="np-err"></div></div>
@@ -1513,7 +1532,7 @@ function editPHTML(T,p){const reg=T.status==='reg';
   return`<div class="ed"><div class="pm-h"><div class="pm-ti"><b>Участник</b>${p.no?`<span>жребий №${p.no}</span>`:''}</div><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
   <div class="wz-row2"><div class="field"><label>Фамилия</label><input id="ep-last" value="${esc(p.last||p.name.split(' ')[0])}"></div><div class="field"><label>Имя</label><input id="ep-first" value="${esc(p.first||p.name.split(' ').slice(1).join(' '))}"></div></div>
   <div class="wz-row2"><div class="field"><label>Пол</label><select id="ep-sex"><option ${p.sex!=='Ж'?'selected':''}>М</option><option ${p.sex==='Ж'?'selected':''}>Ж</option></select></div><div class="field"><label>Год рождения</label><input id="ep-birth" type="number" inputmode="numeric" value="${esc(byear(p))}"></div></div>
-  <div class="wz-row2"><div class="field"><label>Страна</label><input id="ep-country" value="${esc(p.country||'')}"></div><div class="field"><label>Город</label><input id="ep-city" value="${esc(p.city||'')}"></div></div>
+  <div class="wz-row2"><div class="field"><label>Страна</label><input id="ep-country" value="${esc(p.country||'')}" list="ctry-l" autocomplete="off">${ctryList()}</div><div class="field"><label>Город</label><input id="ep-city" value="${esc(p.city||'')}"></div></div>
   <div class="wz-row2"><div class="field"><label>Клуб</label><input id="ep-club" value="${esc(p.club||'')}"></div><div class="field"><label>Звание</label><select id="ep-rank">${RANKS.map(r=>`<option ${p.rank===r?'selected':''}>${r}</option>`).join('')}</select></div></div>
   <div class="wz-row2"><div class="field"><label>Уровень</label><select id="ep-lvl"><option value="">—</option>${LVLS.map(l=>`<option value="${l}" ${p.lvl===l?'selected':''}>${l} · ${LVL_T[l]}</option>`).join('')}</select></div><div></div></div>
   <div class="err" id="ep-err"></div><div class="pm-acts"><button class="btn blue" data-act="saveP" data-id="${p.id}">Сохранить</button>${reg?`<button class="btn ghost" data-act="rmP" data-id="${p.id}">Удалить</button>`:'<button class="btn ghost" data-act="close">Отмена</button>'}</div></div>`}
@@ -2175,6 +2194,30 @@ function renderBoard(T,mid){const b=build(T);CUR={T,b};document.body.classList.a
   return`<div class="sb"><div class="sb-head"><div><b>${esc(T.title)}</b><span>${esc([stg,T.discipline].filter(Boolean).join(' · '))}</span></div>${st}</div>
   <div class="sb-main">${side(m.a,r.sa,'a')}<div class="sb-mid"><span>игра до</span><b>${R}</b><span>${isCont(T)?'шаров':'побед'}</span></div>${side(m.b,r.sb,'b')}</div>
   <div class="sb-foot"><span>${r.table?esc(tlabel(c,r.table))+' · ':''}Матч №${m.no}${m.res&&mdur(r)?' · '+mdur(r):''}</span><span>${esc(c.name||'')} · kazbilliard.com</span></div></div>`}
+
+/* ============ табло для трансляции (OBS) ============ */
+const CTRY={'казахстан':'kz','россия':'ru','узбекистан':'uz','кыргызстан':'kg','киргизия':'kg','беларусь':'by','белоруссия':'by','украина':'ua','таджикистан':'tj','туркменистан':'tm','азербайджан':'az','армения':'am','грузия':'ge','монголия':'mn','китай':'cn','турция':'tr','молдова':'md','латвия':'lv','литва':'lt','эстония':'ee'};
+const CTRY_LIST=['Казахстан','Россия','Узбекистан','Кыргызстан','Беларусь','Украина','Таджикистан','Туркменистан','Азербайджан','Армения','Грузия','Монголия','Китай','Турция','Молдова','Латвия','Литва','Эстония'];
+const ctryList=()=>`<datalist id="ctry-l">${CTRY_LIST.map(x=>`<option value="${x}">`).join('')}</datalist>`;
+const flagOf=p=>{const k=CTRY[String(p&&p.country||'').trim().toLowerCase()];return k?`<img class="ob-f" src="flags/${k}.svg" alt="${esc(p.country)}">`:''};
+const obsUrl=(cid,k)=>location.origin+'/#tablo-'+cid+'-'+k;
+function obsName(T,s){if(s.t!=='p')return pname(T,s);const p=T.players.find(x=>x.id===s.id);if(!p)return'?';return p.last&&p.first?p.last+' '+p.first[0]+'.':p.name}
+function renderObs(x){document.body.classList.add('gonly','obs');document.documentElement.classList.add('obs');
+  const i=x.lastIndexOf('-');const cid=x.slice(0,i),k=+x.slice(i+1);const c=S.clubs.find(z=>z.id===cid);
+  const logo='<img class="ob-lg" src="logo-video.svg" alt="kazbilliard">';
+  if(!c||!k)return`<div class="ob">${logo}</div>`;
+  const L=clubLive(cid).filter(z=>z.m.res.table===k);const z=L.find(y=>y.m.state==='live')||L[0];
+  if(!z)return`<div class="ob">${logo}</div>`;
+  const T=z.t,m=z.m,r=m.res,live=m.state==='live';const pa=T.players.find(p=>p.id===m.a.id),pb=T.players.find(p=>p.id===m.b.id);
+  const bl=live&&T.balls&&!isCont(T);const ball=v=>bl?`<span class="ob-b">${v||0}</span>`:'';
+  const mid=live?`<b>${r.sa||0}</b><i>(${mrace(T,m)})</i><b>${r.sb||0}</b>`:'<span>Следующая встреча</span>';
+  return`<div class="ob">${logo}<div class="ob-w"><div class="ob-c"><div class="ob-t"><div class="ob-p l"><span class="ob-n">${esc(obsName(T,m.a))}</span>${flagOf(pa)}${ball(r.ba)}</div><div class="ob-sp"></div><div class="ob-p">${ball(r.bb)}${flagOf(pb)}<span class="ob-n">${esc(obsName(T,m.b))}</span></div></div><div class="ob-m">${esc([T.title,c.name].filter(Boolean).join(' · '))}</div></div><div class="ob-s">${mid}</div></div></div>`}
+function fitObs(){const ns=[...document.querySelectorAll('.ob-n')];if(!ns.length)return;let f=1.5625;const over=()=>ns.some(n=>n.scrollWidth>n.clientWidth+1);while(over()&&f>1){f-=.0625;ns.forEach(n=>n.style.fontSize=f+'em')}}
+function obsMsg(c,k){return`Табло kazbilliard для трансляции — ${tlabel(c,k)}\n${obsUrl(c.id,k)}\n\nOBS Studio: Источники → + → Браузер → вставить ссылку → ширина 1920, высота 1080 → OK. Источник поставить выше камеры. Счёт меняется сам.`}
+function obsLinksHTML(T){const c=club(T.clubId);const n=c.tables||6;
+  return`<div class="pm"><div class="pm-h"><div class="pm-ti"><b>Табло для трансляции</b><span>${esc(c.name)}</span></div><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
+  <div class="obs-h">Отправьте ссылку стола оператору трансляции. Он один раз добавляет её в OBS — дальше счёт и игроки меняются сами, и в следующих турнирах тоже.<ol><li>Источники → + → «Браузер»</li><li>Вставить ссылку, ширина 1920, высота 1080</li><li>Поставить источник выше камеры</li></ol></div>
+  <div class="obs-l">${Array.from({length:n},(_,i)=>i+1).map(k=>`<div class="obs-r"><div class="obs-t"><b>${esc(tlabel(c,k))}</b><code>${esc(obsUrl(c.id,k).replace(/^https?:\/\//,''))}</code></div><button class="btn sm ghost" data-act="obsCopy" data-t="${k}">${AIC.copy}Скопировать</button><a class="btn sm ghost" data-act="ext" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(obsMsg(c,k))}">${IC.wa}WhatsApp</a></div>`).join('')}</div></div>`}
 function refreshPult(){if(!UI.pm||!CUR||!document.getElementById('modal').classList.contains('open'))return;const m=CUR.b.all.find(x=>x.id===UI.pm);if(!m||m.state==='wait'){closeModal();return}openModal(pultHTML(CUR.T,m))}
 /* ============ modal ============ */
 function openModal(html){const m=document.getElementById('modal');m.innerHTML=`<div class="dlg">${html}</div>`;m.classList.add('open');setTimeout(addEyes,0)}
@@ -2359,6 +2402,9 @@ const A={
   uniGo(el){const u=document.querySelector('.uni');if(!u)return;const v=el.dataset.v,ub=u.querySelector('.ub'),po=u.querySelector('.po-start');const X=e=>e.getBoundingClientRect().left-u.getBoundingClientRect().left+u.scrollLeft-20;u.scrollTo({left:v==='lb'?0:v==='wb'?X(ub):X(po),behavior:'smooth'})},
   deView(el){UI.de[el.dataset.id]=el.dataset.v;render()},
   match(el){if(el.classList.contains('hid'))return;openMatch(el.dataset.mid)},
+  obsLinks(){if(!CUR||!isOwner(CUR.T))return;openModal(obsLinksHTML(CUR.T))},
+  obsCopy(el){if(!CUR)return;const c=club(CUR.T.clubId);const k=+el.dataset.t;const t=obsMsg(c,k);const ok=()=>toast(tlabel(c,k)+': ссылка скопирована');
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok,()=>prompt('Ссылка на табло',obsUrl(c.id,k)));else prompt('Ссылка на табло',obsUrl(c.id,k))},
   close(){closeModal()},
   fgToggle(){const g=id=>{const x=document.getElementById(id);return x?x.value:''};const em=g('lg-email')||g('fg-email'),pw=g('lg-pass');UI.fg=!UI.fg;render();const a=document.getElementById('lg-email'),b=document.getElementById('fg-email'),c=document.getElementById('lg-pass');if(a)a.value=em;if(c)c.value=pw;if(b){b.value=em;b.focus()}},
   async fgSend(el){const em=(document.getElementById('fg-email').value||'').trim();const er=document.getElementById('fg-err'),ok=document.getElementById('fg-ok');er.textContent='';ok.textContent='';
