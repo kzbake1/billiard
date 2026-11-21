@@ -645,6 +645,8 @@ nav.main a{white-space:nowrap}
 .strow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--line);color:var(--ink);text-decoration:none}.strow span{display:flex;flex-direction:column;gap:2px;font-size:15px}.strow b{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.strow svg{color:var(--live-ink,#C4321F);flex:none}
 .org-r{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.org-r>div{display:flex;flex-direction:column;gap:4px}.org-r b{font-size:18px;font-weight:600}.org-r>div a{color:var(--sub);text-decoration:none}.org-r .btn{display:inline-flex;align-items:center;gap:8px}.org-r .btn svg{width:18px;height:18px}.about>.org-p{margin-bottom:20px}
 .m-tv{display:inline-flex;align-items:center;margin-left:8px;color:var(--live-ink);vertical-align:-3px;text-decoration:none}.m-tv svg{width:16px;height:16px}.m-tv:hover{color:var(--live)}
+.pm-row.ed{grid-template-columns:minmax(0,1fr) 72px}.pm-row.ed .pm-s{width:72px;height:52px;border-color:var(--line2);background:#fff}.pm-row.ed .pm-s:focus{outline:0;border-color:var(--accent)}
+.pm-note{margin:12px 0 0;font-size:13px;color:var(--muted);line-height:1.45}
 </style>
 </head>
 <body>
@@ -1634,13 +1636,15 @@ function openMatch(mid){
   if(r.tp){openModal(head+`<p style="margin-top:0">Техническое поражение${r.tp==='both'?' обоим':': <b>'+esc(pname(T,r.tp==='a'?m.a:m.b))+'</b>'} · ${TPR[r.reason||'no']}</p>
     <div class="acts"><button class="btn ghost" data-act="clearRes" data-mid="${m.id}">Отменить ТП</button><button class="btn ghost" data-act="printM" data-mid="${m.id}">Протокол</button></div>
     <p class="muted" style="font-size:12px;margin-bottom:0">Матч вернётся в очередь; следующие матчи с участием этих игроков сбросятся.</p>`);return}
-  openModal(head+`<p class="muted" style="margin-top:0;font-size:13px">Матч сыгран. Здесь можно исправить счёт, если ошиблись. Игра до ${mrace(T,m)} побед.</p>
-  <div class="score"><span class="nm">${esc(pname(T,m.a))}</span><input id="sa" type="number" min="0" inputmode="numeric" value="${r.sa??''}"></div>
-  <div class="score"><span class="nm">${esc(pname(T,m.b))}</span><input id="sb" type="number" min="0" inputmode="numeric" value="${r.sb??''}"></div>
+  const stg=CUR&&CUR.b?stageMap(CUR.b)[m.id]:'';
+  openModal(`<div class="pm"><div class="pm-h"><div class="pm-ti"><b>Матч №${m.no}</b>${stg?`<span>${esc(stg)}</span>`:''}</div><span class="pm-chip">сыгран</span><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
+  <div class="pm-row ed"><span class="pm-n">${esc(pname(T,m.a))}</span><input class="pm-s" id="sa" type="number" min="0" inputmode="numeric" aria-label="Счёт" value="${r.sa??''}"></div>
+  <div class="pm-row ed"><span class="pm-n">${esc(pname(T,m.b))}</span><input class="pm-s" id="sb" type="number" min="0" inputmode="numeric" aria-label="Счёт" value="${r.sb??''}"></div>
   <input type="hidden" id="tbl" value="${r.table??''}">
+  <p class="pm-note">Игра до ${mrace(T,m)} побед. Если ошиблись — исправьте счёт. Если победитель изменится, следующие матчи с его участием сбросятся.</p>
   <div class="err" id="m-err"></div>
-  <div class="acts"><button class="btn blue" data-act="saveRes" data-mid="${m.id}">Сохранить счёт</button><button class="btn ghost" data-act="clearRes" data-mid="${m.id}">Переиграть матч</button><button class="btn ghost" data-act="printM" data-mid="${m.id}">Протокол</button></div>
-  <p class="muted" style="font-size:12px;margin-bottom:0">Если победитель изменится, следующие матчи с его участием сбросятся.</p>`);
+  <div class="pm-acts"><button class="btn blue" data-act="saveRes" data-mid="${m.id}">Сохранить счёт</button><button class="btn ghost" data-act="close">Отмена</button></div>
+  <div class="pm-tools"><button data-act="printM" data-mid="${m.id}">${PI.print}Протокол</button><button class="rs" data-act="clearRes" data-mid="${m.id}">${PI.reset}Переиграть матч</button></div></div>`);
 }
 
 /* ============ actions ============ */
