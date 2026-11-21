@@ -1091,7 +1091,7 @@ async function adminCall(body){
 }
 const ADM=/^admin\./.test(location.hostname);
 // адрес сайта для клубов в сообщении с паролем; при запуске поменять на https://kazbilliard.com
-const CLUB_SITE=ADM?'https://test.kazbilliard.com':location.origin;
+const CLUB_SITE=ADM||location.hostname==='test.kazbilliard.com'?'https://kazbilliard.com':location.origin;
 function madeText(m){return`Здравствуйте! Ваш клуб «${m.name}» подключён к kazbilliard.\n\nСайт: ${CLUB_SITE}\nВход: кнопка «Вход для клубов»\nПочта: ${m.email}\nПароль: ${m.pass}\n\nСоветуем сразу сменить пароль: меню клуба вверху справа → «Сменить пароль».`}
 function genPass(){const a='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';const r=new Uint32Array(10);crypto.getRandomValues(r);return Array.from(r,x=>a[x%a.length]).join('')}
 async function boot(){
