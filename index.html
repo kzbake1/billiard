@@ -1810,7 +1810,7 @@ function adClubCard(id){const c=adClub(id);if(!c.id)return`<div class="empty">К
 function adPaysPage(){const months=[...new Set(AD.pays.map(p=>(p.paid_at||'').slice(0,7)))].sort().reverse();
   const L=AD.pays.filter(p=>!AD.month||(p.paid_at||'').startsWith(AD.month));const sum=L.filter(p=>!p.cancelled_at).reduce((a,p)=>a+p.amount,0);
   const mname=m=>{const [y,mo]=m.split('-');return['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'][+mo-1]+' '+y};
-  return`<div class="adm-h"><h1>Оплаты</h1></div>
+  return`<div class="adm-h"><h1>Оплаты</h1>${L.length?'<button class="btn ghost" data-act="adXls" data-v="pays">Скачать Excel</button>':''}</div>
   <div class="adm-tools"><select id="ad-month" class="adm-sel"><option value="">Все месяцы</option>${months.map(m=>`<option value="${m}" ${AD.month===m?'selected':''}>${mname(m)}</option>`).join('')}</select><div class="adm-sum">Итого за период: <b>${money(sum)}</b></div></div>
   <div class="panel adm-tw">${L.length?`<table class="tb adm-tb"><thead><tr><th>Дата</th><th>Клуб</th><th>Тариф</th><th class="r">Сумма</th><th class="r">Скидка</th><th>Промокод</th><th>Способ</th><th>Внёс</th><th></th></tr></thead><tbody>
   ${L.map(p=>`<tr class="${p.cancelled_at?'off':''}"><td class="nw">${fds(p.paid_at)}</td><td><a href="#admin/c-${p.club_id}">${esc(adClub(p.club_id).name||'—')}</a></td><td>${esc(planName(p.plan_id))}<div class="mut2">${fds(p.period_from)} → ${fds(p.period_to)}</div></td><td class="r nw"><b>${money(p.amount)}</b></td><td class="r nw">${p.discount?money(p.discount):'—'}</td><td>${p.promo_id?'<span class="mono">'+esc((AD.promos.find(x=>x.id===p.promo_id)||{}).code||'—')+'</span>'+(p.bonus_months?'<div class="mut2">+'+p.bonus_months+' мес.</div>':''):'—'}</td><td>${{kaspi:'Kaspi',cash:'Наличные',invoice:'Счёт'}[p.method]||esc(p.method)}</td><td class="mut2">${esc(S.email)}</td><td class="r">${p.cancelled_at?`<span class="mut2" title="${esc(p.cancel_reason||'')}">отменена</span>`:`<button class="lnk" data-act="adCancelAsk" data-id="${p.id}">Отменить</button>`}</td></tr>`).join('')}</tbody></table>`
@@ -1911,7 +1911,7 @@ function chartSVG(series){const sm=window.innerWidth<640;if(sm)series=series.sli
   <div class="adm-leg"><span><i class="b"></i>Получено</span><span><i class="l"></i>Месячный доход</span></div>`}
 function adMoneyPage(){const k=AD.per||'month';setTimeout(loadMoney,0);const M=AD.money;
   const P=[['month','Месяц'],['quarter','Квартал'],['year','Год'],['all','Всё время']];
-  const head=`<div class="adm-h"><h1>Деньги</h1><button class="btn blue" data-act="adExpNew">${IC.plus}Расход</button></div><div class="chips">${P.map(([v,l])=>`<button class="chip${k===v?' on':''}" data-act="adPer" data-v="${v}">${l}</button>`).join('')}</div>`;
+  const head=`<div class="adm-h"><h1>Деньги</h1><div class="adm-ra"><button class="btn ghost" data-act="adXls" data-v="money">Скачать Excel</button><button class="btn blue" data-act="adExpNew">${IC.plus}Расход</button></div></div><div class="chips">${P.map(([v,l])=>`<button class="chip${k===v?' on':''}" data-act="adPer" data-v="${v}">${l}</button>`).join('')}</div>`;
   if(!M||AD.mkey!==k+perRange(k).join('')+AD.ver)return head+'<div class="empty" role="status">Считаем…</div>';
   if(M.err)return head+`<div class="empty">${esc(M.err)}</div>`;
   const [a,b]=perRange(k);const hp=M.has_pays,he=M.has_exp;
@@ -2004,14 +2004,32 @@ Object.assign(AA,{
   adPromoApply(){adPromoCheck()}
 });
 
+
+function expOcc(a,b){const out=[];AD.exps.filter(e=>e.active).forEach(e=>{if(e.repeat==='none'){if(e.date>=a&&e.date<=b)out.push({d:e.date,e});return}
+  const step=e.repeat==='month'?1:12;for(let k=0;k<600;k++){const d=addMonths(e.date,k*step);if(d>b||(e.until&&d>e.until))break;if(d>=a)out.push({d,e})}});return out.sort((x,y)=>x.d.localeCompare(y.d))}
+Object.assign(AA,{adXls(el){const kind=el.dataset.v;withExcel(async()=>{try{const wb=new ExcelJS.Workbook();const hdr=ws=>{ws.getRow(1).font={bold:true};ws.views=[{state:'frozen',ySplit:1}]};
+  let a,b,name;if(kind==='money'){[a,b]=perRange(AD.per||'month');name=`kazbilliard деньги ${a} — ${b}`}else{a=AD.month?AD.month+'-01':'2000-01-01';b=AD.month?addMonths(a,1):'2999-12-31';name=AD.month?`kazbilliard оплаты ${AD.month}`:'kazbilliard оплаты'}
+  const P=AD.pays.filter(p=>p.paid_at>=a&&(kind==='money'?p.paid_at<=b:p.paid_at<b));const ws=wb.addWorksheet('Оплаты');
+  ws.columns=[{header:'Дата',key:'d',width:12},{header:'Клуб',key:'c',width:28},{header:'Тариф',key:'t',width:14},{header:'Месяцев',key:'m',width:9},{header:'Сумма, ₸',key:'s',width:12},{header:'Скидка, ₸',key:'x',width:11},{header:'Промокод',key:'pr',width:12},{header:'Способ',key:'w',width:10},{header:'Период с',key:'f',width:12},{header:'по',key:'to',width:12},{header:'Комментарий',key:'cm',width:30},{header:'Отменена',key:'cc',width:30}];
+  P.forEach(p=>ws.addRow({d:p.paid_at,c:adClub(p.club_id).name||'',t:planName(p.plan_id),m:p.months+(p.bonus_months||0),s:p.cancelled_at?0:p.amount,x:p.discount||0,pr:p.promo_id?((AD.promos.find(x=>x.id===p.promo_id)||{}).code||''):'',w:{kaspi:'Kaspi',cash:'Наличные',invoice:'Счёт'}[p.method]||p.method,f:p.period_from,to:p.period_to,cm:p.comment||'',cc:p.cancelled_at?('да: '+(p.cancel_reason||'')):''}));
+  ws.addRow({});ws.addRow({c:'Итого',s:P.filter(p=>!p.cancelled_at).reduce((x,p)=>x+p.amount,0)}).font={bold:true};hdr(ws);
+  if(kind==='money'){const E=expOcc(a,b);const we=wb.addWorksheet('Расходы');we.columns=[{header:'Дата',key:'d',width:12},{header:'Статья',key:'t',width:30},{header:'Сумма, ₸',key:'s',width:12},{header:'Повтор',key:'r',width:16},{header:'Комментарий',key:'c',width:30}];
+    E.forEach(o=>we.addRow({d:o.d,t:o.e.title,s:o.e.amount,r:repLbl[o.e.repeat]||'',c:o.e.comment||''}));we.addRow({});we.addRow({t:'Итого',s:E.reduce((x,o)=>x+o.e.amount,0)}).font={bold:true};hdr(we)}
+  const buf=await wb.xlsx.writeBuffer();const ln=document.createElement('a');ln.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));ln.download=name.replace(/[\\/:*?"<>|]/g,'')+'.xlsx';document.body.appendChild(ln);ln.click();ln.remove();toast('Файл скачан')}catch(e){console.error(e);toast('Не получилось собрать файл')}})}});
+
 /* кабинет клуба: подписка */
 function cabSub(){const x=S.sub;if(!x)return'';const t=x.today||almatyToday();
-  const paid=x.paid_until&&x.paid_until>=t,trial=!paid&&x.trial_until&&x.trial_until>=t;const end=paid?x.paid_until:trial?x.trial_until:[x.paid_until,x.trial_until].filter(Boolean).sort().pop();if(!end)return'';
-  const d=dDiff(t,end);const c=club(S.session);const wa=`https://wa.me/${ADM_WA}?text=${encodeURIComponent(`Здравствуйте! Хочу продлить подписку kazbilliard для клуба «${c.name}».`)}`;
-  const txt=paid?`Подписка до ${fds(end)}`:trial?`Бесплатный период до ${fds(end)}`:`Подписка закончилась ${fds(end)}`;
-  const left=paid||trial?(d>0?'осталось '+daysW(d):'сегодня последний день'):'';
-  if((paid||trial)&&d>7)return`<div class="csub"><span>${txt}</span>${left?`<span class="mut2">· ${left}</span>`:''}</div>`;
-  return`<div class="csub warn${paid||trial?'':' bad'}"><div><b>${paid||trial?(trial?'Бесплатный период заканчивается':'Подписка заканчивается')+' '+fds(end):txt}</b><span>${paid||trial?left[0].toUpperCase()+left.slice(1)+'. Напишите нам, чтобы продлить.':'Напишите нам, чтобы продлить и продолжить вести турниры.'}</span></div><a class="btn blue" href="${wa}" target="_blank" rel="noopener">${IC.wa}Продлить в WhatsApp</a></div>`}
+  const paid=x.paid_until&&x.paid_until>=t,trial=!paid&&x.trial_until&&x.trial_until>=t;const end=paid?x.paid_until:trial?x.trial_until:[x.paid_until,x.trial_until].filter(Boolean).sort().pop();
+  const c=club(S.session);const wa=`https://wa.me/${ADM_WA}?text=${encodeURIComponent(`Здравствуйте! Хочу продлить подписку kazbilliard для клуба «${c.name}».`)}`;const btn=`<a class="btn blue" href="${wa}" target="_blank" rel="noopener">${IC.wa}Продлить в WhatsApp</a>`;
+  if(x.status==='paused'||x.status==='archived')return`<div class="csub warn bad"><div><b>Подписка приостановлена</b><span>Новые турниры создавать нельзя. Напишите нам, чтобы возобновить.</span></div>${btn}</div>`;
+  if(!end)return'';const d=dDiff(t,end);
+  if(paid||trial){const left=d>0?'осталось '+daysW(d):'сегодня последний день';const txt=paid?`Подписка до ${fds(end)}`:`Бесплатный период до ${fds(end)}`;
+    if(d>7)return`<div class="csub"><span>${txt}</span><span class="mut2">· ${left}</span></div>`;
+    return`<div class="csub warn"><div><b>${trial?'Бесплатный период заканчивается':'Подписка заканчивается'} ${fds(end)}</b><span>${left[0].toUpperCase()+left.slice(1)}. Напишите нам, чтобы продлить.</span></div>${btn}</div>`}
+  if(x.can_create!==false){const g=x.grace_until;const gl=dDiff(t,g);return`<div class="csub warn bad"><div><b>Подписка закончилась ${fds(end)}</b><span>Создавать новые турниры можно ещё ${gl>0?daysW(gl):'сегодня'} — до ${fds(g)}. Продлите, чтобы не прерываться.</span></div>${btn}</div>`}
+  return`<div class="csub warn bad"><div><b>Подписка закончилась ${fds(end)}</b><span>Новые турниры создавать нельзя. Турниры, которые уже идут, можно доиграть.</span></div>${btn}</div>`}
+function subBlocked(){if(!S.sub||S.sub.can_create!==false)return false;const c=club(S.session);const wa=`https://wa.me/${ADM_WA}?text=${encodeURIComponent(`Здравствуйте! Хочу продлить подписку kazbilliard для клуба «${c.name}».`)}`;
+  openModal(`<div class="dlg-h"><h3>Подписка закончилась</h3><button class="x" data-act="close" aria-label="Закрыть">×</button></div><p class="muted">Новые турниры можно создавать после продления. Турниры, которые уже идут, можно доиграть.</p><a class="btn blue big" style="width:100%;justify-content:center" href="${wa}" target="_blank" rel="noopener">${IC.wa}Продлить в WhatsApp</a>`);return true}
 
 const phErr=p=>p&&p.replace(/\D/g,'').length<10?'Проверьте телефон организатора':'';
 const waLink=p=>{let d=(p||'').replace(/\D/g,'');if(d.length===11&&d[0]==='8')d='7'+d.slice(1);if(d.length===10)d='7'+d;return'https://wa.me/'+d};
@@ -2031,7 +2049,7 @@ function addPlayer(T,c,first,last,birth,city,rank,x){
   if(p){if(T.players.some(q=>q.id===p.id))return'Этот игрок уже в турнире';Object.assign(p,Object.fromEntries(Object.entries(x||{}).filter(([k,v])=>v)))}
   else{p=mkPlayer(first,last,birth,city,rank,x);c.roster=c.roster||[];c.roster.push(p)}
   T.players.push(pub(Object.assign({},p,{city:city||p.city,rank:rank||p.rank})));return''}
-function wizMake(status){const w=UI.wiz;const T={id:uid(),title:w.title.trim(),clubId:S.session,city:w.city,discipline:w.disc,format:w.format,playoff:w.format==='de'?w.playoff:undefined,raceTo:w.race,date:w.date,time:w.time||'',dateEnd:w.dateEnd&&w.dateEnd!==w.date?w.dateEnd:'',category:w.cat,link:normUrl(w.link),video:normUrl(w.video),pub:w.pub,orgName:(w.orgName||'').trim().slice(0,80),orgPhone:(w.orgPhone||'').trim().slice(0,30),status,players:w.players.map(pub),applications:[],results:{},seedMode:w.seed,groups:{count:w.gc,advance:w.ga},createdAt:Date.now()};S.tournaments.unshift(T);UI.wiz=null;save();return T}
+function wizMake(status){if(subBlocked())return;const w=UI.wiz;const T={id:uid(),title:w.title.trim(),clubId:S.session,city:w.city,discipline:w.disc,format:w.format,playoff:w.format==='de'?w.playoff:undefined,raceTo:w.race,date:w.date,time:w.time||'',dateEnd:w.dateEnd&&w.dateEnd!==w.date?w.dateEnd:'',category:w.cat,link:normUrl(w.link),video:normUrl(w.video),pub:w.pub,orgName:(w.orgName||'').trim().slice(0,80),orgPhone:(w.orgPhone||'').trim().slice(0,30),status,players:w.players.map(pub),applications:[],results:{},seedMode:w.seed,groups:{count:w.gc,advance:w.ga},createdAt:Date.now()};S.tournaments.unshift(T);UI.wiz=null;save();return T}
 /* ============ pult ============ */
 function renderPult(T){
   const b=build(T);CUR={T,b};const c=club(T.clubId);const n=c.tables||6;
@@ -2219,7 +2237,7 @@ const A={
   printM(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m)return;let box=document.getElementById('printbox');if(!box){box=document.createElement('div');box.id='printbox';document.body.appendChild(box)}
     box.innerHTML=protoHTML(T,m);document.body.classList.add('pp');const off=()=>{document.body.classList.remove('pp');window.removeEventListener('afterprint',off)};window.addEventListener('afterprint',off);window.print()},
   undo(){const u=UI.undo;if(!u)return;const T=tById(u.tid);if(T){T.results[u.mid]=u.prev;save()}UI.undo=null;render();refreshPult();toast('Отменено')},
-  newT(){UI.wiz=newWiz();go('create')},
+  newT(){if(subBlocked())return;UI.wiz=newWiz();go('create')},
   wDisc(el){UI.wiz.disc=el.dataset.v;render()},
   wRace(el){UI.wiz.race=Math.max(1,Math.min(25,UI.wiz.race+(+el.dataset.d)));render()},
   wNum(el){const w=UI.wiz,k=el.dataset.k;w[k]=Math.max(k==='gc'?2:1,Math.min(16,w[k]+(+el.dataset.d)));render()},
