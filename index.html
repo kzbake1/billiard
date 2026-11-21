@@ -1386,10 +1386,7 @@ function renderCabinet(){
   <h1>${esc(c.name)}</h1><p>${esc(c.city)}${c.address?', '+esc(c.address):''}</p></div>
   <div class="ch-acts"><button class="btn blue" data-act="newT">${IC.plus}Новый турнир</button><button class="btn ghost" data-act="logout">Выйти</button></div>
   <div class="ch-stats"><div><b>${mine.length}</b><span>турнир${plural(mine.length)}</span></div><div><b>${roster.length}</b><span>игрок${plural(roster.length)}</span></div><div><b>${c.tables||6}</b><span>стол${plural(c.tables||6)}</span></div></div></section>
-  ${mine.length?`<h2>Мои турниры</h2><div class="hlist">${cabRows(mine)}</div>`:`<h2>С чего начать</h2><div class="steps3">
-   <button class="step3" data-act="newT"><i>1</i><b>Создайте турнир</b><span>Дисциплина, дата и формат — три коротких шага.</span></button>
-   <div class="step3"><i>2</i><b>Добавьте игроков</b><span>Фамилия, имя, год рождения, звание. Игроки сохранятся в базе клуба.</span></div>
-   <div class="step3"><i>3</i><b>Ведите счёт на пульте</b><span>Нажимаете «+» за партию — сетка и сайт обновляются сами.</span></div></div>`}
+  ${mine.length?`<h2>Мои турниры</h2><div class="hlist">${cabRows(mine)}</div>`:''}
   <div class="two" style="margin-top:34px"><div class="panel"><h3>Игроки клуба · ${roster.length}</h3>${roster.length?`<div style="max-height:420px;overflow:auto"><table class="tb"><thead><tr><th>Игрок</th><th class="c">Г.р.</th><th>Город</th><th>Звание</th></tr></thead><tbody>${[...roster].sort((a,b)=>a.name.localeCompare(b.name,'ru')).map(p=>`<tr><td><b>${esc(p.name)}</b></td><td class="c">${byear(p)}</td><td>${esc(p.city||'')}</td><td>${esc(p.rank||'')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="muted">Здесь появятся все игроки, которых вы добавите в турниры. В следующий раз их можно будет выбрать из списка, а не вводить заново.</div>'}</div>
   <div class="panel">${info}</div></div>`;
 }
