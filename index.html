@@ -2429,6 +2429,20 @@ function renderPrice(){const wa='https://wa.me/77764308322?text='+encodeURICompo
   <section class="prw-s"><h2>Что входит</h2><div class="prw-f">${F.map(([i,t,d])=>`<div><i>${i}</i><div><b>${t}</b><span>${d}</span></div></div>`).join('')}</div></section>
   ${S.session?'':`<section class="prw-s"><h2>Как подключиться</h2><ol class="prw-st">${steps.map(([t,d],k)=>`<li><i>${k+1}</i><div><b>${t}</b><span>${d}</span></div></li>`).join('')}</ol></section>`}
   <p class="prw-q">Остались вопросы? <a href="${wa}" target="_blank" rel="noopener">Напишите в WhatsApp</a> — расскажем, как всё устроено.</p></div>`}
+function logoRow(c,adm){return`<div class="lgrow"><div class="lg-av${c.logo?' im':''}">${avHTML(c)}</div><div class="lg-tx"><b>Логотип клуба</b><span>Квадратная картинка PNG или JPG, до 5 МБ. На сайте будет в круге.</span><div class="lg-bt"><label class="btn sm ghost">${c.logo?'Заменить':'Загрузить логотип'}<input type="file" accept="image/png,image/jpeg,image/webp" data-logo="${esc(c.id)}" data-adm="${adm?1:''}" hidden></label>${c.logo?`<button class="btn sm ghost" data-act="logoDel" data-id="${esc(c.id)}" data-adm="${adm?1:''}">Убрать</button>`:''}</div></div></div>`}
+async function logoBlob(file){if(!/^image\/(png|jpeg|webp)$/.test(file.type))throw new Error('Нужна картинка PNG, JPG или WebP');if(file.size>5*1024*1024)throw new Error('Файл больше 5 МБ');
+  const bmp=await createImageBitmap(file);const W0=bmp.width,H0=bmp.height,sc=Math.min(1,1200/Math.max(W0,H0)),tw=Math.round(W0*sc),th=Math.round(H0*sc);
+  const t=document.createElement('canvas');t.width=tw;t.height=th;const tx=t.getContext('2d');tx.drawImage(bmp,0,0,tw,th);const d=tx.getImageData(0,0,tw,th).data;
+  const bg=[d[0],d[1],d[2],d[3]];const far=i=>Math.abs(d[i]-bg[0])+Math.abs(d[i+1]-bg[1])+Math.abs(d[i+2]-bg[2])+Math.abs(d[i+3]-bg[3])>60;
+  let x0=tw,y0=th,x1=-1,y1=-1;for(let y=0;y<th;y+=2)for(let x=0;x<tw;x+=2)if(far((y*tw+x)*4)){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+  if(x1<0){x0=0;y0=0;x1=tw-1;y1=th-1}const cw=x1-x0+1,ch=y1-y0+1;const S=256,cv=document.createElement('canvas');cv.width=cv.height=S;const x=cv.getContext('2d');
+  x.fillStyle=bg[3]<20?'#fff':`rgb(${bg[0]},${bg[1]},${bg[2]})`;x.fillRect(0,0,S,S);const box=S*.66,k=Math.min(box/cw,box/ch),w=cw*k,h=ch*k;x.imageSmoothingQuality='high';x.drawImage(t,x0,y0,cw,ch,(S-w)/2,(S-h)/2,w,h);
+  return await new Promise((ok,no)=>cv.toBlob(b=>b?ok(b):no(new Error('Не удалось обработать картинку')),'image/webp',.9))}
+async function logoSet(id,url,adm){const c=club(id);if(adm){const r=await sb.from('club').update({logo:url}).eq('id',id);if(r.error){toast('Не получилось сохранить');return false}if(c)c.logo=url;render();return true}
+  if(c){c.logo=url;save();render()}return true}
+async function logoFile(inp){const id=inp.dataset.logo,adm=!!inp.dataset.adm,f=inp.files&&inp.files[0];inp.value='';if(!f||!sb)return;toast('Загружаем логотип…');
+  try{const b=await logoBlob(f);const path=id+'/logo.webp';const up=await sb.storage.from('club-logo').upload(path,b,{upsert:true,contentType:'image/webp',cacheControl:'3600'});if(up.error)throw new Error('Не удалось загрузить');
+    const url=sb.storage.from('club-logo').getPublicUrl(path).data.publicUrl+'?v='+Date.now();if(await logoSet(id,url,adm))toast('Логотип обновлён')}catch(e){toast(e.message||'Не удалось загрузить')}}
 function prPromo(){if(!S.session)return'';const x=S.sub||{};
   const pend=x.pending_promo?`<div class="cpr-ok">Промокод <b>${esc(x.pending_promo)}</b>${x.pending_what?' ('+esc(x.pending_what)+')':''} применится к следующей оплате</div>`:'';
   return`<section class="pr-promo"><div><b>Есть промокод?</b><span>Введите его — скидка или бесплатные месяцы применятся к подписке вашего клуба.</span></div><div class="cpr-f"><input id="cpr-in" maxlength="24" autocomplete="off" placeholder="Промокод" style="text-transform:uppercase"><button class="btn blue" data-act="cprApply">Применить</button><div class="err" id="cpr-err"></div></div>${pend}</section>`}
