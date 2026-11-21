@@ -1289,7 +1289,7 @@ function renderClub(c){
   const soon=all.filter(x=>x.T.status==='reg').sort((x,y)=>(x.T.date||'').localeCompare(y.T.date||''));
   const done=all.filter(x=>x.b&&x.b.finished).sort((x,y)=>(y.T.date||'').localeCompare(x.T.date||''));
   const fl=floorRanges(c);const nt=c.tables||0;
-  const meta=[[c.city,c.address].filter(Boolean).join(', ')?`<span>${IC.pin}${esc([c.city,c.address].filter(Boolean).join(', '))}</span>`:'',nt?`<span>${IC.tbl}<b>${nt}</b> стол${plural(nt)}${fl&&fl.length>1?` · ${fl.length} ${fl.length<5?'этажа':'этажей'}`:''}</span>`:'',all.length?`<span>${IC.trophy}<b>${all.length}</b> турнир${plural(all.length)}</span>`:''].join('');
+  const meta=[[c.city,c.address].filter(Boolean).join(', ')?`<span>${IC.pin}${esc([c.city,c.address].filter(Boolean).join(', '))}</span>`:'',nt?`<span>${IC.tbl}<b>${nt}</b> стол${plural(nt)}${fl&&fl.length>1?` · ${fl.map(x=>esc(x.name)+' '+x.n).join(', ')}`:''}</span>`:'',all.length?`<span>${IC.trophy}<b>${all.length}</b> турнир${plural(all.length)}</span>`:''].join('');
   const tel=c.phone?c.phone.replace(/[^+\d]/g,''):'';
   const acts=[c.phone?`<a class="btn p" href="${waLink(c.phone)}" target="_blank" rel="noopener">${IC.wa}Написать в WhatsApp</a><a class="btn" href="tel:${esc(tel)}">${IC.phone}Позвонить</a>`:'',c.instagram?`<a class="btn" href="${esc(instaLink(c.instagram))}" target="_blank" rel="noopener">${IC.ig}Instagram</a>`:'',c.tiktok?`<a class="btn" href="${esc(ttLink(c.tiktok))}" target="_blank" rel="noopener">${IC.tt}TikTok</a>`:'',c.address?`<a class="btn" href="${gisLink(c)}" target="_blank" rel="noopener">${IC.pin}2ГИС</a>`:''].join('');
   const sec=(t,n,body)=>`<section class="hs"><div class="hs-h"><h2>${t}</h2>${n?`<span>${n}</span>`:''}</div>${body}</section>`;
