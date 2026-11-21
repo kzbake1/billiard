@@ -633,7 +633,7 @@ nav.main a{white-space:nowrap}
 .ch-stats b{font-size:28px;line-height:1}
 .ch-stats span{margin:0;font-size:14px}
 @media(max-width:860px){.cab-hero{grid-template-columns:1fr}.ch-stats{flex-direction:row}.ch-stats div{flex:1 1 0;min-width:0}}
-@media(max-width:640px){.ch-top{padding:22px 20px}.ch-stats{padding:12px;gap:8px}.ch-stats div,.ch-stats div:first-child{flex-direction:column;align-items:flex-start;gap:4px;padding:10px 12px}.ch-stats b{font-size:24px}.ch-stats span{font-size:12px}}
+@media(max-width:640px){.ch-top{padding:22px 20px}.ch-stats{padding:12px;gap:8px}.ch-stats div,.ch-stats div:first-child,.ch-stats div+div{flex-direction:column;align-items:flex-start;gap:4px;padding:10px 12px}.ch-stats b{font-size:24px}.ch-stats span{font-size:12px}}
 .tfl{margin-bottom:8px}
 .tfloor{display:flex;align-items:baseline;gap:12px;margin:24px 0 12px;padding-top:16px;border-top:1px solid var(--line)}
 .tfl+.tfloor{border-top:0;padding-top:0}
@@ -666,6 +666,21 @@ nav.main a{white-space:nowrap}
 @media(max-width:640px){.dlg:has(.mv){padding:22px 18px}.mv-vs{grid-template-columns:1fr;padding:20px}.mv-sc{order:0;text-align:center;font-size:48px}.mv-nx,.mv-path{grid-template-columns:1fr}}
 .cbar{max-width:720px;display:flex;align-items:center;gap:16px;background:var(--accent-soft);color:var(--ink);border-radius:12px;padding:14px 18px;margin-bottom:16px;font-size:14px;line-height:1.45}.cbar span{flex:1}.cbar .btn{flex:none}.cbar.done{background:var(--soft)}.cbar .lnk{color:var(--accent-ink);font-size:14px;flex:none}
 @media(max-width:640px){.cbar{flex-direction:column;align-items:flex-start}}
+.acc-w{position:relative}.acc{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:5px 10px 5px 5px;font:inherit;color:var(--ink);cursor:pointer;text-align:left}
+.acc i{width:32px;height:32px;border-radius:8px;background:var(--accent);color:#fff;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:600;flex:none}
+.acc-t{font-size:14px;font-weight:600;letter-spacing:0;text-transform:none;line-height:1.2;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.acc-t small{display:block;font-size:11px;font-weight:500;color:var(--muted)}.acc svg{color:var(--muted)}
+.acc-dd{position:absolute;right:0;top:calc(100% + 6px);min-width:220px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.08);padding:6px;z-index:60;display:flex;flex-direction:column}
+nav.main .acc-dd a,.acc-dd button{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:8px;font:inherit;font-size:14px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink);text-decoration:none;background:none;border:0;cursor:pointer}.acc-dd a:hover,.acc-dd button:hover{background:#F7F7F7}.acc-dd .r{color:var(--live-ink);border-top:1px solid var(--soft);border-radius:0 0 8px 8px}
+@media(max-width:640px){.acc-t{display:none}}
+.ch-top{grid-template-columns:auto minmax(0,1fr) minmax(0,420px)}.ch-top .ch-acts{grid-column:auto;margin-top:18px}
+.ch-now{background:#fff;color:var(--ink);border-radius:12px;padding:20px 22px}
+.cn-l{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink)}.cn-l.live{color:var(--live-ink)}.cn-l i{width:8px;height:8px;border-radius:50%;background:var(--live)}
+.ch-now>b{display:block;margin-top:8px;font-size:20px;font-weight:600}.cn-m{margin-top:4px;font-size:13px;color:var(--muted)}
+.cn-s{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--sub)}.cn-s b{color:var(--ink)}
+.cn-a{margin-top:16px;display:flex;gap:8px}.cn-a .btn{flex:1;justify-content:center;display:inline-flex;align-items:center;gap:6px}.ch-top .ch-now .btn.blue{background:var(--accent);border-color:var(--accent);color:#fff}.ch-top .ch-now .btn.ghost{background:#fff;color:var(--ink);border-color:var(--line2)}
+.ch-stats>div{cursor:pointer}.ch-stats em{margin-left:auto;font-style:normal;font-size:20px;color:var(--accent-ink)}.ch-stats>div:hover{box-shadow:0 0 0 1px var(--accent) inset}
+@media(max-width:1100px){.ch-top{grid-template-columns:auto minmax(0,1fr)}.ch-now{grid-column:1/-1}}
+@media(max-width:640px){.ch-stats em{display:none}}
 </style>
 </head>
 <body>
@@ -996,7 +1011,7 @@ function render(){RENDER_N++;
   const h=location.hash.slice(1)||'home';
   const nav=document.getElementById('nav');
   const me=S.session?club(S.session):null;
-  nav.innerHTML=`<a href="#home" class="${h==='home'||h.startsWith('t-')?'on':''}">Турниры</a><a href="${S.admin&&!me?'#admin':'#cabinet'}" class="cta">${me?'Кабинет<span class="lg"> клуба</span>':S.admin?'Админ<span class="lg">истратор</span>':'Вход<span class="lg"> для клубов</span>'}</a>`;
+  nav.innerHTML=`<a href="#home" class="${h==='home'||h.startsWith('t-')?'on':''}">Турниры</a>${me?`<div class="acc-w"><button class="acc" data-act="accMenu" aria-expanded="${UI.acc?'true':'false'}"><i>${esc(ini(me.name))}</i><span class="acc-t">${esc(me.name)}<small>Кабинет клуба</small></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>${UI.acc?`<div class="acc-dd"><a href="#cabinet" data-act="accGo" data-to="">Кабинет клуба</a><a href="#cabinet" data-act="accGo" data-to="cab-i">О клубе</a><button class="r" data-act="logout">Выйти</button></div>`:''}</div>`:`<a href="${S.admin?'#admin':'#cabinet'}" class="cta">${S.admin?'Админ<span class="lg">истратор</span>':'Вход<span class="lg"> для клубов</span>'}</a>`}`;
   renderTicker(false);
   const app=document.getElementById('app');
   document.body.classList.remove('gonly','sbd','ctb');
@@ -1496,13 +1511,20 @@ function renderCabinet(){
   const info=UI.clubEdit?`<h3>О клубе</h3><div class="field"><label>Название</label><input id="cl-name" value="${esc(c.name)}"></div><div class="field"><label>Город</label><input id="cl-city" value="${esc(c.city)}"></div><div class="field"><label>Залы и этажи</label><div id="cl-floors">${(floors(c)||[{name:'1 этаж',n:c.tables||6}]).map(flRow).join('')}</div><button class="lnk" style="font-size:14px;color:var(--accent-ink);margin-top:4px" data-act="addFloor">+ Добавить этаж или зал</button><p class="muted" style="font-size:13px;margin:6px 0 0">Номера столов сквозные: на первом этаже 1–8, на втором с 9 и дальше. Если зал один — этаж нигде не показывается.</p></div><div class="field"><label>Адрес</label><input id="cl-addr" maxlength="200" placeholder="Улица, дом, этаж" value="${esc(c.address||'')}"></div><div class="row2"><div class="field"><label>Телефон</label><input id="cl-phone" type="tel" maxlength="40" placeholder="+7 700 000 00 00" value="${esc(c.phone||'')}"></div><div class="field"><label>Instagram</label><input id="cl-insta" maxlength="60" placeholder="@club" value="${esc(c.instagram||'')}"></div></div><div style="display:flex;gap:8px"><button class="btn blue" data-act="saveClub">Сохранить</button><button class="btn ghost" data-act="cancelClub">Отмена</button></div><div class="err" id="cl-err"></div>`
    :`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h3 style="margin:0">О клубе</h3><button class="btn sm ghost" data-act="editClub">Изменить</button></div>${row('Адрес',esc(c.address||''))}${row('Телефон',esc(c.phone||''))}${row('Instagram',c.instagram?'@'+esc(c.instagram):'')}${row('Столов',floorRanges(c)?floorRanges(c).map(x=>esc(x.name)+' — '+(x.b-x.a+1)).join(', '):(c.tables||6))}${noInfo?`<p class="muted" style="font-size:13px;margin:12px 0 0">Адрес и телефон увидят игроки на странице турнира. <button class="lnk" style="font-size:13px;color:var(--accent-ink)" data-act="editClub">Заполнить</button></p>`:''}`;
   return`<section class="cab-hero"><div class="ch-top"><div class="ch-av">${esc(ini(c.name))}</div><div class="ch-main"><div class="ch-over">Кабинет клуба</div>
-  <h1>${esc(c.name)}</h1><p>${esc(c.city)}${c.address?', '+esc(c.address):''}</p></div>
-  <div class="ch-acts"><button class="btn blue" data-act="newT">${IC.plus}Новый турнир</button><button class="btn ghost" data-act="logout">Выйти</button></div></div>
-  <div class="ch-stats"><div><i>${IC.trophy}</i><b>${mine.length}</b><span>турнир${plural(mine.length)}</span></div><div><i>${IC.users}</i><b>${roster.length}</b><span>игрок${plural(roster.length)}</span></div><div><i>${IC.tbl}</i><b>${c.tables||6}</b><span>стол${plural(c.tables||6)}</span></div></div></section>
-  ${mine.length?`<h2>Мои турниры</h2><div class="hlist">${cabRows(mine)}</div>`:''}
-  <div class="two" style="margin-top:34px"><div class="panel"><h3>Игроки клуба · ${roster.length}</h3>${roster.length?`<div style="max-height:420px;overflow:auto"><table class="tb"><thead><tr><th>Игрок</th><th class="c">Г.р.</th><th>Город</th><th>Звание</th></tr></thead><tbody>${[...roster].sort((a,b)=>a.name.localeCompare(b.name,'ru')).map(p=>`<tr><td><b>${esc(p.name)}</b></td><td class="c">${byear(p)}</td><td>${esc(p.city||'')}</td><td>${esc(p.rank||'')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="muted">Здесь появятся все игроки, которых вы добавите в турниры. В следующий раз их можно будет выбрать из списка, а не вводить заново.</div>'}</div>
-  <div class="panel">${info}</div></div>`;
+  <h1>${esc(c.name)}</h1><p>${esc(c.city)}${c.address?', '+esc(c.address):''}</p><div class="ch-acts"><button class="btn blue" data-act="newT">${IC.plus}Новый турнир</button></div></div>${cabNow(mine)}</div>
+  <div class="ch-stats"><div data-act="scrollTo" data-to="cab-t"><i>${IC.trophy}</i><b>${mine.length}</b><span>турнир${plural(mine.length)}</span><em>›</em></div><div data-act="scrollTo" data-to="cab-p"><i>${IC.users}</i><b>${roster.length}</b><span>игрок${plural(roster.length)}</span><em>›</em></div><div data-act="scrollTo" data-to="cab-i"><i>${IC.tbl}</i><b>${c.tables||6}</b><span>стол${plural(c.tables||6)}</span><em>›</em></div></div></section>
+  ${mine.length?`<h2 id="cab-t">Мои турниры</h2><div class="hlist">${cabRows(mine)}</div>`:''}
+  <div class="two" style="margin-top:34px"><div class="panel" id="cab-p"><h3>Игроки клуба · ${roster.length}</h3>${roster.length?`<div style="max-height:420px;overflow:auto"><table class="tb"><thead><tr><th>Игрок</th><th class="c">Г.р.</th><th>Город</th><th>Звание</th></tr></thead><tbody>${[...roster].sort((a,b)=>a.name.localeCompare(b.name,'ru')).map(p=>`<tr><td><b>${esc(p.name)}</b></td><td class="c">${byear(p)}</td><td>${esc(p.city||'')}</td><td>${esc(p.rank||'')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="muted">Здесь появятся все игроки, которых вы добавите в турниры. В следующий раз их можно будет выбрать из списка, а не вводить заново.</div>'}</div>
+  <div class="panel" id="cab-i">${info}</div></div>`;
 }
+function cabNow(mine){const today=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+  const live=mine.find(T=>tStatus(T)==='live');
+  if(live){const b=build(live);const pl=b.all.filter(m=>m.state!=='bye');const lv=pl.filter(m=>m.state==='live').length,rd=pl.filter(m=>m.state==='ready').length,dn=pl.filter(m=>m.state==='done').length;
+    let day='';if(live.dateEnd&&live.date){const d0=new Date(live.date),d1=new Date(live.dateEnd),dn2=Math.round((new Date(today)-d0)/864e5)+1,tot=Math.round((d1-d0)/864e5)+1;if(dn2>=1&&dn2<=tot)day=` · день ${dn2} из ${tot}`}
+    return`<div class="ch-now"><div class="cn-l live"><i></i>Идёт сейчас</div><b>${esc(live.title)}</b><div class="cn-m">${esc(tFmt(live,b))} · до ${live.raceTo} побед${day}</div><div class="cn-s"><span>За столами <b>${lv}</b></span><span>В очереди <b>${rd}</b></span><span>Сыграно <b>${dn} из ${pl.length}</b></span></div><div class="cn-a"><button class="btn blue" data-act="goT" data-id="${live.id}" data-tab="tables">${IC.tbl}Столы</button><button class="btn ghost" data-act="goT" data-id="${live.id}" data-tab="grid">${IC.net}Сетка</button></div></div>`}
+  const nx=mine.filter(T=>T.status==='reg'&&(T.date||'')>=today).sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0];
+  if(nx)return`<div class="ch-now"><div class="cn-l">Ближайший турнир</div><b>${esc(nx.title)}</b><div class="cn-m">${esc(fdates(nx))}${nx.time?' · '+esc(nx.time):''} · ${nx.players.length} игрок${plural(nx.players.length)}</div><div class="cn-a"><button class="btn blue" data-act="goT" data-id="${nx.id}" data-tab="people">Открыть турнир</button></div></div>`;
+  return''}
 /* ============ wizard ============ */
 function newWiz(){const c=club(S.session);return{step:1,title:'',disc:DISC[0],date:new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10),race:4,format:'de',playoff:'auto',gc:4,ga:2,city:c.city,players:[],seed:'list',q:'',time:'',dateEnd:'',cat:'Клубный',link:'',video:'',pub:true,orgName:'',orgPhone:''}}
 function wizTour(){const w=UI.wiz;return{format:w.format,groups:{count:w.gc,advance:w.ga}}}
@@ -1832,6 +1854,10 @@ const A={
   deView(el){UI.de[el.dataset.id]=el.dataset.v;render()},
   match(el){if(el.classList.contains('hid'))return;openMatch(el.dataset.mid)},
   close(){closeModal()},
+  accMenu(){UI.acc=!UI.acc;render()},
+  accGo(el){UI.acc=false;const to=el.dataset.to;if(location.hash!=='#cabinet')location.hash='#cabinet';render();if(to)setTimeout(()=>{const e=document.getElementById(to);e&&e.scrollIntoView({behavior:'smooth',block:'start'})},60)},
+  scrollTo(el){const e=document.getElementById(el.dataset.to);e&&e.scrollIntoView({behavior:'smooth',block:'start'})},
+  goT(el){UI.tab[el.dataset.id]=el.dataset.tab;location.hash='#t-'+el.dataset.id},
   closeAsk(){openModal(`<div class="pm"><div class="pm-h"><div class="pm-ti"><b>Закрыть турнир?</b><span>${esc(CUR.T.title)}</span></div><button class="x" data-act="close" aria-label="Закрыть">×</button></div><p class="pm-note" style="margin-top:0">Итоги станут окончательными: счёт матчей и сетку больше нельзя будет изменить. Если понадобится, откройте турнир снова в «Итогах».</p><div class="pm-acts"><button class="btn blue" data-act="closeT">Да, закрыть</button><button class="btn ghost" data-act="close">Отмена</button></div></div>`)},
   closeT(){const T=CUR.T;if(!isOwner(T))return;T.closed=true;T.closedAt=Date.now();save();closeModal();render();toast('Турнир закрыт')},
   reopenT(){const T=CUR.T;if(!isOwner(T))return;delete T.closed;delete T.closedAt;save();render();toast('Турнир открыт для правок')},
@@ -1952,7 +1978,7 @@ const A={
     if(T.seedMode==='random'){for(let i=T.players.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[T.players[i],T.players[j]]=[T.players[j],T.players[i]]}}
     T.status='live';T.results={};UI.tab[T.id]='grid';save();render();toast('Сетка построена')}
 };
-document.addEventListener('click',e=>{if(UI.tmenu&&!(e.target.closest&&e.target.closest('.tmenu'))){UI.tmenu=null;render()}
+document.addEventListener('click',e=>{if(UI.tmenu&&!(e.target.closest&&e.target.closest('.tmenu'))){UI.tmenu=null;render()}if(UI.acc&&!(e.target.closest&&e.target.closest('.acc-w'))){UI.acc=false;render()}
   if(e.target.id==='modal'){closeModal();return}
   const el=e.target.closest('[data-act]');if(!el)return;const a=el.dataset.act;
   if(a==='fmt'||a==='seedMode'||a==='callSel'||a==='pmTable'||a==='pmRace'||a==='pmScore'||a==='pmStart'||a==='pmVideo'||a==='autoPr')return;
