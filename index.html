@@ -700,6 +700,8 @@ nav.main a.on{color:var(--ink)}
 nav.main a.cta{background:#fff;color:var(--ink);border:1px solid var(--line2)}
 @media(max-width:1000px){.hlive{grid-template-columns:1fr}.hl-r2{border-left:0;border-top:1px solid var(--line)}.hcols{grid-template-columns:1fr}}
 @media(max-width:640px){.hhero{padding:28px 20px 24px}.hhero h1{font-size:34px}.hhero>p{font-size:15px}.hhero .hf-in{flex-direction:column}.hhero .search,.hhero .btn.white{height:52px}.hl-l{padding:20px}.hl-t{font-size:22px}.hjoin{flex-direction:column;align-items:flex-start;padding:22px}}
+.tabs{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}.tabs::-webkit-scrollbar{display:none}
+@media(max-width:640px){.ph{flex-wrap:wrap;gap:8px 16px}.ptools{flex-wrap:wrap;gap:8px 16px}.two>*{min-width:0}}
 </style>
 </head>
 <body>
@@ -1026,7 +1028,8 @@ const IC=(()=>{const w=p=>`<svg width="18" height="18" viewBox="0 0 24 24" fill=
 function renderGridOnly(T){const b=build(T);CUR={T,b};document.body.classList.add('gonly');
   return`<div class="go-h"><b>${esc(T.title)}</b><span>${fdate(T.date)}${T.format==='de'&&b.name?' · Сетка '+b.name:''}</span></div>${renderGridTab(T,b)}`}
 let RENDER_N=0;
-function render(){RENDER_N++;
+function tabsIntoView(){const t=document.querySelector('.tabs .on');if(t&&t.parentElement.scrollWidth>t.parentElement.clientWidth){const p=t.parentElement;p.scrollLeft=Math.max(0,t.offsetLeft-p.clientWidth/2+t.offsetWidth/2)}}
+function render(){RENDER_N++;setTimeout(tabsIntoView,0);
   const h=location.hash.slice(1)||'home';
   const nav=document.getElementById('nav');
   const me=S.session?club(S.session):null;
