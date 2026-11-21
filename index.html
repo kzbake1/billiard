@@ -663,7 +663,7 @@ const LS='kiy-proto-v3';
 const LVLS=['Л','Л+','П','П+'];const LVL_T={'Л':'любитель','Л+':'любитель+','П':'профи','П+':'профи+'};
 const RANKS=['б/р','3 разряд','2 разряд','1 разряд','КМС','МС','МСМК','ЗМС'];
 const FORMATS={de:'До двух поражений',se:'Олимпийская система',gp:'Группы + плей-офф',rr:'Круговая система'};
-const FORMAT_DESC={de:'Выбывание после двух поражений: верхняя и нижняя сетки, суперфинал',se:'Проиграл — выбыл. Быстро и просто',gp:'Круговой турнир в группах, лучшие выходят в олимпийскую сетку',rr:'Каждый играет с каждым, место — по таблице'};
+const FORMAT_DESC={de:'Выбывание после двух поражений: верхняя и нижняя сетки, затем олимпийка',se:'Проиграл — выбыл. Быстро и просто',gp:'Круговой турнир в группах, лучшие выходят в олимпийскую сетку',rr:'Каждый играет с каждым, место — по таблице'};
 const DISC=['Свободная пирамида','Комбинированная пирамида','Динамичная пирамида','Московская пирамида','Пул 8','Пул 9','Пул 10','Снукер'];
 const LETTERS='ABCDEFGHIJKLMNOP';
 const uid=()=>Math.random().toString(36).slice(2,9);
@@ -987,7 +987,7 @@ function render(){RENDER_N++;
 }
 
 /* ============ home ============ */
-function tFmt(T,b){if(T.stages)return'Отбор по уровням + финал';b=b||build(T);const N=nextPow2(Math.max(2,T.players.length));return T.format==='de'?(b.name?'Сетка '+b.name+(b.stop?' · отбор':''):'Сетка '+N+' · суперфинал'):T.format==='se'?'Олимпийка '+N:T.format==='gp'?`Группы + плей-офф ${T.groups.count}×${T.groups.advance}`:'Круговая'}
+function tFmt(T,b){if(T.stages)return'Отбор по уровням + финал';b=b||build(T);const N=nextPow2(Math.max(2,T.players.length));return T.format==='de'?(b.name?'Сетка '+b.name+(b.stop?' · отбор':''):'Сетка '+N):T.format==='se'?'Олимпийка '+N:T.format==='gp'?`Группы + плей-офф ${T.groups.count}×${T.groups.advance}`:'Круговая'}
 function renderHome(){
   const all=S.tournaments.filter(inList).map(T=>({T,b:T.status==='reg'?null:build(T)}));
   const live=all.filter(x=>x.T.status==='live'&&!x.b.finished).sort((x,y)=>(y.T.date||'').localeCompare(x.T.date||''));
@@ -1213,7 +1213,7 @@ function renderGridTab(T,b){
   if(T.format==='de'&&b.K){
     return`<div style="display:flex;justify-content:flex-end;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px"><div class="lz">${LEGEND}${zoomCtl()}</div></div>${uniHTML(T,b)}`}
   if(T.format==='de'){const hd=t=>`<h3 class="de-h">${t}</h3>`;
-    const fin=`<div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start"><div class="final-box" style="flex:0 1 260px"><div class="round-title">Суперфинал</div><div style="padding-top:8px">${mCard(T,b.gf)}</div></div>${b.gf2?`<div class="final-box" style="flex:0 1 260px"><div class="round-title">Повторный финал</div><div style="padding-top:8px">${mCard(T,b.gf2)}</div></div>`:''}</div>`;
+    const fin=`<div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start"><div class="final-box" style="flex:0 1 260px"><div class="round-title">Финал</div><div style="padding-top:8px">${mCard(T,b.gf)}</div></div>${b.gf2?`<div class="final-box" style="flex:0 1 260px"><div class="round-title">Повторный финал</div><div style="padding-top:8px">${mCard(T,b.gf2)}</div></div>`:''}</div>`;
     return`<div class="withside"><div class="wm"><div style="display:flex;justify-content:flex-end;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px"><div class="lz">${LEGEND}${zoomCtl()}</div></div>
     ${hd('Верхняя сетка')}${bracketHTML(T,b.wb)}${hd('Нижняя сетка')}${bracketHTML(T,b.lb)}${hd('Финал')}${fin}</div></div>`;}
   if(T.format==='rr'){const g=b.groups[0];return`<div class="two"><div class="panel"><h3>Таблица</h3>${standingsHTML(T,g)}</div><div>${g.rounds.map(rd=>`<div class="panel" style="margin-bottom:12px"><h3>${rd.title}</h3><div class="mlist" style="margin:0">${rd.matches.map(m=>mRow(T,m)).join('')}</div></div>`).join('')}</div></div>`}
@@ -1247,7 +1247,7 @@ function renderTablesTab(T,b){
 }
 function stageMap(b){const st={};const put=(arr,f)=>(arr||[]).forEach((rd,i)=>(rd.matches||[]).forEach(m=>{st[m.id]=f(rd,i)}));
   put(b.wb,(rd,i)=>'Верхняя · '+(i+1));put(b.lb,(rd,i)=>'Нижняя · '+(i+1));put(b.rounds,rd=>rd.title||'');
-  if(b.third)st[b.third.id]='Матч за 3 место';if(b.gf)st[b.gf.id]='Суперфинал';if(b.gf2)st[b.gf2.id]='Суперфинал · 2';
+  if(b.third)st[b.third.id]='Матч за 3 место';if(b.gf)st[b.gf.id]='Финал';if(b.gf2)st[b.gf2.id]='Финал · 2';
   (b.groups||[]).forEach((g,gi)=>(g.rounds||[]).forEach(rd=>(rd.matches||[]).forEach(m=>{st[m.id]=(b.groups.length>1?(g.name||g.title||'Группа '+(gi+1))+' · ':'')+(rd.title||'')})));return st}
 function renderSheet(T,b){const st=stageMap(b);const ms=b.all.filter(m=>m.state!=='bye').sort((x,y)=>x.no-y.no);
   const nm=s=>s.t==='p'?esc(pname(T,s)):'';const stl={live:'<span class="mst live">● играют</span>',ready:'<span class="mst ok">● на очереди</span>',done:'сыгран',wait:''};
@@ -1283,13 +1283,13 @@ function prepBar(T){const n=T.players.length;const late=T.drawn&&T.players.some(
   return`<div class="prep"><div class="prep-t"><b>Подготовка</b><span>${n} участник${plural(n)} · ${T.drawn?(late?'<em>после жеребьёвки добавлены новые — проведите её заново</em>':'жеребьёвка проведена'):'<em>проведите жеребьёвку, чтобы задать схему</em>'} · судей ${(T.judges||[]).length}</span></div>
   <div class="prep-a"><button class="btn ghost" data-act="drawOpen" ${n<2?'disabled':''}>${IC.dice}${T.drawn?'Жеребьёвка заново':'Жеребьёвка'}</button>${new Set(T.players.map(p=>p.lvl).filter(Boolean)).size>1?`<button class="btn ghost" data-act="splitOpen">${IC.grid}Разделить по уровням</button>`:''}<button class="btn blue" data-act="schOpen" ${n<2||!T.drawn||late?`disabled title="Сначала проведите жеребьёвку"`:''}>${IC.grid}Задать схему турнира</button></div></div>`}
 function gridOpts(n){const N=nextPow2(Math.max(2,n)),o=[];[4,8,16].forEach(k=>{if(playoffK({playoff:k},n)===k)o.push(['de:'+k,deName(n,k)])});
-  o.push(['de:0',N+' · суперфинал'],['se','Олимпийка '+N],['gp','Группы + плей-офф'],['rr','Круговая']);return o}
+  o.push(['se','Олимпийка '+N],['gp','Группы + плей-офф'],['rr','Круговая']);return o}
 function gridVal(u,n){if(u.format!=='de')return u.format;const k=u.playoff==='auto'?playoffK({playoff:'auto'},n):(+u.playoff?playoffK({playoff:u.playoff},n):0);return'de:'+k}
 function schExplain(u,n){const N=nextPow2(Math.max(2,n)),K=u.format==='de'?playoffK({playoff:u.playoff},n):0;const can3=u.format!=='rr'&&!(u.format==='de'&&!K);
   const cnt=fmtMatches(u.format,n,u.gc,u.playoff)+(u.third&&can3?1:0);const mt=`${u.format==='de'&&!K?'до ':''}${cnt} матч${plural(cnt)}`;
   const S=K?(N>=16&&n<=N*3/4?N*3/4:N):N;const free=S-n;const fr=free>0?` ${free} ${free===1?'пустое место':'пустых мест'+(free<5?'а':'')}.`:'';
   if(u.format==='de'&&K)return[`${S}-${K}`,`До двух поражений. С ${K} игрок${plural(K)} — олимпийка.${fr}`,mt];
-  if(u.format==='de')return[`${N} · суперфинал`,`До двух поражений. В финале — победители верхней и нижней.${fr}`,mt];
+  if(u.format==='de')return[`Сетка ${N}`,`До двух поражений.${fr}`,mt];
   if(u.format==='se')return[`Олимпийка ${N}`,`Проиграл — выбыл.${fr}`,mt];
   if(u.format==='gp')return['Группы + плей-офф',`${u.gc} групп${u.gc<5?'ы':''} по кругу, из каждой ${u.ga} — в олимпийку.`,mt];
   return['Круговая','Каждый с каждым.',mt]}
@@ -1683,7 +1683,7 @@ const A={
       const R=(arr,t,k)=>(arr||[]).map((rd,i)=>({title:t(rd,i),matches:rd.matches,k,i}));
       const blocks=[];
       if(T.format==='de'&&b.K)blocks.push({name:'',L:R(b.lb,(rd,i)=>'Нижняя · раунд '+(i+1),'l').reverse(),Rt:[...R(b.wb,(rd,i)=>'Верхняя · раунд '+(i+1),'w'),...R(b.rounds,rd=>rd.title,'p')]});
-      else if(T.format==='de'){blocks.push({name:'Верхняя сетка',L:[],Rt:R(b.wb,rd=>rd.title,'w')});blocks.push({name:'Нижняя сетка',L:[],Rt:R(b.lb,rd=>rd.title,'l')});blocks.push({name:'Суперфинал',L:[],Rt:[{title:'Суперфинал',matches:[b.gf,b.gf2].filter(Boolean),k:'p',i:0}]})}
+      else if(T.format==='de'){blocks.push({name:'Верхняя сетка',L:[],Rt:R(b.wb,rd=>rd.title,'w')});blocks.push({name:'Нижняя сетка',L:[],Rt:R(b.lb,rd=>rd.title,'l')});blocks.push({name:'Финал',L:[],Rt:[{title:'Финал',matches:[b.gf,b.gf2].filter(Boolean),k:'p',i:0}]})}
       else if(b.rounds&&b.rounds.length&&T.format!=='rr')blocks.push({name:T.format==='gp'?'Плей-офф':'',L:[],Rt:R(b.rounds,rd=>rd.title,'p')});
       if(blocks.length){const ws=wb.addWorksheet('Сетка',{views:[{showGridLines:false}],pageSetup:{orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:1,paperSize:9}});let top=1,maxC=0;
         const cell=(r,c)=>ws.getCell(r,c);const bd=(r,c,side,v)=>{const x=cell(r,c);x.border=Object.assign({},x.border||{},{[side]:v})};
@@ -1798,7 +1798,7 @@ const A={
     const r=(c.roster||[]).find(x=>x.id===p.id);if(r)Object.assign(r,upd);save();closeModal();render();toast('Сохранено')},
   drawT(){const T=CUR.T;const a=T.players.map((p,i)=>i+1);for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
     T.players.forEach((p,i)=>p.no=a[i]);T.players.sort((x,y)=>x.no-y.no);T.drawn=true;UI.psort={k:'pos',d:1};save();render();toast('Жеребьёвка проведена')},
-  schOpen(){const T=CUR.T;UI.tmenu=null;UI.sch={third:!!T.third,format:T.format||'de',playoff:T.playoff===undefined?'auto':T.playoff,gc:(T.groups&&T.groups.count)||4,ga:(T.groups&&T.groups.advance)||2,race:T.raceTo||4};if(document.querySelector('.pop'))render();openModal(schHTML(T))},
+  schOpen(){const T=CUR.T;UI.tmenu=null;UI.sch={third:!!T.third,format:T.format||'de',playoff:T.playoff===undefined?'auto':T.playoff,gc:(T.groups&&T.groups.count)||4,ga:(T.groups&&T.groups.advance)||2,race:T.raceTo||4};if(UI.sch.format==='de'&&!playoffK({playoff:UI.sch.playoff},T.players.length)){UI.sch.format='de';UI.sch.playoff='auto';if(!playoffK({playoff:'auto'},T.players.length))UI.sch.format='se'}if(document.querySelector('.pop'))render();openModal(schHTML(T))},
   schIn(el){const u=UI.sch,k=el.dataset.sch;if(k==='grid'){const [f,p]=el.value.split(':');u.format=f;if(f==='de')u.playoff=+p;openModal(schHTML(CUR.T));return}u[k]=k==='third'?el.checked:k==='playoff'?(el.value==='auto'?'auto':+el.value):el.value;openModal(schHTML(CUR.T))},
   schSet(el){const u=UI.sch,k=el.dataset.k,v=el.dataset.v;u[k]=k==='playoff'?(v==='auto'?'auto':+v):v;openModal(schHTML(CUR.T))},
   schNum(el){const u=UI.sch,k=el.dataset.k,lim={gc:[2,16],ga:[1,8],race:[1,25]}[k];u[k]=Math.max(lim[0],Math.min(lim[1],u[k]+(+el.dataset.d)));openModal(schHTML(CUR.T))},
