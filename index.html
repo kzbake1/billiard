@@ -682,6 +682,24 @@ nav.main .acc-dd a,.acc-dd button{display:block;width:100%;text-align:left;paddi
 @media(max-width:640px){.ch-stats em{display:none}}
 .ov{margin:-4px 0 14px;background:var(--gold-bg,#FFF4D6);color:#5C4100;border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.45}
 .fr-h{padding:12px 16px 6px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.hhero{background:var(--accent) url(pattern-blue.svg) 0 0/320px auto;border-radius:16px;color:#fff;padding:48px 48px 36px;margin-bottom:36px;position:relative}
+.hh-ey{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-tint)}.hhero h1{margin:12px 0 0;font-size:52px;font-weight:500;letter-spacing:-.03em;line-height:1.05;color:#fff}.hhero>p{margin:12px 0 0;font-size:18px;color:var(--blue-tint)}
+.hhero .hf-in{margin-top:28px;max-width:820px;display:flex;gap:10px}.hhero .search{height:60px;font-size:17px;border:0;border-radius:12px;flex:1}.hhero .btn.white{background:#fff;color:var(--accent);border-color:#fff;height:60px;display:inline-flex;align-items:center;gap:6px;padding:0 20px;border-radius:12px}
+.hhero #find-res{max-width:820px;color:var(--ink)}.hh-st{margin-top:22px;display:flex;flex-wrap:wrap;gap:8px 28px;font-size:14px;color:var(--blue-tint)}.hh-st b{color:#fff;font-weight:600}
+.hlive{background:#fff;border:1px solid var(--line);border-radius:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,480px);overflow:hidden}.hlive+.hlive{margin-top:14px}.hlive.solo{grid-template-columns:1fr}
+.hl-l{padding:28px}.hl-pill{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--live-ink);background:var(--live-soft);border-radius:999px;padding:5px 12px}.hl-pill i{width:7px;height:7px;border-radius:50%;background:var(--live)}
+.hl-t{display:block;margin-top:14px;font-size:28px;font-weight:600;letter-spacing:-.02em;color:var(--ink);text-decoration:none}.hl-t:hover{color:var(--accent-ink)}.hl-mm{margin-top:6px;color:var(--muted);font-size:14px}
+.hl-pr{margin-top:22px}.hl-pr .bar{height:8px;border-radius:99px;background:var(--soft);overflow:hidden}.hl-pr .bar i{display:block;height:100%;background:var(--accent)}.hl-pr span{display:block;margin-top:8px;font-size:13px;color:var(--sub)}
+.hl-ac{margin-top:24px;display:flex;flex-wrap:wrap;gap:10px}.hl-ac .btn{display:inline-flex;align-items:center;gap:8px}.hl-ac .tvb{color:var(--live-ink)}
+.hl-r2{background:#F7F7F7;padding:22px 24px;border-left:1px solid var(--line)}.hl-r2 h4{margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.hl-mt{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px;display:grid;grid-template-columns:90px 1fr;gap:12px;align-items:center;font-size:14px;cursor:pointer}.hl-mt.on{border-color:#F3C9C3}.hl-mt+.hl-mt{margin-top:8px}.hl-mt small{font-size:12px;font-weight:600;color:var(--muted)}.hl-mt.on small{color:var(--live-ink)}
+.hl-mt .n div{display:flex;justify-content:space-between;gap:8px}.hl-mt .n div+div{margin-top:4px}.hl-mt .n b{font-variant-numeric:tabular-nums}.hl-more{margin-top:8px;font-size:13px;color:var(--muted)}
+.hcols{display:grid;grid-template-columns:1fr 1fr;gap:24px}.hcols.one{grid-template-columns:1fr}
+.hjoin{margin-top:40px;background:var(--accent-soft);border-radius:16px;padding:28px 32px;display:flex;align-items:center;gap:24px}.hjoin div{flex:1}.hjoin b{font-size:22px;font-weight:600}.hjoin p{margin:6px 0 0;color:var(--sub);font-size:15px}.hjoin .btn{display:inline-flex;align-items:center;gap:8px;height:48px;padding:0 20px}
+nav.main a.on{color:var(--ink)}
+nav.main a.cta{background:#fff;color:var(--ink);border:1px solid var(--line2)}
+@media(max-width:1000px){.hlive{grid-template-columns:1fr}.hl-r2{border-left:0;border-top:1px solid var(--line)}.hcols{grid-template-columns:1fr}}
+@media(max-width:640px){.hhero{padding:28px 20px 24px}.hhero h1{font-size:34px}.hhero>p{font-size:15px}.hhero .hf-in{flex-direction:column}.hhero .search,.hhero .btn.white{height:52px}.hl-l{padding:20px}.hl-t{font-size:22px}.hjoin{flex-direction:column;align-items:flex-start;padding:22px}}
 </style>
 </head>
 <body>
@@ -1034,15 +1052,30 @@ function renderHome(){
   const live=all.filter(x=>x.T.status==='live'&&!x.b.finished).sort((x,y)=>(y.T.date||'').localeCompare(x.T.date||''));
   const soon=all.filter(x=>x.T.status==='reg').sort((x,y)=>(x.T.date||'').localeCompare(y.T.date||''));
   const done=all.filter(x=>x.b&&x.b.finished).sort((x,y)=>(y.T.date||'').localeCompare(x.T.date||''));
-  const more=UI.homeMore;const dn=more?done:done.slice(0,6);
+  const more=UI.homeMore;const dn=more?done:done.slice(0,4);
+  const nClubs=new Set(all.map(x=>x.T.clubId)).size;
   const sec=(t,n,body,extra='')=>`<section class="hs"><div class="hs-h"><h2>${t}</h2>${n?`<span>${n}</span>`:''}${extra}</div>${body}</section>`;
-  if(!S.tournaments.length)return`<div class="hfind"><h1>Бильярдные турниры</h1></div><div class="empty">${S.session?'Турниров пока нет.<br><br><button class="btn blue big" data-act="newT">+ Создать первый турнир</button>':'Турниров пока нет. Они появятся здесь, когда клубы их создадут.<br><br><a class="btn dark" href="#cabinet">Вы клуб? Войдите, чтобы создать турнир</a>'}</div>`;
-  return`<div class="hfind"><h1>Бильярдные турниры</h1><p>Найдите себя, турнир или клуб — покажем ваш следующий матч и стол.</p>
-  <div class="hf-in"><input id="pq" class="search" type="search" autocomplete="off" placeholder="Игрок, турнир или клуб" value="${esc(UI.pq||'')}">${S.session?`<button class="btn blue" data-act="newT">+ Новый турнир</button>`:''}</div><div id="find-res"></div></div>
-  <div class="hgrid"><div class="hmain">${live.length?sec('Сейчас идут',live.length,`<div class="hlist">${live.map(x=>hLive(x.T,x.b)).join('')}</div>`):''}
-  ${soon.length?sec('Скоро',soon.length,`<div class="hlist">${soon.map(x=>hSoon(x.T)).join('')}</div>`):''}
-  ${done.length?sec('Завершённые',done.length,`<div class="hlist">${dn.map(x=>hDone(x.T,x.b)).join('')}</div>${done.length>6?`<button class="btn ghost hs-more" data-act="homeMore">${more?'Свернуть':'Показать все'}</button>`:''}`):''}</div>${hTop()}</div>`;
+  const stats=[live.length?`<span><b>${live.length}</b> ${live.length===1?'идёт сейчас':'идут сейчас'}</span>`:'',soon.length?`<span><b>${soon.length}</b> скоро</span>`:'',nClubs?`<span><b>${nClubs}</b> клуб${plural(nClubs)}</span>`:''].join('');
+  const hero=`<section class="hhero"><div class="hh-ey">kazbilliard · турнирная платформа</div><h1>Бильярдные турниры<br>Казахстана</h1><p>Сетка, счёт и столы — онлайн. Найдите себя и узнайте свой следующий матч.</p>
+  <div class="hf-in"><input id="pq" class="search" type="search" autocomplete="off" placeholder="Игрок, турнир или клуб" value="${esc(UI.pq||'')}">${S.session?`<button class="btn white" data-act="newT">${IC.plus}Новый турнир</button>`:''}</div><div id="find-res"></div>${stats?`<div class="hh-st">${stats}</div>`:''}</section>`;
+  const join=`<section class="hjoin"><div><b>Проводите бильярдные турниры?</b><p>Подключите клуб — сетка, счёт и столы онлайн. Первый месяц бесплатно.</p></div><a class="btn blue" href="https://wa.me/77764308322" target="_blank" rel="noopener">${IC.wa}Написать в WhatsApp</a></section>`;
+  if(!all.length)return hero+`<div class="empty">${S.session?'Турниров пока нет.<br><br><button class="btn blue big" data-act="newT">+ Создать первый турнир</button>':'Турниров пока нет. Они появятся здесь, когда клубы их создадут.'}</div>`+(S.session?'':join);
+  const cols=[soon.length?sec('Скоро',soon.length,`<div class="hlist">${soon.map(x=>hSoon(x.T)).join('')}</div>`):'',
+    done.length?sec('Недавно завершились','',`<div class="hlist">${dn.map(x=>hDone(x.T,x.b)).join('')}</div>${done.length>4?`<button class="btn ghost hs-more" data-act="homeMore">${more?'Свернуть':'Показать все · '+done.length}</button>`:''}`):''].filter(Boolean);
+  return hero+(live.length?sec('Сейчас идут',live.length,live.map(x=>hLiveBig(x.T,x.b)).join('')):'')+
+    (cols.length?`<div class="hcols${cols.length===1?' one':''}">${cols.join('')}</div>`:'')+(S.session?'':join);
 }
+function hLiveBig(T,b){const c=club(T.clubId);const pl=b.all.filter(m=>m.state!=='bye');const dn=pl.filter(m=>m.state==='done').length;const sm=stageMap(b);
+  const lv=pl.filter(m=>m.state==='live').sort((x,y)=>(x.res.table||99)-(y.res.table||99)),rd=pl.filter(m=>m.state==='ready').sort((x,y)=>x.no-y.no);
+  const cur=(lv[0]||rd[0]);const stg=cur?sm[cur.id]:'';
+  const today=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);let day='';
+  if(T.dateEnd&&T.date&&T.dateEnd>T.date){const d0=new Date(T.date),tot=Math.round((new Date(T.dateEnd)-d0)/864e5)+1,n=Math.round((new Date(today)-d0)/864e5)+1;if(n>=1&&n<=tot)day=` · день ${n} из ${tot}`}
+  const vid=(lv.find(m=>m.res&&m.res.video)||{}).res;const tv=vid?vid.video:T.video;
+  const mrow=(m,live)=>`<div class="hl-mt${live?' on':''}" data-act="goT" data-id="${T.id}" data-tab="grid"><small>${m.res&&m.res.table?esc(tlabel(c,m.res.table)):'№'+m.no}</small><div class="n"><div><span>${esc(sname(pname(T,m.a)))}</span>${live?`<b>${m.res.sa}</b>`:''}</div><div><span>${esc(sname(pname(T,m.b)))}</span>${live?`<b>${m.res.sb}</b>`:''}</div></div></div>`;
+  const right=lv.length?`<h4>За столами сейчас</h4>${lv.slice(0,3).map(m=>mrow(m,1)).join('')}${lv.length>3?`<div class="hl-more">и ещё ${lv.length-3}</div>`:''}`:rd.length?`<h4>Следующие к столу</h4>${rd.slice(0,3).map(m=>mrow(m,0)).join('')}`:'';
+  return`<div class="hlive${right?'':' solo'}"><div class="hl-l"><span class="hl-pill"><i></i>Идёт${day}</span><a class="hl-t" href="#t-${T.id}">${esc(T.title)}</a><div class="hl-mm">${esc([c.name,T.city,tFmt(T,b),'до '+T.raceTo+' побед',T.players.length+' игрок'+plural(T.players.length)].filter(Boolean).join(' · '))}</div>
+  <div class="hl-pr"><div class="bar"><i style="width:${pl.length?Math.round(dn/pl.length*100):0}%"></i></div><span>Сыграно ${dn} из ${pl.length} матчей${stg?' · сейчас '+esc(stg):''}</span></div>
+  <div class="hl-ac"><button class="btn blue" data-act="goT" data-id="${T.id}" data-tab="grid">${IC.net}Смотреть сетку</button>${tv?`<a class="btn ghost tvb" href="${esc(tv)}" target="_blank" rel="noopener">${IC.play}Трансляция</a>`:''}</div></div>${right?`<div class="hl-r2">${right}</div>`:''}</div>`}
 function cabRows(list){const o={live:0,reg:1,done:2};return list.map(T=>{const b=T.status==='reg'?null:build(T);return{T,b,st:T.status==='reg'?'reg':b.finished?'done':'live'}})
   .sort((x,y)=>o[x.st]-o[y.st]||((x.st==='done'?-1:1)*(x.T.date||'').localeCompare(y.T.date||'')))
   .map(({T,b,st})=>{let h=st==='live'?hLive(T,b):st==='reg'?hSoon(T):hDone(T,b);
