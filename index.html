@@ -994,7 +994,7 @@ function tFromRow(r){const t=Object.assign(cleanData(r.data||{}),{id:String(r.id
 const MYW={};function wTag(id){const w=uid()+Date.now().toString(36);(MYW[id]=MYW[id]||new Set()).add(w);if(MYW[id].size>200)MYW[id].delete(MYW[id].values().next().value);return w}
 function noW(d){if(d&&(d._w!==undefined||d._v!==undefined)){d=Object.assign({},d);delete d._w;delete d._v}return d}
 // версия записи: база не принимает изменения турниров от старых открытых вкладок (триггер tournament_version); при обновлении поднять и тут, и в триггере
-const APP_V=3;let RELOADING=false;function staleReload(){if(RELOADING)return;RELOADING=true;toast('Сайт обновился — перезагружаем страницу');setTimeout(()=>location.reload(),1500)}
+const APP_V=4;let RELOADING=false;function staleReload(){if(RELOADING)return;RELOADING=true;toast('Сайт обновился — перезагружаем страницу');setTimeout(()=>location.reload(),1500)}
 function save(){if(S.session)S.tournaments.forEach(t=>{if(t.clubId===S.session&&t.draw&&!t.poPerm&&maybeDraw(t))setTimeout(()=>toast('Жеребьёвка олимпийки проведена'),50)});pending++;saveQ=saveQ.then(doSave).catch(()=>{}).then(()=>{pending--})}
 const jsq=x=>JSON.stringify(x,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.keys(v).sort().reduce((o,kk)=>(o[kk]=v[kk],o),{}):v);
 function merge3(b,l,s){b=b||{};l=l||{};s=s||{};const out={};const ks=o=>Object.keys(o||{});
@@ -1005,7 +1005,9 @@ function merge3(b,l,s){b=b||{};l=l||{};s=s||{};const out={};const ks=o=>Object.k
 function applyData(T,d){Object.keys(T).forEach(k=>{if(k!=='id'&&k!=='clubId')delete T[k]});Object.assign(T,JSON.parse(jsq(d)))}
 async function saveT1(T){const base=JSON.parse(SNAP.t[T.id]);const sent=tData(T);
   const {data:row,error}=await sb.from('tournament').select('data').eq('id',T.id).maybeSingle();if(error)return{error};
-  const merged=merge3(base,sent,(row&&row.data?noW(cleanData(row.data)):null)||base);const r=await sb.from('tournament').update({data:Object.assign({},merged,{_w:wTag(T.id),_v:APP_V})}).eq('id',T.id);
+  const sv=row&&row.data?noW(cleanData(row.data)):null;const merged=merge3(base,sent,sv||base);
+  if(sv&&jsq(merged)===jsq(sv)){SNAP.t[T.id]=jsq(merged);const now=tData(T);const fin=merge3(sent,now,merged);if(jsq(fin)!==jsq(now)){applyData(T,fin);softRender()}return{}}
+  const r=await sb.from('tournament').update({data:Object.assign({},merged,{_w:wTag(T.id),_v:APP_V})}).eq('id',T.id);
   if(!r.error){SNAP.t[T.id]=jsq(merged);OWN_TS[T.id]=Date.now();const now=tData(T);const fin=merge3(sent,now,merged);if(jsq(fin)!==jsq(now)){applyData(T,fin);softRender()}}
   return r}
 async function doSave(){
