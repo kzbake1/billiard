@@ -684,7 +684,7 @@ nav.main .acc-dd a,.acc-dd button{display:block;width:100%;text-align:left;paddi
 .fr-h{padding:12px 16px 6px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .hhero{background:var(--accent);border-radius:16px;color:#fff;padding:48px 48px 36px;margin-bottom:36px;position:relative}
 .hh-ey{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-tint)}.hhero h1{margin:12px 0 0;font-size:52px;font-weight:500;letter-spacing:-.03em;line-height:1.05;color:#fff}.hhero>p{margin:12px 0 0;font-size:18px;color:var(--blue-tint)}
-.hhero .hf-in{margin-top:28px;max-width:820px;display:flex;gap:10px}.hhero .search{height:60px;font-size:17px;border:0;border-radius:12px;flex:1}.hhero .btn.white{background:#fff;color:var(--accent);border-color:#fff;height:60px;display:inline-flex;align-items:center;gap:6px;padding:0 20px;border-radius:12px}
+.hhero .hf-in{margin-top:28px;max-width:820px;display:flex;gap:10px}.hhero .search{height:60px;font-size:17px;border:0;border-radius:12px;flex:1;color:var(--ink);background-color:#fff}.hhero .btn.white{background:#fff;color:var(--accent);border-color:#fff;height:60px;display:inline-flex;align-items:center;gap:6px;padding:0 20px;border-radius:12px}
 .hhero #find-res{max-width:820px;color:var(--ink)}.hh-st{margin-top:22px;display:flex;flex-wrap:wrap;gap:8px 28px;font-size:14px;color:var(--blue-tint)}.hh-st b{color:#fff;font-weight:600}
 .hlive{background:#fff;border:1px solid var(--line);border-radius:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,480px);overflow:hidden}.hlive+.hlive{margin-top:14px}.hlive.solo{grid-template-columns:1fr}
 .hl-l{padding:28px}.hl-pill{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--live-ink);background:var(--live-soft);border-radius:999px;padding:5px 12px}.hl-pill i{width:7px;height:7px;border-radius:50%;background:var(--live)}
@@ -707,6 +707,7 @@ nav.main a.cta{background:#fff;color:var(--ink);border:1px solid var(--line2)}
 @media(max-width:800px){.lg-grid{grid-template-columns:1fr}}
 .lg-fgf{margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}.lg-fgf>b{font-size:16px;font-weight:600}.lg-fgf>p{margin:4px 0 14px;font-size:14px;color:var(--muted)}.ok-msg{margin-top:10px;font-size:14px;color:var(--ok)}
 .pw-w{position:relative;display:block}.pw-w input{width:100%;padding-right:48px}.pw-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;background:none;color:var(--muted);display:grid;place-items:center;cursor:pointer;border-radius:8px}.pw-eye:hover{color:var(--ink);background:var(--soft)}
+.hhero .fr,.hhero .fr-no{margin-top:8px;max-width:820px;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12)}.hhero .fr-no{padding:16px 20px;color:var(--muted);font-size:15px}
 </style>
 </head>
 <body>
@@ -1070,7 +1071,7 @@ function renderHome(){
   const sec=(t,n,body,extra='')=>`<section class="hs"><div class="hs-h"><h2>${t}</h2>${n?`<span>${n}</span>`:''}${extra}</div>${body}</section>`;
   const stats=[live.length?`<span><b>${live.length}</b> ${live.length===1?'идёт сейчас':'идут сейчас'}</span>`:'',soon.length?`<span><b>${soon.length}</b> скоро</span>`:'',nClubs?`<span><b>${nClubs}</b> клуб${plural(nClubs)}</span>`:''].join('');
   const hero=`<section class="hhero"><div class="hh-ey">kazbilliard · турнирная платформа</div><h1>Бильярдные турниры<br>Казахстана</h1><p>Сетка, счёт и столы — онлайн. Найдите себя и узнайте свой следующий матч.</p>
-  <div class="hf-in"><input id="pq" class="search" type="search" autocomplete="off" placeholder="Игрок, турнир или клуб" value="${esc(UI.pq||'')}">${S.session?`<button class="btn white" data-act="newT">${IC.plus}Новый турнир</button>`:''}</div><div id="find-res"></div>${stats?`<div class="hh-st">${stats}</div>`:''}</section>`;
+  <div class="hf-in"><input id="pq" class="search" type="search" autocomplete="off" spellcheck="false" autocorrect="off" placeholder="Игрок, турнир или клуб" value="${esc(UI.pq||'')}">${S.session?`<button class="btn white" data-act="newT">${IC.plus}Новый турнир</button>`:''}</div><div id="find-res"></div>${stats?`<div class="hh-st">${stats}</div>`:''}</section>`;
   const join=`<section class="hjoin"><div><b>Проводите бильярдные турниры?</b><p>Подключите клуб — сетка, счёт и столы онлайн. Первый месяц бесплатно.</p></div><a class="btn blue" href="https://wa.me/77764308322" target="_blank" rel="noopener">${IC.wa}Написать в WhatsApp</a></section>`;
   if(!all.length)return hero+`<div class="empty">${S.session?'Турниров пока нет.<br><br><button class="btn blue big" data-act="newT">+ Создать первый турнир</button>':'Турниров пока нет. Они появятся здесь, когда клубы их создадут.'}</div>`+(S.session?'':join);
   const cols=[soon.length?sec('Скоро',soon.length,`<div class="hlist">${soon.map(x=>hSoon(x.T)).join('')}</div>`):'',
