@@ -681,6 +681,7 @@ nav.main .acc-dd a,.acc-dd button{display:block;width:100%;text-align:left;paddi
 .ch-stats>div{cursor:pointer}.ch-stats em{margin-left:auto;font-style:normal;font-size:20px;color:var(--accent-ink)}.ch-stats>div:hover{box-shadow:0 0 0 1px var(--accent) inset}
 @media(max-width:1100px){.ch-top{grid-template-columns:auto minmax(0,1fr)}.ch-now{grid-column:1/-1}}
 @media(max-width:640px){.ch-stats em{display:none}}
+.ov{margin:-4px 0 14px;background:var(--gold-bg,#FFF4D6);color:#5C4100;border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.45}
 </style>
 </head>
 <body>
@@ -1517,6 +1518,9 @@ function renderCabinet(){
   <div class="two" style="margin-top:34px"><div class="panel" id="cab-p"><h3>Игроки клуба · ${roster.length}</h3>${roster.length?`<div style="max-height:420px;overflow:auto"><table class="tb"><thead><tr><th>Игрок</th><th class="c">Г.р.</th><th>Город</th><th>Звание</th></tr></thead><tbody>${[...roster].sort((a,b)=>a.name.localeCompare(b.name,'ru')).map(p=>`<tr><td><b>${esc(p.name)}</b></td><td class="c">${byear(p)}</td><td>${esc(p.city||'')}</td><td>${esc(p.rank||'')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="muted">Здесь появятся все игроки, которых вы добавите в турниры. В следующий раз их можно будет выбрать из списка, а не вводить заново.</div>'}</div>
   <div class="panel" id="cab-i">${info}</div></div>`;
 }
+function ovHTML(d,de,skip){if(!d||!S.session)return'';const a=d,b2=de&&de>=d?de:d;
+  const L=S.tournaments.filter(T=>T.clubId===S.session&&T.id!==skip&&!T.parent&&T.date&&tStatus(T)!=='done'&&T.date<=b2&&(T.dateEnd&&T.dateEnd>=T.date?T.dateEnd:T.date)>=a);
+  return L.length?`<div class="ov">В эти даты ${L.length>1?'идут турниры':'идёт турнир'} ${L.map(T=>'«'+esc(T.title)+'»').join(', ')} — столы будут общие. Занятый стол в другом турнире показывается как «Занят».</div>`:''}
 function cabNow(mine){const today=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
   const live=mine.find(T=>tStatus(T)==='live');
   if(live){const b=build(live);const pl=b.all.filter(m=>m.state!=='bye');const lv=pl.filter(m=>m.state==='live').length,rd=pl.filter(m=>m.state==='ready').length,dn=pl.filter(m=>m.state==='done').length;
@@ -1535,7 +1539,7 @@ function renderCreate(){
     <div class="field"><label>Название</label><input data-w="title" value="${esc(w.title)}" placeholder="Необязательно — назовём по дисциплине и дате"></div>
     <div class="wz-row2"><div class="field"><label>Дисциплина</label><select data-w="disc">${DISC.map(d=>`<option ${w.disc===d?'selected':''}>${d}</option>`).join('')}</select></div>
     <div class="field"><label>Категория</label><select data-w="cat">${CATS.map(d=>`<option ${w.cat===d?'selected':''}>${d}</option>`).join('')}</select></div></div>
-    <div class="wz-row3"><div class="field"><label>Начало</label><input type="date" data-w="date" value="${w.date}"></div><div class="field"><label>Время</label><input type="time" data-w="time" value="${esc(w.time)}"></div><div class="field"><label>Окончание</label><input type="date" data-w="dateEnd" min="${w.date}" value="${esc(w.dateEnd)}"></div></div>
+    <div class="wz-row3"><div class="field"><label>Начало</label><input type="date" data-w="date" value="${w.date}"></div><div class="field"><label>Время</label><input type="time" data-w="time" value="${esc(w.time)}"></div><div class="field"><label>Окончание</label><input type="date" data-w="dateEnd" min="${w.date}" value="${esc(w.dateEnd)}"></div></div><div class="ov-w" id="w-ov">${ovHTML(w.date,w.dateEnd,'')}</div>
     <div class="wz-row2"><div class="field"><label>Организатор <small>имя</small></label><input data-w="orgName" value="${esc(w.orgName)}" placeholder="Фамилия Имя"></div><div class="field"><label>Телефон / WhatsApp</label><input type="tel" inputmode="tel" data-w="orgPhone" value="${esc(w.orgPhone)}" placeholder="+7 700 000 00 00"></div></div>
     <div class="wz-row2"><div class="field"><label>Канал трансляций <small>YouTube, необязательно</small></label><input type="url" inputmode="url" data-w="video" value="${esc(w.video)}" placeholder="https://youtube.com/@club"><p class="muted" style="font-size:13px;margin:6px 0 0">Ссылка на YouTube-канал клуба. Трансляцию каждой встречи судья добавит в пульте матча.</p></div></div>
     <div class="field" style="margin-bottom:0"><label>Опубликовать</label><div class="fpills sm">${[[1,'Да, показывать на сайте'],[0,'Нет, пока черновик']].map(([k,l])=>`<button class="${(w.pub?1:0)===k?'on':''}" data-act="wPub" data-v="${k}">${l}</button>`).join('')}</div></div>
@@ -1573,7 +1577,7 @@ function editTHTML(T){const pub=UI.ePub===undefined?isPub(T):UI.ePub;
   return`<div class="ed"><div class="pm-h"><div class="pm-ti"><b>Изменить турнир</b></div><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
   <div class="field"><label>Название</label><input id="e-title" value="${esc(T.title)}"></div>
   <div class="wz-row2"><div class="field"><label>Дисциплина</label><select id="e-disc">${DISC.map(d=>`<option ${T.discipline===d?'selected':''}>${d}</option>`).join('')}</select></div><div class="field"><label>Категория</label><select id="e-cat">${CATS.map(d=>`<option ${(T.category||'Клубный')===d?'selected':''}>${d}</option>`).join('')}</select></div></div>
-  <div class="wz-row3"><div class="field"><label>Начало</label><input id="e-date" type="date" value="${esc(T.date)}"></div><div class="field"><label>Время</label><input id="e-time" type="time" value="${esc(T.time||'')}"></div><div class="field"><label>Окончание</label><input id="e-end" type="date" min="${esc(T.date)}" value="${esc(T.dateEnd||'')}"></div></div>
+  <div class="wz-row3"><div class="field"><label>Начало</label><input id="e-date" type="date" value="${esc(T.date)}"></div><div class="field"><label>Время</label><input id="e-time" type="time" value="${esc(T.time||'')}"></div><div class="field"><label>Окончание</label><input id="e-end" type="date" min="${esc(T.date)}" value="${esc(T.dateEnd||'')}"></div></div><div class="ov-w" id="e-ov">${ovHTML(T.date,T.dateEnd,T.id)}</div>
   <div class="wz-row2"><div class="field"><label>Организатор</label><input id="e-org" value="${esc(T.orgName||'')}"></div><div class="field"><label>Телефон / WhatsApp</label><input id="e-oph" type="tel" value="${esc(T.orgPhone||'')}"></div></div>
   <input id="e-link" type="hidden" value="">
   <div class="field"><label>Канал трансляций <small>YouTube</small></label><input id="e-video" type="url" value="${esc(T.video||'')}" placeholder="https://youtube.com/@club"><p class="muted" style="font-size:13px;margin:6px 0 0">Ссылка на YouTube-канал клуба. Трансляцию каждой встречи судья добавит в пульте матча.</p></div>
@@ -1984,7 +1988,7 @@ document.addEventListener('click',e=>{if(UI.tmenu&&!(e.target.closest&&e.target.
   if(a==='fmt'||a==='seedMode'||a==='callSel'||a==='pmTable'||a==='pmRace'||a==='pmScore'||a==='pmStart'||a==='pmVideo'||a==='autoPr')return;
   if(A[a]){e.preventDefault();A[a](el)}
 });
-document.addEventListener('change',e=>{const t=e.target;const wz=t.dataset&&t.dataset.w==='date';if(t.id==='e-date'||wz){const en=document.querySelector(wz?'[data-w=dateEnd]':'#e-end');if(en){en.min=t.value;if(en.value&&t.value&&en.value<t.value){en.value=t.value;if(wz&&UI.wiz)UI.wiz.dateEnd=t.value}}if(wz&&UI.wiz)UI.wiz.date=t.value}
+document.addEventListener('change',e=>{const t=e.target;setTimeout(()=>{const w1=document.getElementById('w-ov');if(w1&&UI.wiz)w1.innerHTML=ovHTML(UI.wiz.date,UI.wiz.dateEnd,'');const e1=document.getElementById('e-ov');if(e1&&CUR&&CUR.T){const g=i=>{const x=document.getElementById(i);return x?x.value:''};e1.innerHTML=ovHTML(g('e-date'),g('e-end'),CUR.T.id)}},0);const wz=t.dataset&&t.dataset.w==='date';if(t.id==='e-date'||wz){const en=document.querySelector(wz?'[data-w=dateEnd]':'#e-end');if(en){en.min=t.value;if(en.value&&t.value&&en.value<t.value){en.value=t.value;if(wz&&UI.wiz)UI.wiz.dateEnd=t.value}}if(wz&&UI.wiz)UI.wiz.date=t.value}
   if(t.id==='e-end'||(t.dataset&&t.dataset.w==='dateEnd')){const st=document.querySelector(t.id==='e-end'?'#e-date':'[data-w=date]');if(st&&t.value&&st.value&&t.value<st.value){t.value=st.value;if(UI.wiz&&t.dataset.w)UI.wiz.dateEnd=st.value}}
 
   const a=e.target.dataset&&e.target.dataset.act;
