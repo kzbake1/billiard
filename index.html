@@ -720,7 +720,7 @@ nav.main a.cta{background:#fff;color:var(--ink);border:1px solid var(--line2)}
 </div></header>
 <div id="ticker"></div>
 <main id="app"></main>
-<footer><span>kazbilliard — турнирная платформа</span><a href="#admin" style="color:inherit">Администратор</a></footer>
+<footer><span>kazbilliard — турнирная платформа</span></footer>
 <div id="modal"></div>
 <div id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -966,6 +966,7 @@ async function adminCall(body){
   catch(e){return{error:'Нет связи с сервером'}}
 }
 async function boot(){
+  if(/^admin\./.test(location.hostname)&&!location.hash)history.replaceState(null,'','#admin');
   const app=document.getElementById('app');app.innerHTML='<div class="empty" role="status">Загружаем турниры…</div>';
   try{sb=window.supabase.createClient(SB_URL,SB_KEY);sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){UI.recovery=true;if(location.hash!=='#reset')location.hash='#reset';else render()}});await load()}
   catch(e){console.error(e);app.innerHTML='<div class="empty"><b>Не удалось загрузить данные.</b><br>Проверьте интернет.<br><br><button class="btn dark" data-act="reload">Повторить</button></div>';return}
