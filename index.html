@@ -1020,7 +1020,7 @@ function renderGrid(){
 /* ============ tournament page ============ */
 function renderT(T){
   const b=build(T);CUR={T,b};const st=tStatus(T,b);const c=club(T.clubId);const own=isOwner(T);
-  const showA=own||T.rules||T.link||(T.judges||[]).length;
+  const showA=own||T.rules||(T.judges||[]).length;
   const tabs=T.stages?[['stages','Этапы'],['people','Участники',T.players.length],...(showA?[['about','О турнире']]:[]),...(b.finished?[['result','Итоги']]:[])]:T.status==='reg'?[['people','Участники',T.players.length],...(showA?[['about','О турнире']]:[])]:[['grid','Сетка'],['tables','Столы',b.all.filter(m=>m.state==='live').length||''],['sheet','Ведомость'],['people','Участники',T.players.length],...(showA?[['about','О турнире']]:[]),...(b.finished?[['result','Итоги']]:[])];
   let tab=UI.tab[T.id];if(!tabs.some(t=>t[0]===tab))tab=tabs[0][0];
   const cdel='del-'+T.id;
@@ -1030,7 +1030,7 @@ function renderT(T){
   else if(tab==='tables')body=renderTablesTab(T,b);
   else if(tab==='sheet')body=renderSheet(T,b);
   else if(tab==='people')body=renderPeople(T,b);
-  else if(tab==='about')body=`<div class="about">${own||T.rules||T.link?renderRules(T):''}${own||(T.judges||[]).length?renderJudges(T):''}</div>`;
+  else if(tab==='about')body=`<div class="about">${own||T.rules?renderRules(T):''}${own||(T.judges||[]).length?renderJudges(T):''}</div>`;
   else body=renderResult(T,b);
   const done=b.all.filter(m=>m.state==='done').length,tot=b.all.filter(m=>m.state!=='bye').length;
   const fmt=tFmt(T,b);
@@ -1044,7 +1044,7 @@ function renderT(T){
   return`<div class="tband"><div class="th-hero"><div class="th-top"><a class="back" href="#${T.parent?'t-'+T.parent:'home'}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:4px"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>${T.parent?'Все этапы':'Все турниры'}</a><div class="th-act">${own&&UI.confirm===cdel?`<span class="muted" style="font-size:13px">Удалить турнир?</span><button class="btn sm red" data-act="delT" data-id="${T.id}">Да, удалить</button><button class="btn sm ghost" data-act="cancelConfirm">Нет</button>`:`${own?`<button class="btn sm ghost th-ed" data-act="editT">${IC.edit}<span>Изменить</span></button>`:''}<div class="tmenu"><button class="dots" data-act="tmenu" aria-label="Действия" title="Действия"><i></i><i></i><i></i></button>${UI.tmenu===T.id?`<div class="pop"><button data-act="shareT">${IC.share}<span>Поделиться</span></button><button data-act="xlsT">${IC.xls}<span>Скачать в Excel</span></button><a href="#g-${T.id}" target="_blank" rel="noopener">${IC.open}<span>Открыть только сетку</span></a>${own?`${T.status!=='reg'&&!Object.keys(T.results||{}).length?`<button data-act="schOpen">${IC.grid}<span>Изменить схему</span></button>`:''}<button class="del" data-act="askDel" data-id="${T.id}">${IC.del}<span>Удалить турнир</span></button>`:''}</div>`:''}</div>`}</div></div>
   <div class="th-main"><div class="th-l"><div class="th-over"><span class="dot ${st}"></span>${ST_LABEL[st]}<i></i>${esc(T.discipline)}${T.category?`<i></i>${esc(T.category)}`:''}${isPub(T)?'':'<i></i><span class="draft">черновик</span>'}</div><h1>${esc(T.title)}</h1>
   <ul class="th-info"><li>${IC.cal}<span>${facts[0]}</span></li>${facts[1]?`<li>${IC.net}<span>${facts[1]}</span></li>`:''}<li>${IC.users}<span>${n} ${pw}</span></li>${champ?`<li>${IC.trophy}<span>Победитель — ${esc(champ)}</span></li>`:''}</ul>
-  ${T.video||T.link?`<div class="th-links">${T.video?`<a class="btn sm tv" href="${esc(T.video)}" target="_blank" rel="noopener">${IC.play}Смотреть трансляцию</a>`:''}${T.link?`<a class="btn sm ghost" href="${esc(T.link)}" target="_blank" rel="noopener">${IC.doc}Положение</a>`:''}</div>`:''}
+  ${T.video?`<div class="th-links">${T.video?`<a class="btn sm tv" href="${esc(T.video)}" target="_blank" rel="noopener">${IC.play}Смотреть трансляцию</a>`:''}</div>`:''}
   ${!isPub(T)&&own?`<div class="th-draft">Турнир не опубликован — его видите только вы. <button class="lnk" data-act="pubT">Опубликовать</button></div>`:''}
 </div>${side}</div></div>
   <div class="tabs">${tabs.map(t=>`<button class="${t[0]===tab?'on':''}" data-act="tab" data-id="${T.id}" data-tab="${t[0]}">${t[1]}${t[2]?`<span class="cnt">${t[2]}</span>`:''}</button>`).join('')}</div></div>
@@ -1270,10 +1270,10 @@ function renderRules(T){const own=isOwner(T);
   if(own&&UI.rulesEd!==T.id&&!T.rules&&!T.link)UI.rulesEd=T.id;
   if(own&&UI.rulesEd===T.id)return`<div class="panel" style="max-width:820px"><h3>Регламент турнира</h3>
     <div class="field"><label>Текст регламента</label><textarea id="r-text" rows="12" placeholder="Порядок проведения, правила, время явки, штрафы, призы…">${esc(T.rules||'')}</textarea></div>
-    <div class="field"><label>Положение <small>ссылка на файл, необязательно</small></label><input id="r-link" type="url" value="${esc(T.link||'')}" placeholder="https://…"></div>
-    <div class="err" id="r-err"></div><div style="display:flex;gap:8px"><button class="btn blue" data-act="saveRules">Сохранить</button>${T.rules||T.link?'<button class="btn ghost" data-act="rulesCancel">Отмена</button>':''}</div></div>`;
+    <input id="r-link" type="hidden" value="">
+    <div class="err" id="r-err"></div><div style="display:flex;gap:8px"><button class="btn blue" data-act="saveRules">Сохранить</button>${T.rules?'<button class="btn ghost" data-act="rulesCancel">Отмена</button>':''}</div></div>`;
   return`<div class="panel" style="max-width:820px"><div class="ph"><h3>Регламент турнира</h3>${own?'<button class="btn sm ghost" data-act="rulesEdit">Изменить</button>':''}</div>
-    ${T.rules?`<div class="rules">${esc(T.rules)}</div>`:''}${T.link?`<a class="btn ghost sm rl" href="${esc(T.link)}" target="_blank" rel="noopener">${IC.doc}Положение (файл)</a>`:''}</div>`}
+    ${T.rules?`<div class="rules">${esc(T.rules)}</div>`:''}</div>`}
 const JR={chief:['Главный судья','Судейский стол: ведёт сетку, вызывает игроков, выдаёт протоколы, завершает встречи'],hall:['Судья в зале','Следит за играми, разбирает спорные моменты и вопросы по правилам'],both:['Главный судья и судья в зале','Судейский стол и работа в зале']};
 function renderJudges(T){const own=isOwner(T);const J=T.judges||[];
   const list=J.length?`<div class="jl">${J.map(j=>`<div class="ji"><div><b>${esc(j.name)}</b><span class="jr">${JR[j.role][0]}</span><span class="jd">${JR[j.role][1]}</span></div>${own?`<button class="x" data-act="rmJ" data-id="${j.id}" title="Удалить">×</button>`:''}</div>`).join('')}</div>`:'<div class="muted">Судьи пока не назначены.</div>';
@@ -1405,7 +1405,7 @@ function renderCreate(){
     <div class="field"><label>Категория</label><select data-w="cat">${CATS.map(d=>`<option ${w.cat===d?'selected':''}>${d}</option>`).join('')}</select></div></div>
     <div class="wz-row3"><div class="field"><label>Начало</label><input type="date" data-w="date" value="${w.date}"></div><div class="field"><label>Время</label><input type="time" data-w="time" value="${esc(w.time)}"></div><div class="field"><label>Окончание</label><input type="date" data-w="dateEnd" min="${w.date}" value="${esc(w.dateEnd)}"></div></div>
     <div class="wz-row2"><div class="field"><label>Организатор <small>имя</small></label><input data-w="orgName" value="${esc(w.orgName)}" placeholder="Фамилия Имя"></div><div class="field"><label>Телефон / WhatsApp</label><input type="tel" inputmode="tel" data-w="orgPhone" value="${esc(w.orgPhone)}" placeholder="+7 700 000 00 00"></div></div>
-    <div class="wz-row2"><div class="field"><label>Положение <small>ссылка, необязательно</small></label><input type="url" inputmode="url" data-w="link" value="${esc(w.link)}" placeholder="https://…"></div><div class="field"><label>Трансляция <small>YouTube, необязательно</small></label><input type="url" inputmode="url" data-w="video" value="${esc(w.video)}" placeholder="https://youtube.com/…"></div></div>
+    <div class="wz-row2"><div class="field"><label>Трансляция <small>YouTube, необязательно</small></label><input type="url" inputmode="url" data-w="video" value="${esc(w.video)}" placeholder="https://youtube.com/…"></div></div>
     <div class="field" style="margin-bottom:0"><label>Опубликовать</label><div class="fpills sm">${[[1,'Да, показывать на сайте'],[0,'Нет, пока черновик']].map(([k,l])=>`<button class="${(w.pub?1:0)===k?'on':''}" data-act="wPub" data-v="${k}">${l}</button>`).join('')}</div></div>
     <div class="err" id="w-err"></div>
     <div class="wz-acts"><button class="btn blue big" data-act="wSave">Сохранить</button><button class="btn ghost big" data-act="wDrop">Удалить</button></div></div></div>`;
@@ -1443,7 +1443,7 @@ function editTHTML(T){const pub=UI.ePub===undefined?isPub(T):UI.ePub;
   <div class="wz-row2"><div class="field"><label>Дисциплина</label><select id="e-disc">${DISC.map(d=>`<option ${T.discipline===d?'selected':''}>${d}</option>`).join('')}</select></div><div class="field"><label>Категория</label><select id="e-cat">${CATS.map(d=>`<option ${(T.category||'Клубный')===d?'selected':''}>${d}</option>`).join('')}</select></div></div>
   <div class="wz-row3"><div class="field"><label>Начало</label><input id="e-date" type="date" value="${esc(T.date)}"></div><div class="field"><label>Время</label><input id="e-time" type="time" value="${esc(T.time||'')}"></div><div class="field"><label>Окончание</label><input id="e-end" type="date" value="${esc(T.dateEnd||'')}"></div></div>
   <div class="wz-row2"><div class="field"><label>Организатор</label><input id="e-org" value="${esc(T.orgName||'')}"></div><div class="field"><label>Телефон / WhatsApp</label><input id="e-oph" type="tel" value="${esc(T.orgPhone||'')}"></div></div>
-  <div class="field"><label>Положение <small>ссылка</small></label><input id="e-link" type="url" value="${esc(T.link||'')}" placeholder="https://…"></div>
+  <input id="e-link" type="hidden" value="">
   <div class="field"><label>Трансляция <small>YouTube</small></label><input id="e-video" type="url" value="${esc(T.video||'')}" placeholder="https://youtube.com/…"></div>
   <div class="field"><label>Опубликовать</label><div class="fpills sm">${[[1,'Да'],[0,'Нет, черновик']].map(([k,l])=>`<button class="${(pub?1:0)===k?'on':''}" data-act="ePub" data-v="${k}">${l}</button>`).join('')}</div></div>
   <div class="err" id="e-err"></div><div class="pm-acts"><button class="btn blue" data-act="saveT">Сохранить</button><button class="btn ghost" data-act="close">Отмена</button></div></div>`}
