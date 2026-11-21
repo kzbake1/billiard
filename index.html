@@ -1803,11 +1803,7 @@ function renderCabinet(){
   const row=(k,v)=>`<div class="sr"><span>${k}</span><b class="${v?'':'muted'}">${v||'не указан'}</b></div>`;
   const wa='https://wa.me/77764308322?text='+encodeURIComponent('Здравствуйте! Вопрос по профилю клуба на kazbilliard');
   const s1=!!(c.address||c.phone),s2=mine.length>0,firstT=mine[0],s3=mine.some(T=>(T.players||[]).length);
-  const steps=s2?'':`<section class="fs panel"><h3>Первые шаги</h3><ol>
-<li class="${s1?'ok':''}"><i>${s1?'✓':'1'}</i><div><b>Заполните «О клубе»</b><span>Адрес и телефон увидят игроки</span></div>${s1?'':'<button class="btn sm ghost" data-act="editClub">Заполнить</button>'}</li>
-<li class="${s2?'ok':''}"><i>${s2?'✓':'2'}</i><div><b>Создайте первый турнир</b><span>Название, дата и формат</span></div>${s2?'':'<button class="btn sm blue" data-act="newT">Создать</button>'}</li>
-<li class="${s3?'ok':''}"><i>${s3?'✓':'3'}</i><div><b>Внесите участников</b><span>В турнире, во вкладке «Участники»</span></div>${s3||!s2?'':`<a class="btn sm ghost" href="#t-${esc(firstT.id)}">Открыть турнир</a>`}</li>
-</ol><p class="fs-h">Вопросы? <a href="${wa}" target="_blank" rel="noopener">Напишите в WhatsApp</a></p></section>`;
+  const steps='';
   const tip=S.pwOk?'':`<div class="pw-tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg><span>Советуем сменить пароль, который вам выдали.</span><button class="btn sm blue" data-act="pwOpen">Сменить пароль</button></div>`;
   const fl=Array.isArray(c.floors)&&c.floors.length>1?c.floors:null;const nt=c.tables||0;
   const meta=[[c.city,c.address].filter(Boolean).join(', ')?`<span>${IC.pin}${esc([c.city,c.address].filter(Boolean).join(', '))}</span>`:'',nt?`<span>${IC.tbl}${nt} стол${plural(nt)}${fl?' · '+fl.map(x=>esc(x.name)+' '+x.n).join(', '):''}</span>`:''].join('');
