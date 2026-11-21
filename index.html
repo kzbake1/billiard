@@ -773,6 +773,9 @@ nav.main a.cta{background:#fff;color:var(--ink);border:1px solid var(--line2)}
 .pm-bg{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pm-bc{display:flex;align-items:center;gap:8px;min-width:0}.pm-bc span{flex:1;min-width:0;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pm-bc b{min-width:22px;text-align:center;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}.pm-b.sm{width:36px;height:36px;min-width:36px;font-size:17px}
 .mv-fr{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:14px;font-size:13px;color:var(--muted)}.mv-fr b{font-weight:600;color:var(--ink);background:var(--soft);border-radius:6px;padding:2px 8px;font-variant-numeric:tabular-nums}.mv-fr em{font-style:normal;color:var(--live-ink);font-weight:600}
 @media(max-width:560px){.pm-bg{grid-template-columns:1fr}}
+.pm-balls{margin:6px -14px 0;padding:12px 14px 6px;border-radius:12px;background:var(--bg)}.pm-balls .pm-row.bl{padding:6px 0}.pm-balls .pm-row.bl+.pm-row.bl{border-top:1px solid var(--line)}.pm-balls .pm-row.bl .pm-n{font-size:14.5px;color:var(--sub)}
+.pm-bn{text-align:center;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}.pm-bh{margin-bottom:2px}.pm-bh b{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.pm-bf{display:flex;align-items:center;gap:10px;padding:8px 0 6px;border-top:1px solid var(--line)}.pm-bf>span{font-size:12.5px;color:var(--muted)}.pm-bf .pm-frl{margin:0}.pm-balls .pm-frl span{background:#fff}
 </style>
 </head>
 <body>
@@ -2108,8 +2111,9 @@ const frBalls=f=>Number.isFinite(f.a)&&Number.isFinite(f.b);
 function pmFrames(T,m,off,rdy){const r=m.res||{};const fr=frOf(r);const nm=k=>esc(sname(pname(T,m[k])));
   const list=fr.length?`<div class="pm-frl">${fr.map((f,i)=>`<span class="${f.w}" title="Партия ${i+1}">${frBalls(f)?`${f.a}:${f.b}`:'—'}</span>`).join('')}</div>`:'';
   if(!T.balls)return`${list}<div class="pm-bon"><button class="lnk" data-act="ballsOn">Вести шары по партиям</button><span class="mut2">для официальных турниров</span></div>`;
-  const ctl=k=>`<div class="pm-bc"><span>${nm(k)}</span><button class="pm-b sm" ${off?'disabled':''} data-act="bl" data-mid="${m.id}" data-side="${k}" data-d="-1" aria-label="Убрать шар">−</button><b>${rdy?0:(r['b'+k]||0)}</b><button class="pm-b sm plus" ${off?'disabled':''} data-act="bl" data-mid="${m.id}" data-side="${k}" data-d="1" aria-label="Шар">+</button></div>`;
-  return`<div class="pm-balls"><div class="pm-bh"><b>Партия ${fr.length+1} · шары до ${FB}</b><button class="lnk" data-act="ballsOn">Не вести шары</button></div><div class="pm-bg">${ctl('a')}${ctl('b')}</div>${list}</div>`}
+  const ctl=k=>`<div class="pm-row bl"><span class="pm-n">${esc(pname(T,m[k]))}</span><button class="pm-b" ${off?'disabled':''} data-act="bl" data-mid="${m.id}" data-side="${k}" data-d="-1" aria-label="Убрать шар">−</button><b class="pm-bn">${rdy?0:(r['b'+k]||0)}</b><button class="pm-b plus" ${off?'disabled':''} data-act="bl" data-mid="${m.id}" data-side="${k}" data-d="1" aria-label="Шар">+</button></div>`;
+  const chips=fr.length?`<div class="pm-frl">${fr.map((f,i)=>`<span title="Партия ${i+1}">${frBalls(f)?`${f.a}:${f.b}`:'—'}</span>`).join('')}</div>`:'';
+  return`<div class="pm-balls"><div class="pm-bh"><b>Партия ${fr.length+1} · шары до ${FB}</b><button class="lnk" data-act="ballsOn">Не вести шары</button></div>${ctl('a')}${ctl('b')}${chips?`<div class="pm-bf"><span>Сыграно</span>${chips}</div>`:''}</div>`}
 function pultHTML(T,m){const r=m.res||{};const c=club(T.clubId);const n=c.tables||6;const busy=busyTables(T.clubId,m.id);
   const stg=CUR&&CUR.b?stageMap(CUR.b)[m.id]:'';
   const fo=foraOf(T,m);const stg2=(stg||'')+(fo?(stg?' · ':'')+'фора '+fo.n+' — '+sname(fo.p.name):'');
