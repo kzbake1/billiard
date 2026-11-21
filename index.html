@@ -761,6 +761,12 @@ nav.main a.cta{background:#fff;color:var(--ink);border:1px solid var(--line2)}
 .csub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;color:var(--sub);margin:16px 0 0}.csub .mut2{font-size:14px}
 .csub.warn{background:var(--gold-bg);border-radius:12px;padding:16px 20px;justify-content:space-between;gap:14px;color:var(--ink)}.csub.warn b{display:block;font-weight:600}.csub.warn span{font-size:14px;color:var(--sub)}.csub.bad{background:var(--live-soft)}
 @media(max-width:820px){.adm-kpi{grid-template-columns:1fr 1fr}.adm-grid{grid-template-columns:1fr}.adm-row{grid-template-columns:1fr;gap:10px}.adm-plans{grid-template-columns:1fr}.adm-kpi b{font-size:26px}}
+.nod{font-size:15px;font-weight:500;color:var(--muted)}.adm-kpi small{display:block;font-size:12px;color:var(--muted);margin-top:2px}.adm-per{margin:-6px 0 16px;font-size:14px}
+.adm-sec{margin-bottom:16px}.adm-sec h3{margin:0 0 10px}.adm-chart{width:100%;height:auto;display:block}.adm-chart .g{stroke:var(--line);stroke-width:1}.adm-chart .t{font:500 12px Inter,sans-serif;fill:var(--muted)}.adm-chart .b{fill:var(--accent)}.adm-chart .l{fill:none;stroke:var(--ink);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.adm-chart .d{fill:#fff;stroke:var(--ink);stroke-width:2}
+.adm-leg{display:flex;gap:18px;font-size:13px;color:var(--sub);margin-top:8px}.adm-leg span{display:inline-flex;align-items:center;gap:6px}.adm-leg i{display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--accent)}.adm-leg i.l{height:2px;border-radius:2px;background:var(--ink)}
+.adm-share{padding:10px 0;border-bottom:1px solid var(--soft)}.adm-share>div:first-child{display:flex;justify-content:space-between;font-size:14px}.adm-share small{font-size:12px;color:var(--muted)}.adm-bar{height:6px;border-radius:6px;background:var(--soft);margin:6px 0 4px;overflow:hidden}.adm-bar i{display:block;height:100%;background:var(--accent);border-radius:6px}
+.sr.sub span{padding-left:12px;font-size:13px}.mono{font-family:ui-monospace,Menlo,monospace;letter-spacing:.02em}.adm-checks{display:flex;gap:4px 18px;flex-wrap:wrap}.adm-checks .chk{margin:0}
+.adm-pres{font-size:13px;margin-top:6px;min-height:18px}.adm-pres .okt{color:var(--ok);font-weight:600}.adm-pres .bad{color:var(--live-ink)}.adm-total s{color:var(--muted);font-weight:500;font-size:16px}
 </style>
 </head>
 <body>
@@ -1714,7 +1720,7 @@ function renderWizRoster(){
 }
 /* ============ admin ============ */
 /* ============ админка: подписки (этап 1) ============ */
-const AD={loaded:false,loading:false,clubs:[],sub:{},pays:[],plans:[],q:'',f:'all',sort:1,month:'',err:''};
+const AD={loaded:false,loading:false,clubs:[],sub:{},pays:[],plans:[],promos:[],exps:[],q:'',f:'all',sort:1,month:'',err:'',per:'month',ver:0,money:null,mkey:''};
 const ADM_WA='77764308322';
 const almatyToday=()=>new Date(Date.now()+5*3600e3).toISOString().slice(0,10);
 const dDiff=(a,b)=>Math.round((Date.parse(b)-Date.parse(a))/864e5);
@@ -1734,18 +1740,18 @@ const subBadge=s=>`<span class="sbadge ${s.tone}"><i></i>${s.l}</span>`;
 const leftTxt=s=>s.days==null?'':s.days>0?'осталось '+daysW(s.days):s.days===0?'сегодня последний день':'истёк '+daysW(s.days)+' назад';
 const planName=id=>{const p=AD.plans.find(x=>x.id===id);return p?p.title:'—'};
 const adClub=id=>AD.clubs.find(c=>c.id===id)||{};
-async function loadAdmin(force){if(!S.admin||AD.loading||(AD.loaded&&!force))return;AD.loading=true;AD.err='';
-  try{const [l,sub,pays,plans]=await Promise.all([adminCall({action:'list_clubs'}),sb.from('club_admin').select('*'),sb.from('payment').select('*').order('created_at',{ascending:false}),sb.from('plan').select('*').order('sort')]);
-    if(l.error)throw new Error(l.error);if(sub.error||pays.error||plans.error)throw (sub.error||pays.error||plans.error);
-    AD.clubs=l.clubs.map(c=>cleanData(c));AD.sub={};sub.data.forEach(r=>AD.sub[r.club_id]=cleanData(r));AD.pays=pays.data.map(x=>cleanData(x));AD.plans=plans.data.map(x=>cleanData(x));AD.loaded=true}
+async function loadAdmin(force){if(!S.admin)return;if(AD.loading){if(force)AD.again=true;return}if(AD.loaded&&!force)return;AD.loading=true;AD.again=false;AD.err='';
+  try{const [l,sub,pays,plans,promos,exps]=await Promise.all([adminCall({action:'list_clubs'}),sb.from('club_admin').select('*'),sb.from('payment').select('*').order('created_at',{ascending:false}),sb.from('plan').select('*').order('sort'),sb.from('promo').select('*'),sb.from('expense').select('*')]);
+    if(l.error)throw new Error(l.error);if(sub.error||pays.error||plans.error||promos.error||exps.error)throw (sub.error||pays.error||plans.error||promos.error||exps.error);
+    AD.clubs=l.clubs.map(c=>cleanData(c));AD.sub={};sub.data.forEach(r=>AD.sub[r.club_id]=cleanData(r));AD.pays=pays.data.map(x=>cleanData(x));AD.plans=plans.data.map(x=>cleanData(x));AD.promos=promos.data.map(x=>cleanData(x));AD.exps=exps.data.map(x=>cleanData(x));AD.ver++;AD.loaded=true}
   catch(e){console.error(e);AD.err='Не удалось загрузить данные. Проверьте интернет и обновите страницу.'}
-  AD.loading=false;if(/^#admin/.test(location.hash))render()}
+  AD.loading=false;if(AD.again)return loadAdmin(true);if(/^#admin/.test(location.hash))render()}
 function remindLink(c,s){const r=AD.sub[c.id]||{};if(!r.contact_phone)return'';const hi=r.contact_name?`Здравствуйте, ${r.contact_name}!`:'Здравствуйте!';
   const t=s.k==='exp'?`${hi} Подписка kazbilliard для клуба «${c.name}» закончилась ${fds(s.end)}. Чтобы продолжить вести турниры, продлите её — просто ответьте на это сообщение.`
    :s.trial?`${hi} Бесплатный период kazbilliard для клуба «${c.name}» заканчивается ${fds(s.end)}. Подскажу тарифы и продлю — просто ответьте на это сообщение.`
    :`${hi} Подписка kazbilliard для клуба «${c.name}» заканчивается ${fds(s.end)}. Чтобы не прерываться, продлите её — просто ответьте на это сообщение.`;
   return waLink(r.contact_phone)+'?text='+encodeURIComponent(t)}
-function adTop(cur){const T=[['','Обзор'],['clubs','Клубы'],['pays','Оплаты']];
+function adTop(cur){const T=[['','Обзор'],['clubs','Клубы'],['pays','Оплаты'],['money','Деньги'],['plans','Тарифы'],['promo','Промокоды']];
   return`<div class="adm-top"><nav class="adm-tabs">${T.map(([k,l])=>`<a href="#admin${k?'/'+k:''}" class="${cur===k?'on':''}">${l}</a>`).join('')}</nav><div class="adm-me"><span>${esc(S.email)}</span><button class="btn sm ghost" data-act="logout">Выйти</button></div></div>`}
 function renderAdmin(){
   if(!S.admin){
@@ -1757,6 +1763,9 @@ function renderAdmin(){
   if(sub.startsWith('c-'))return adTop('clubs')+adClubCard(sub.slice(2));
   if(sub==='clubs')return adTop('clubs')+adClubsPage();
   if(sub==='pays')return adTop('pays')+adPaysPage();
+  if(sub==='money')return adTop('money')+adMoneyPage();
+  if(sub==='plans')return adTop('plans')+adPlansPage();
+  if(sub==='promo')return adTop('promo')+adPromosPage();
   return adTop('')+adOverview()}
 function adOverview(){const t=almatyToday(),ym=t.slice(0,7);const all=AD.clubs.map(c=>({c,s:subOf(c.id)}));
   const n=k=>all.filter(x=>k.includes(x.s.k)).length;
@@ -1804,16 +1813,17 @@ function adPaysPage(){const months=[...new Set(AD.pays.map(p=>(p.paid_at||'').sl
   return`<div class="adm-h"><h1>Оплаты</h1></div>
   <div class="adm-tools"><select id="ad-month" class="adm-sel"><option value="">Все месяцы</option>${months.map(m=>`<option value="${m}" ${AD.month===m?'selected':''}>${mname(m)}</option>`).join('')}</select><div class="adm-sum">Итого за период: <b>${money(sum)}</b></div></div>
   <div class="panel adm-tw">${L.length?`<table class="tb adm-tb"><thead><tr><th>Дата</th><th>Клуб</th><th>Тариф</th><th class="r">Сумма</th><th class="r">Скидка</th><th>Промокод</th><th>Способ</th><th>Внёс</th><th></th></tr></thead><tbody>
-  ${L.map(p=>`<tr class="${p.cancelled_at?'off':''}"><td class="nw">${fds(p.paid_at)}</td><td><a href="#admin/c-${p.club_id}">${esc(adClub(p.club_id).name||'—')}</a></td><td>${esc(planName(p.plan_id))}<div class="mut2">${fds(p.period_from)} → ${fds(p.period_to)}</div></td><td class="r nw"><b>${money(p.amount)}</b></td><td class="r nw">${p.discount?money(p.discount):'—'}</td><td>—</td><td>${{kaspi:'Kaspi',cash:'Наличные',invoice:'Счёт'}[p.method]||esc(p.method)}</td><td class="mut2">${esc(S.email)}</td><td class="r">${p.cancelled_at?`<span class="mut2" title="${esc(p.cancel_reason||'')}">отменена</span>`:`<button class="lnk" data-act="adCancelAsk" data-id="${p.id}">Отменить</button>`}</td></tr>`).join('')}</tbody></table>`
+  ${L.map(p=>`<tr class="${p.cancelled_at?'off':''}"><td class="nw">${fds(p.paid_at)}</td><td><a href="#admin/c-${p.club_id}">${esc(adClub(p.club_id).name||'—')}</a></td><td>${esc(planName(p.plan_id))}<div class="mut2">${fds(p.period_from)} → ${fds(p.period_to)}</div></td><td class="r nw"><b>${money(p.amount)}</b></td><td class="r nw">${p.discount?money(p.discount):'—'}</td><td>${p.promo_id?'<span class="mono">'+esc((AD.promos.find(x=>x.id===p.promo_id)||{}).code||'—')+'</span>'+(p.bonus_months?'<div class="mut2">+'+p.bonus_months+' мес.</div>':''):'—'}</td><td>${{kaspi:'Kaspi',cash:'Наличные',invoice:'Счёт'}[p.method]||esc(p.method)}</td><td class="mut2">${esc(S.email)}</td><td class="r">${p.cancelled_at?`<span class="mut2" title="${esc(p.cancel_reason||'')}">отменена</span>`:`<button class="lnk" data-act="adCancelAsk" data-id="${p.id}">Отменить</button>`}</td></tr>`).join('')}</tbody></table>`
   :`<div class="empty">${AD.pays.length?'В этом месяце оплат нет.':'Оплат пока нет. Они появятся здесь, когда вы нажмёте «Продлить» у клуба и запишете оплату.'}</div>`}</div>`}
 function adRenewHTML(id){const c=adClub(id),r=AD.sub[id]||{},t=almatyToday();const W=UI.adRen||{};const P=AD.plans.filter(p=>p.active&&p.price>0);
-  const pl=P.find(p=>p.id===W.plan)||null;const from=[r.paid_until||t,r.trial_until||t,t].sort().pop();const to=pl?addMonths(from,pl.months):'';
+  const pl=P.find(p=>p.id===W.plan)||null;const pr=W.pres&&W.pres.ok?W.pres:null;const from=[r.paid_until||t,r.trial_until||t,t].sort().pop();const to=pl?addMonths(from,pl.months+(pr?pr.bonus:0)):'';const tot=pl?pl.price-(pr?pr.discount:0):0;
   if(W.done)return`<div class="dlg-h"><h3>Оплата записана</h3><button class="x" data-act="close" aria-label="Закрыть">×</button></div><p>Клуб «${esc(c.name)}» оплачен до <b>${fds(W.done.to)}</b>.</p>
     <div class="field"><label>Сообщение клубу</label><textarea id="ad-msg" rows="3" readonly>${esc(W.msg)}</textarea></div>
     <div class="adm-ra"><button class="btn blue" data-act="adCopy" data-src="ad-msg">${AIC.copy}Скопировать</button>${r.contact_phone?`<a class="btn ghost" href="${waLink(r.contact_phone)}?text=${encodeURIComponent(W.msg)}" target="_blank" rel="noopener">${IC.wa}Открыть в WhatsApp</a>`:''}</div>`;
   return`<div class="dlg-h"><h3>Продлить · ${esc(c.name)}</h3><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
   <div class="adm-plans">${P.map(p=>`<button class="adm-plan${W.plan===p.id?' on':''}" data-act="adPlan" data-v="${p.id}"><b>${esc(p.title)}</b><span>${money(p.price)}</span>${p.months>1?`<small>${money(p.price/p.months)} в месяц</small>`:''}</button>`).join('')}</div>
-  <div class="adm-total"><span>Итого к оплате</span><b>${pl?money(pl.price):'—'}</b></div>
+  <div class="field"><label>Промокод <small>необязательно</small></label><input id="ad-promo" class="mono" style="text-transform:uppercase" maxlength="24" autocomplete="off" spellcheck="false" value="${esc(W.pcode||'')}"><div id="ad-pres" class="adm-pres">${W.pres?(W.pres.ok?`<span class="okt">${W.pres.discount?'Скидка '+money(W.pres.discount):''}${W.pres.bonus?(W.pres.discount?' и ':'')+'+'+W.pres.bonus+' мес. в подарок':''}</span>`:`<span class="bad">${esc(W.pres.error||'Не подходит')}</span>`):''}</div></div>
+  <div class="adm-total"><span>Итого к оплате</span><b>${pl?(pr&&pr.discount?`<s>${money(pl.price)}</s> `:'')+money(tot):'—'}</b></div>
   <div class="row2"><div class="field"><label>Способ</label><input value="Kaspi перевод" disabled></div><div class="field"><label>Дата оплаты</label><input id="ad-pdate" type="date" value="${W.date||t}" max="${t}"></div></div>
   <div class="field"><label>Комментарий <small>необязательно</small></label><input id="ad-pcom" maxlength="500" value="${esc(W.com||'')}"></div>
   <div class="adm-prev">${pl?`${r.paid_until&&r.paid_until>=t?'Оплачено до '+fds(r.paid_until):r.trial_until&&r.trial_until>=t?'Пробный до '+fds(r.trial_until):r.paid_until||r.trial_until?'Закончилась '+fds([r.paid_until,r.trial_until].filter(Boolean).sort().pop()):'Сейчас без подписки'} → <b>оплачено до ${fds(to)}</b>`:'Выберите тариф'}</div>
@@ -1850,10 +1860,11 @@ const AA={
   adSort(){AD.sort=-AD.sort;const t=document.getElementById('ad-tbl');if(t)t.innerHTML=adClubsTable()},
   adOpen(el){location.hash='#admin/c-'+el.dataset.id},
   adRenew(el){UI.adRen={id:el.dataset.id,plan:(AD.sub[el.dataset.id]||{}).plan_id||'m1'};if(!AD.plans.some(p=>p.id===UI.adRen.plan&&p.price>0))UI.adRen.plan='m1';openModal(adRenewHTML(el.dataset.id))},
-  adPlan(el){const W=UI.adRen;if(!W)return;const d=document.getElementById('ad-pdate'),c=document.getElementById('ad-pcom');W.date=d?d.value:W.date;W.com=c?c.value:W.com;W.plan=el.dataset.v;openModal(adRenewHTML(W.id))},
+  adPlan(el){const W=UI.adRen;if(!W)return;const d=document.getElementById('ad-pdate'),c=document.getElementById('ad-pcom');W.date=d?d.value:W.date;W.com=c?c.value:W.com;W.plan=el.dataset.v;openModal(adRenewHTML(W.id));if(W.pcode)adPromoCheck()},
   async adRenewSave(el){const W=UI.adRen;if(!W||W.busy)return;const id=el.dataset.id,err=document.getElementById('ad-rerr');const d=(document.getElementById('ad-pdate')||{}).value||almatyToday();const com=((document.getElementById('ad-pcom')||{}).value||'').trim();
     if(d>almatyToday()){err.textContent='Дата оплаты не может быть в будущем';return}
-    W.busy=1;el.disabled=true;err.textContent='Записываем…';const r=await sb.rpc('renew_club',{p_club:id,p_plan:W.plan,p_method:'kaspi',p_paid_at:d,p_comment:com});W.busy=0;
+    const pc=((document.getElementById('ad-promo')||{}).value||'').trim();if(pc&&!(W.pres&&W.pres.ok&&W.pcode===pc)){err.textContent=W.pres&&!W.pres.ok?W.pres.error:'Дождитесь проверки промокода';return}
+    W.busy=1;el.disabled=true;err.textContent='Записываем…';const r=await sb.rpc('renew_club',{p_club:id,p_plan:W.plan,p_method:'kaspi',p_paid_at:d,p_comment:com,p_promo:pc||null});W.busy=0;
     if(r.error){el.disabled=false;err.textContent=r.error.message||'Не получилось записать';return}
     const c=adClub(id);W.done=r.data;W.msg=`Здравствуйте! Оплата получена, спасибо. Подписка kazbilliard для клуба «${c.name}» продлена до ${fds(r.data.to)}.`;
     openModal(adRenewHTML(id));await loadAdmin(true);toast('Оплата записана')},
@@ -1875,6 +1886,124 @@ const AA={
     const msg=`Здравствуйте! Новый пароль для входа в kazbilliard.\n\nВход: ${siteUrl()}/#cabinet\nПочта: ${c.email}\nПароль: ${pw}\n\nПосле входа смените пароль: меню клуба → «Сменить пароль».`;
     openModal(`<div class="dlg-h"><h3>Пароль изменён</h3><button class="x" data-act="close" aria-label="Закрыть">×</button></div><div class="field"><label>Сообщение клубу</label><textarea id="ad-msg" rows="6" readonly>${esc(msg)}</textarea></div><div class="adm-ra"><button class="btn blue" data-act="adCopy" data-src="ad-msg">${AIC.copy}Скопировать</button>${r0.contact_phone?`<a class="btn ghost" href="${waLink(r0.contact_phone)}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">${IC.wa}Открыть в WhatsApp</a>`:''}</div>`)}
 };
+/* ============ админка: этап 2 — деньги, тарифы, промокоды ============ */
+const uuid4=()=>{const b=new Uint8Array(16);crypto.getRandomValues(b);b[6]=b[6]&15|64;b[8]=b[8]&63|128;const h=[...b].map(x=>x.toString(16).padStart(2,'0')).join('');return`${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`};
+const NODATA='<span class="nod">пока нет данных</span>';
+const MNOM=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const repLbl={none:'разово',month:'каждый месяц',year:'каждый год'};
+const promoWhat=p=>p.kind==='pct'?`−${p.value}%`:p.kind==='amount'?`−${money(p.value)}`:`+${p.value} мес.`;
+function perRange(k){const t=almatyToday();const [y,m]=t.split('-').map(Number);const last=(yy,mm)=>new Date(Date.UTC(yy,mm,0)).toISOString().slice(0,10);
+  if(k==='month')return[`${y}-${String(m).padStart(2,'0')}-01`,last(y,m)];
+  if(k==='quarter'){const q0=Math.floor((m-1)/3)*3+1;return[`${y}-${String(q0).padStart(2,'0')}-01`,last(y,q0+2)]}
+  if(k==='year')return[`${y}-01-01`,`${y}-12-31`];
+  const first=AD.pays.map(p=>p.paid_at).concat(AD.exps.map(e=>e.date)).filter(Boolean).sort()[0]||t;return[first<t?first:t,t]}
+async function loadMoney(){const k=AD.per||'month';const [a,b]=perRange(k);const key=k+a+b+AD.ver;if(AD.mkey===key||AD.mload)return;AD.mload=1;
+  const r=await sb.rpc('money_stats',{p_from:a,p_to:b});AD.mload=0;AD.mkey=key;AD.money=r.error?{err:r.error.message}:r.data;if(location.hash==='#admin/money')render()}
+function chartSVG(series){const sm=window.innerWidth<640;if(sm)series=series.slice(-6);const W=sm?480:960,H=sm?280:260,L=56,R=12,T=16,B=34;const n=series.length;const mx=Math.max(1,...series.map(s=>Math.max(s.got,s.mrr)));
+  const step=Math.pow(10,Math.floor(Math.log10(mx)));const top=Math.ceil(mx/step/ (mx/step>5?2:1))*step*(mx/step>5?2:1);const iw=W-L-R,ih=H-T-B,bw=iw/n;
+  const y=v=>T+ih-(v/top)*ih;const ticks=[0,.25,.5,.75,1].map(f=>Math.round(top*f));
+  const sh=v=>v>=1e6?(v/1e6).toFixed(v%1e6?1:0)+' млн':v>=1e3?Math.round(v/1e3)+' тыс':String(v);
+  const line=series.map((s,i)=>`${i?'L':'M'}${(L+bw*i+bw/2).toFixed(1)},${y(s.mrr).toFixed(1)}`).join(' ');
+  return`<svg class="adm-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Получено и месячный доход за 12 месяцев">
+  ${ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" class="g"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" class="t">${sh(v)}</text>`).join('')}
+  ${series.map((s,i)=>{const x=L+bw*i+bw*.22,w=bw*.56,h=Math.max(0,T+ih-y(s.got));const [yy,mm]=s.m.split('-');return`<rect x="${x.toFixed(1)}" y="${y(s.got).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="4" class="b"><title>${MNOM[+mm-1]} ${yy}: получено ${money(s.got)}, месячный доход ${money(s.mrr)}</title></rect><text x="${(L+bw*i+bw/2).toFixed(1)}" y="${H-12}" text-anchor="middle" class="t">${MSHORT[+mm-1]}</text>`}).join('')}
+  <path d="${line}" class="l"/>${series.map((s,i)=>`<circle cx="${(L+bw*i+bw/2).toFixed(1)}" cy="${y(s.mrr).toFixed(1)}" r="3.5" class="d"/>`).join('')}</svg>
+  <div class="adm-leg"><span><i class="b"></i>Получено</span><span><i class="l"></i>Месячный доход</span></div>`}
+function adMoneyPage(){const k=AD.per||'month';setTimeout(loadMoney,0);const M=AD.money;
+  const P=[['month','Месяц'],['quarter','Квартал'],['year','Год'],['all','Всё время']];
+  const head=`<div class="adm-h"><h1>Деньги</h1><button class="btn blue" data-act="adExpNew">${IC.plus}Расход</button></div><div class="chips">${P.map(([v,l])=>`<button class="chip${k===v?' on':''}" data-act="adPer" data-v="${v}">${l}</button>`).join('')}</div>`;
+  if(!M||AD.mkey!==k+perRange(k).join('')+AD.ver)return head+'<div class="empty" role="status">Считаем…</div>';
+  if(M.err)return head+`<div class="empty">${esc(M.err)}</div>`;
+  const [a,b]=perRange(k);const hp=M.has_pays,he=M.has_exp;
+  const kpi=(v,l,s)=>`<div><b>${v}</b><span>${l}</span>${s?`<small>${s}</small>`:''}</div>`;
+  const plansT=M.plans.reduce((x,p)=>x+p.sum,0);
+  const exps=AD.exps.filter(e=>e.active).sort((x,y)=>y.date.localeCompare(x.date));
+  return head+`<p class="muted adm-per">${fds(a)} — ${fds(b)}</p>
+  <div class="adm-kpi">${kpi(hp?money(M.received):NODATA,'получено',hp?`${M.pay_count} оплат${M.pay_count===1?'а':M.pay_count>=2&&M.pay_count<=4?'ы':''}`:'')}
+  ${kpi(hp?money(M.mrr):NODATA,'месячный доход','оплаты, разнесённые по месяцам подписки')}
+  ${kpi(M.expected.clubs?money(M.expected.sum):'0 ₸','ожидается за 30 дней',M.expected.clubs?`${M.expected.clubs} клуб${plural(M.expected.clubs)} ${M.expected.clubs===1?'заканчивает':'заканчивают'} подписку`:'никто не заканчивает')}
+  ${kpi(hp||he?money(M.received-M.expenses):NODATA,'прибыль',hp||he?`расходы ${money(M.expenses)}`:'')}</div>
+  <section class="panel adm-sec"><h3>По месяцам</h3>${hp?chartSVG(M.series):`<p class="muted">Пока нет данных. График появится после первой оплаты.</p>`}</section>
+  <div class="adm-grid">
+   <div class="panel"><h3>Клубы</h3>${[['Платящие',M.paying],['На пробном',M.trial],['Перешли с пробного на оплату',M.conv==null?NODATA:M.conv+'%'],['Не продлили за период',M.churn],['В среднем приносит клуб',M.avg_club==null?NODATA:money(M.avg_club)]].map(([l,v])=>`<div class="sr"><span>${l}</span><b>${v}</b></div>`).join('')}</div>
+   <div class="panel"><h3>Структура</h3>${M.plans.length?M.plans.map(p=>{const pc=plansT?Math.round(p.sum/plansT*100):0;return`<div class="adm-share"><div><span>${esc(planName(p.plan))}</span><b>${pc}%</b></div><div class="adm-bar"><i style="width:${pc}%"></i></div><small>${money(p.sum)} · ${p.n} оплат${p.n===1?'а':p.n>=2&&p.n<=4?'ы':''}</small></div>`}).join(''):`<p class="muted">Пока нет оплат за период.</p>`}
+    <div class="sr"><span>Средний чек</span><b>${M.avg_check==null?NODATA:money(M.avg_check)}</b></div><div class="sr"><span>Отдано скидками</span><b>${money(M.discounts)}</b></div>
+    ${M.promos.length?M.promos.map(p=>`<div class="sr sub"><span>${esc(p.code)} · ${p.n}×</span><b>${p.disc?money(p.disc):''}${p.bonus?(p.disc?' + ':'')+'+'+p.bonus+' мес.':''}</b></div>`).join(''):''}</div>
+  </div>
+  <section class="hs" style="margin-top:28px"><div class="hs-h"><h2>Расходы</h2>${exps.length?`<span>${exps.length}</span>`:''}</div>
+  ${exps.length?`<div class="panel adm-tw"><table class="tb adm-tb"><thead><tr><th>Дата</th><th>Статья</th><th class="r">Сумма</th><th>Повтор</th><th></th></tr></thead><tbody>${exps.map(e=>`<tr><td class="nw">${fds(e.date)}</td><td>${esc(e.title)}${e.comment?`<div class="mut2">${esc(e.comment)}</div>`:''}</td><td class="r nw"><b>${money(e.amount)}</b></td><td>${repLbl[e.repeat]||''}${e.until?`<div class="mut2">до ${fds(e.until)}</div>`:''}</td><td class="r"><button class="lnk" data-act="adExpOff" data-id="${e.id}">Убрать</button></td></tr>`).join('')}</tbody></table></div>`
+   :`<div class="empty">Расходов пока нет. Добавьте подписки и домен — повторяющиеся будут считаться сами каждый месяц или год.</div>`}</section>`}
+function adExpHTML(){const t=almatyToday();return`<div class="dlg-h"><h3>Новый расход</h3><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
+  <div class="field"><label>Статья</label><input id="ex-t" maxlength="120" placeholder="Например: домен kazbilliard.com" list="ex-sug"><datalist id="ex-sug"><option value="Домен kazbilliard.com"><option value="Vercel"><option value="Supabase"><option value="Resend"><option value="Реклама"></datalist></div>
+  <div class="row2"><div class="field"><label>Сумма, ₸</label><input id="ex-a" type="number" inputmode="numeric" min="1"></div><div class="field"><label>Дата</label><input id="ex-d" type="date" value="${t}"></div></div>
+  <div class="row2"><div class="field"><label>Повторяется</label><select id="ex-r"><option value="none">Разово</option><option value="month">Каждый месяц</option><option value="year">Каждый год</option></select></div><div class="field"><label>До <small>необязательно</small></label><input id="ex-u" type="date"></div></div>
+  <div class="field"><label>Комментарий <small>необязательно</small></label><input id="ex-c" maxlength="500"></div>
+  <button class="btn blue big" style="width:100%" data-act="adExpSave">Добавить расход</button><div class="err" id="ex-err"></div>`}
+function adPlansPage(){const L=[...AD.plans].sort((a,b)=>a.sort-b.sort);
+  return`<div class="adm-h"><h1>Тарифы</h1><button class="btn blue" data-act="adPlanEdit" data-id="">${IC.plus}Тариф</button></div>
+  <p class="muted adm-per">Изменение цены не меняет прошлые оплаты. Цены на kazbilliard.com меняются отдельно.</p>
+  <div class="panel adm-tw"><table class="tb adm-tb"><thead><tr><th>Название</th><th class="r">Срок</th><th class="r">Цена</th><th class="r">В месяц</th><th>В окне «Продлить»</th><th></th></tr></thead><tbody>
+  ${L.map(p=>`<tr><td><b>${esc(p.title)}</b>${p.price===0?'<div class="mut2">выдаётся при создании клуба</div>':''}</td><td class="r nw">${p.months} мес.</td><td class="r nw"><b>${money(p.price)}</b></td><td class="r nw mut2">${p.price?money(p.price/p.months):'—'}</td><td>${p.price===0?'<span class="mut2">—</span>':p.active?'<span class="sbadge ok"><i></i>Показан</span>':'<span class="sbadge grey"><i></i>Скрыт</span>'}</td><td class="r"><button class="lnk" data-act="adPlanEdit" data-id="${p.id}">Изменить</button></td></tr>`).join('')}</tbody></table></div>`}
+function adPlanHTML(id){const p=AD.plans.find(x=>x.id===id)||{title:'',months:1,price:0,active:true,sort:AD.plans.length};
+  return`<div class="dlg-h"><h3>${id?'Тариф':'Новый тариф'}</h3><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
+  <div class="field"><label>Название</label><input id="pl-t" maxlength="60" value="${esc(p.title)}"></div>
+  <div class="row2"><div class="field"><label>Срок, месяцев</label><input id="pl-m" type="number" min="1" max="36" value="${p.months}"></div><div class="field"><label>Цена, ₸</label><input id="pl-p" type="number" min="0" value="${p.price}"></div></div>
+  <div class="field"><label>Порядок в списке</label><input id="pl-s" type="number" min="0" max="99" value="${p.sort}"></div>
+  ${id==='trial'?'':`<label class="chk"><input type="checkbox" id="pl-a" ${p.active?'checked':''}><span>Показывать в окне «Продлить»</span></label>`}
+  <button class="btn blue big" style="width:100%" data-act="adPlanSave" data-id="${esc(id)}">Сохранить</button><div class="err" id="pl-err"></div>`}
+function adPromosPage(){const L=[...AD.promos].sort((a,b)=>(b.active-a.active)||(b.created_at||'').localeCompare(a.created_at||''));const t=almatyToday();
+  const gave=id=>AD.pays.filter(p=>p.promo_id===id&&!p.cancelled_at).reduce((a,p)=>a+(p.discount||0),0);
+  return`<div class="adm-h"><h1>Промокоды</h1><button class="btn blue" data-act="adPromoNew">${IC.plus}Промокод</button></div>
+  <p class="muted adm-per">Промокоды не удаляются — их выключают. Код вводится в окне «Продлить».</p>
+  ${L.length?`<div class="panel adm-tw"><table class="tb adm-tb"><thead><tr><th>Код</th><th>Что даёт</th><th>Тарифы</th><th class="r">Использован</th><th>До</th><th class="r">Скидок дал</th><th>Статус</th><th></th></tr></thead><tbody>
+  ${L.map(p=>{const exp=p.valid_until&&p.valid_until<t,full=p.max_uses&&p.used>=p.max_uses;const st=!p.active?['grey','Выключен']:exp?['grey','Истёк']:full?['grey','Исчерпан']:['ok','Действует'];
+   return`<tr><td><b class="mono">${esc(p.code)}</b>${p.note?`<div class="mut2">${esc(p.note)}</div>`:''}</td><td class="nw"><b>${promoWhat(p)}</b>${p.once_per_club?'<div class="mut2">раз на клуб</div>':''}</td><td>${p.plans&&p.plans.length?p.plans.map(x=>esc(planName(x))).join(', '):'все'}</td><td class="r nw">${p.used}${p.max_uses?' из '+p.max_uses:''}</td><td class="nw">${p.valid_until?fds(p.valid_until):'—'}</td><td class="r nw">${money(gave(p.id))}</td><td><span class="sbadge ${st[0]}"><i></i>${st[1]}</span></td><td class="r"><button class="lnk" data-act="adPromoToggle" data-id="${p.id}">${p.active?'Выключить':'Включить'}</button></td></tr>`}).join('')}</tbody></table></div>`
+  :`<div class="empty">Промокодов пока нет. Нажмите «Промокод», чтобы создать первый.</div>`}`}
+function adPromoHTML(){const W=UI.adPr||{kind:'pct'};const P=AD.plans.filter(p=>p.price>0);
+  return`<div class="dlg-h"><h3>Новый промокод</h3><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
+  <div class="field"><label>Код</label><div class="adm-pw"><input id="pr-c" maxlength="24" class="mono" style="text-transform:uppercase" value="${esc(W.code||'')}" placeholder="START20"><button class="btn sm ghost" data-act="adPromoGen">Сгенерировать</button></div></div>
+  <div class="field"><label>Что даёт</label><div class="fpills sm">${[['pct','% скидки'],['amount','Сумма ₸'],['months','+ месяцы']].map(([k,l])=>`<button class="${W.kind===k?'on':''}" data-act="adPromoKind" data-v="${k}">${l}</button>`).join('')}</div></div>
+  <div class="field"><label>${W.kind==='pct'?'Скидка, %':W.kind==='amount'?'Скидка, ₸':'Месяцев в подарок'}</label><input id="pr-v" type="number" min="1" max="${W.kind==='pct'?100:W.kind==='months'?24:10000000}" value="${esc(W.value||'')}"></div>
+  <div class="field"><label>Тарифы <small>ничего не отмечено — все</small></label><div class="adm-checks">${P.map(p=>`<label class="chk"><input type="checkbox" class="pr-pl" value="${p.id}" ${(W.plans||[]).includes(p.id)?'checked':''}><span>${esc(p.title)}</span></label>`).join('')}</div></div>
+  <div class="row2"><div class="field"><label>Лимит использований <small>необязательно</small></label><input id="pr-m" type="number" min="1" value="${esc(W.max||'')}"></div><div class="field"><label>Действует до <small>необязательно</small></label><input id="pr-u" type="date" value="${esc(W.until||'')}"></div></div>
+  <label class="chk"><input type="checkbox" id="pr-o" ${W.once===false?'':'checked'}><span>Один раз на клуб</span></label>
+  <div class="field"><label>Заметка <small>необязательно</small></label><input id="pr-n" maxlength="500" value="${esc(W.note||'')}" placeholder="Для кого и зачем"></div>
+  <button class="btn blue big" style="width:100%" data-act="adPromoSave">Создать промокод</button><div class="err" id="pr-err"></div>`}
+function prSnap(){const g=i=>{const e=document.getElementById(i);return e?e.value:''};const W=UI.adPr||{};W.code=g('pr-c');W.value=g('pr-v');W.max=g('pr-m');W.until=g('pr-u');W.note=g('pr-n');W.once=!!(document.getElementById('pr-o')||{}).checked;W.plans=[...document.querySelectorAll('.pr-pl:checked')].map(x=>x.value);UI.adPr=W;return W}
+let promoT=null;
+function adPromoCheck(){const W=UI.adRen;if(!W)return;const el=document.getElementById('ad-promo');W.pcode=el?el.value.trim():'';W.pres=null;clearTimeout(promoT);
+  const out=document.getElementById('ad-pres');if(!W.pcode){if(out)out.innerHTML='';adRenewRefresh();return}
+  if(out)out.innerHTML='<span class="mut2">Проверяем…</span>';
+  promoT=setTimeout(async()=>{const code=W.pcode,plan=W.plan;const r=await sb.rpc('check_promo',{p_code:code,p_club:W.id,p_plan:plan});if(UI.adRen!==W||W.pcode!==code||W.plan!==plan)return;W.pres=r.error?{ok:false,error:r.error.message}:r.data;adRenewRefresh()},400)}
+function adRenewRefresh(){const W=UI.adRen;if(!W)return;const d=document.getElementById('ad-pdate'),c=document.getElementById('ad-pcom');W.date=d?d.value:W.date;W.com=c?c.value:W.com;const f=document.activeElement&&document.activeElement.id;openModal(adRenewHTML(W.id));if(f==='ad-promo'){const i=document.getElementById('ad-promo');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}}}
+Object.assign(AA,{
+  adPer(el){AD.per=el.dataset.v;render()},
+  adExpNew(){openModal(adExpHTML())},
+  async adExpSave(){const g=i=>((document.getElementById(i)||{}).value||'').trim();const err=document.getElementById('ex-err');const row={id:uuid4(),title:g('ex-t'),amount:Math.round(+g('ex-a')),date:g('ex-d'),repeat:g('ex-r')||'none',until:g('ex-u')||null,comment:g('ex-c'),active:true};
+    if(!row.title){err.textContent='Укажите статью';return}if(!(row.amount>0)){err.textContent='Укажите сумму';return}if(!row.date){err.textContent='Укажите дату';return}if(row.until&&row.until<row.date){err.textContent='«До» раньше даты';return}
+    const r=await sb.from('expense').insert(row);if(r.error){err.textContent='Не сохранилось';return}closeModal();toast('Расход добавлен');AD.ver++;loadAdmin(true)},
+  adExpOff(el){openModal(`<div class="dlg-h"><h3>Убрать расход?</h3><button class="x" data-act="close" aria-label="Закрыть">×</button></div><p class="muted">Он перестанет учитываться в расходах и прибыли.</p><div class="adm-ra"><button class="btn red" data-act="adExpOffYes" data-id="${el.dataset.id}">Убрать</button><button class="btn ghost" data-act="close">Отмена</button></div>`)},
+  async adExpOffYes(el){const r=await sb.from('expense').update({active:false}).eq('id',el.dataset.id);if(r.error){toast('Не получилось');return}closeModal();AD.ver++;loadAdmin(true)},
+  adPlanEdit(el){openModal(adPlanHTML(el.dataset.id))},
+  async adPlanSave(el){const id=el.dataset.id;const g=i=>((document.getElementById(i)||{}).value||'').trim();const err=document.getElementById('pl-err');
+    const row={title:g('pl-t'),months:Math.round(+g('pl-m')),price:Math.round(+g('pl-p')),sort:Math.round(+g('pl-s'))||0};const a=document.getElementById('pl-a');if(a)row.active=a.checked;
+    if(!row.title){err.textContent='Укажите название';return}if(!(row.months>=1&&row.months<=36)){err.textContent='Срок — от 1 до 36 месяцев';return}if(!(row.price>=0)){err.textContent='Проверьте цену';return}
+    if(id!=='trial'&&row.price===0){err.textContent='Платный тариф не может стоить 0 ₸';return}
+    const r=id?await sb.from('plan').update(row).eq('id',id):await sb.from('plan').insert(Object.assign({id:'p'+genPw().slice(0,7)},row));
+    if(r.error){err.textContent='Не сохранилось';return}closeModal();toast('Тариф сохранён');loadAdmin(true)},
+  adPromoNew(){UI.adPr={kind:'pct',once:true};openModal(adPromoHTML())},
+  adPromoGen(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';const v=new Uint32Array(6);crypto.getRandomValues(v);const W=prSnap();W.code='KB'+[...v].map(x=>a[x%a.length]).join('');openModal(adPromoHTML())},
+  adPromoKind(el){const W=prSnap();W.kind=el.dataset.v;W.value='';openModal(adPromoHTML())},
+  async adPromoSave(){const W=prSnap();const err=document.getElementById('pr-err');const code=W.code.trim().toUpperCase();const v=Math.round(+W.value);
+    if(!/^[A-Z0-9_-]{3,24}$/.test(code)){err.textContent='Код — от 3 до 24 латинских букв и цифр';return}
+    if(!(v>=1)||(W.kind==='pct'&&v>100)||(W.kind==='months'&&v>24)){err.textContent=W.kind==='pct'?'Скидка — от 1 до 100%':W.kind==='months'?'От 1 до 24 месяцев':'Укажите сумму скидки';return}
+    if(AD.promos.some(p=>p.code===code)){err.textContent='Такой код уже есть';return}
+    const row={id:uuid4(),code,kind:W.kind,value:v,plans:W.plans.length?W.plans:null,max_uses:W.max?Math.round(+W.max):null,valid_until:W.until||null,once_per_club:W.once,note:(W.note||'').trim(),active:true};
+    const r=await sb.from('promo').insert(row);if(r.error){err.textContent=/duplicate|unique/i.test(r.error.message)?'Такой код уже есть':'Не сохранилось';return}closeModal();toast('Промокод создан');loadAdmin(true)},
+  async adPromoToggle(el){const p=AD.promos.find(x=>x.id===el.dataset.id);if(!p)return;const r=await sb.from('promo').update({active:!p.active}).eq('id',p.id);if(r.error){toast('Не получилось');return}toast(p.active?'Промокод выключен':'Промокод включён');loadAdmin(true)},
+  adPromoApply(){adPromoCheck()}
+});
+
 /* кабинет клуба: подписка */
 function cabSub(){const x=S.sub;if(!x)return'';const t=x.today||almatyToday();
   const paid=x.paid_until&&x.paid_until>=t,trial=!paid&&x.trial_until&&x.trial_until>=t;const end=paid?x.paid_until:trial?x.trial_until:[x.paid_until,x.trial_until].filter(Boolean).sort().pop();if(!end)return'';
@@ -2329,7 +2458,7 @@ document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.ct=
 document.addEventListener('pointerdown',e=>{const r=document.getElementById('find-res');if(!r||!r.innerHTML)return;if(e.target.closest('#find-res')||e.target.id==='pq')return;r.innerHTML=''});
 document.addEventListener('focusin',e=>{if(e.target.id==='pq')renderFind()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&e.target.id==='pq'){const r=document.getElementById('find-res');if(r)r.innerHTML='';e.target.blur()}});
-document.addEventListener('input',e=>{if(e.target.id==='ad-q'){AD.q=e.target.value;const t=document.getElementById('ad-tbl');if(t)t.innerHTML=adClubsTable()}if(e.target.id==='pq'){UI.pq=e.target.value;renderFind()}if(e.target.id==='q'){UI.filter.q=e.target.value;renderGrid()}if(e.target.id==='rs-q')renderRoster();if(e.target.id==='wq'&&UI.wiz){UI.wiz.q=e.target.value;renderWizRoster()}if(e.target.dataset&&e.target.dataset.w&&UI.wiz){UI.wiz[e.target.dataset.w]=e.target.value;const t=document.getElementById('ws-title');if(t&&e.target.dataset.w==='title')t.textContent=e.target.value||'Без названия'}});
+document.addEventListener('input',e=>{if(e.target.id==='ad-promo'){adPromoCheck();return}if(e.target.id==='ad-q'){AD.q=e.target.value;const t=document.getElementById('ad-tbl');if(t)t.innerHTML=adClubsTable()}if(e.target.id==='pq'){UI.pq=e.target.value;renderFind()}if(e.target.id==='q'){UI.filter.q=e.target.value;renderGrid()}if(e.target.id==='rs-q')renderRoster();if(e.target.id==='wq'&&UI.wiz){UI.wiz.q=e.target.value;renderWizRoster()}if(e.target.dataset&&e.target.dataset.w&&UI.wiz){UI.wiz[e.target.dataset.w]=e.target.value;const t=document.getElementById('ws-title');if(t&&e.target.dataset.w==='title')t.textContent=e.target.value||'Без названия'}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='Enter'&&e.target.id==='lg-pass'){const b=document.querySelector('[data-act=login]');b&&b.click()}if(e.key==='Enter'&&document.getElementById('sa')&&document.getElementById('modal').classList.contains('open')){const b=document.querySelector('[data-act=saveRes]');b&&b.click()}});
 window.addEventListener('hashchange',()=>{closeModal();UI.confirm=null;render();window.scrollTo(0,0)});
 Object.assign(A,CT_ACTS);
