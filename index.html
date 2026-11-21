@@ -1775,7 +1775,7 @@ const A={
     const x={sex:v('np-sex'),country:v('np-country'),club:v('np-club'),lvl:v('np-lvl')};
     const r=addPlayer(T,c,first,last,String(y),v('np-city'),v('np-rank'),x);if(r){e.textContent=r;return}
     save();render();toast('Участник зарегистрирован');const f=document.getElementById('np-last');f&&f.focus()},
-  drawOpen(){openModal(drawHTML(CUR.T))},
+  drawOpen(){A.drawApply()},
   drawApply(){const T=CUR.T;const a=T.players.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
     a.forEach((p,i)=>{p.no=i+1;p.seed=false});T.players=a;T.drawn=true;T.seeds=0;UI.psort={k:'pos',d:1};save();closeModal();render();toast('Жеребьёвка проведена')},
   splitOpen(){const T=CUR.T;UI.sp={k:4,race:T.raceTo||4};openModal(splitHTML(T))},
