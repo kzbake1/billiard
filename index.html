@@ -1347,7 +1347,7 @@ function renderResult(T,b){
     const done=b.all.filter(m=>m.state==='done').length,tot=b.all.filter(m=>m.state!=='bye').length;
     return`<div class="empty">Итоговые места появятся после финала.<br>Сыграно матчей: ${done} из ${tot}</div>`;
   }
-  return`<div class="panel" style="max-width:720px"><div class="ph"><h3>Итоговые места</h3><div class="ptools"><button data-act="printPlaces">${IC.print}Печать</button><button data-act="xlsT">${IC.xls}Excel</button></div></div><ul class="places">${b.places.map(p=>`<li><span class="pl">${p.from===p.to?p.from:p.from+'–'+p.to} место</span><span>${p.ids.map(id=>esc(pname(T,P(id)))).join(', ')}${p.label?` <span class="muted">· ${p.label}</span>`:''}</span></li>`).join('')}</ul></div>`;
+  return`<div class="panel" style="max-width:720px"><div class="ph"><h3>Итоговые места</h3><div class="ptools"><button data-act="shareRes">${IC.share||IC.print}Поделиться</button><button data-act="printPlaces">${IC.print}Печать</button><button data-act="xlsT">${IC.xls}Excel</button></div></div><ul class="places">${b.places.map(p=>`<li><span class="pl">${p.from===p.to?p.from:p.from+'–'+p.to} место</span><span>${p.ids.map(id=>esc(pname(T,P(id)))).join(', ')}${p.label?` <span class="muted">· ${p.label}</span>`:''}</span></li>`).join('')}</ul></div>`;
 }
 
 /* ============ cabinet ============ */
@@ -1412,6 +1412,43 @@ const CT_ACTS=({
     const blob=await new Promise(r=>cv.toBlob(r,'image/png'));const name=`kazbilliard-${c.p[0]}-${c.p[1]}.png`.replace(/[\\/:*?"<>|\s]+/g,'_');const file=new File([blob],name,{type:'image/png'});
     const text=c.done<0?`Ничья ${big} · ${c.disc}`:`${c.p[w]} победил ${big} · ${c.disc}`;
     try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text});return}}catch(e){if(e&&e.name==='AbortError')return}
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();toast('Картинка сохранена')},
+  async shareRes(){const T=CUR.T,b=CUR.b;if(!b||!b.finished)return;toast('Готовлю картинку…');
+    const W=1080,H=1350;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+    try{await Promise.all([400,600,700].map(w=>document.fonts.load(w+' 40px Inter')))}catch(e){}
+    const img=src=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src});
+    const [pat,logo]=await Promise.all([img('pattern-blue.svg'),img('logo-white.svg')]);
+    const f=(w,sz)=>`${w} ${sz}px Inter, system-ui, sans-serif`;
+    const rr=(x,y,w,h,r)=>{g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()};
+    const sp=(t,x,y,ls)=>{let cx=x;for(const ch of t){g.fillText(ch,cx,y);cx+=g.measureText(ch).width+ls}};
+    const spw=(t,ls)=>[...t].reduce((a,ch)=>a+g.measureText(ch).width+ls,0)-ls;
+    const fit=(t,max,sz,wt,min)=>{let z=sz;g.font=f(wt,z);while(g.measureText(t).width>max&&z>min){z-=2;g.font=f(wt,z)}return z};
+    const wrap=(t,max)=>{const ws=t.split(' '),L=[];let cur='';ws.forEach(w=>{const n=cur?cur+' '+w:w;if(g.measureText(n).width>max&&cur){L.push(cur);cur=w}else cur=n});if(cur)L.push(cur);return L};
+    g.fillStyle='#1667FF';g.fillRect(0,0,W,H);if(pat)for(let y=0;y<H;y+=240)for(let x=0;x<W;x+=480)g.drawImage(pat,x,y,480,240);
+    if(logo)g.drawImage(logo,80,72,64*567/136,64);
+    const c=club(T.clubId),pl=b.places,win=pl[0];const nm=id=>pname(T,P(id));
+    // winner card
+    let y=232;const cx=80,cw=920,ch=427;g.fillStyle='#fff';rr(cx,y,cw,ch,16);g.fill();
+    g.fillStyle='#FFF4D6';rr(W/2-56,y+56,112,112,16);g.fill();
+    g.save();g.translate(W/2-36,y+76);g.scale(3,3);g.strokeStyle='#8A6100';g.lineWidth=1.8;g.lineCap='round';g.lineJoin='round';
+    ['M6 9H4.5a2.5 2.5 0 0 1 0-5H6','M18 9h1.5a2.5 2.5 0 0 0 0-5H18','M4 22h16','M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22','M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22','M18 2H6v7a6 6 0 0 0 12 0V2Z'].forEach(d=>g.stroke(new Path2D(d)));g.restore();
+    g.textBaseline='alphabetic';g.fillStyle='#8A6100';g.font=f(700,22);const lb='ПОБЕДИТЕЛЬ';sp(lb,W/2-spw(lb,2.2)/2,y+217,2.2);
+    const wn=win.ids.map(nm).join(', ');g.fillStyle='#111';fit(wn,824,80,600,40);g.textAlign='center';g.fillText(wn,W/2,y+305);
+    const sub=[T.title,fdates(T),T.players.length+' игрок'+plural(T.players.length)].join(' · ');g.fillStyle='#6E6E6E';fit(sub,824,26,400,18);g.fillText(sub,W/2,y+365);g.textAlign='left';
+    // others card
+    const rows=pl.slice(1).filter(p=>p.from<=8).map(p=>({l:(p.from===p.to?p.from:p.from+'–'+p.to)+' МЕСТО',t:p.ids.map(nm).join(', '),big:p.from<=4}));
+    if(rows.length){const lay=rows.map(r=>{g.font=f(r.big?600:400,r.big?34:26);const L=wrap(r.t,654);return Object.assign(r,{L,lh:r.big?44:36})});
+      let tot=32;lay.forEach(r=>tot+=52+r.L.length*r.lh);const y2=y+ch+16;const maxH=H-140-y2;const h2=Math.min(tot,maxH);
+      g.fillStyle='#fff';rr(cx,y2,cw,h2,16);g.fill();g.save();rr(cx,y2,cw,h2,16);g.clip();
+      let yy=y2+16;lay.forEach((r,i)=>{const top=yy+26;g.fillStyle='#6E6E6E';g.font=f(700,18);sp(r.l,128,top+(r.big?28:24),1.8);
+        g.fillStyle=r.big?'#111':'#4D4D4D';g.font=f(r.big?600:400,r.big?34:26);r.L.forEach((ln,k)=>g.fillText(ln,298,top+(r.big?34:26)+k*r.lh));
+        yy=top+r.L.length*r.lh+26;if(i<lay.length-1){g.fillStyle='#E4E4E4';g.fillRect(128,yy,824,1)}});g.restore()}
+    // footer
+    g.font=f(600,26);g.fillStyle='#fff';const cn=c.name||'';g.fillText(cn,80,1272);const cw2=g.measureText(cn).width;
+    const ad=[c.city,c.address].filter(Boolean).join(', ');if(ad){g.font=f(400,26);g.fillStyle='#C9DAFF';g.fillText(' · '+ad,80+cw2,1272)}
+    g.font=f(600,26);g.fillStyle='#fff';g.textAlign='right';g.fillText('kazbilliard.com',1000,1272);g.textAlign='left';
+    const blob=await new Promise(r=>cv.toBlob(r,'image/png'));const name=`kazbilliard-itogi-${T.title}.png`.replace(/[\\/:*?"<>|\s]+/g,'_');const file=new File([blob],name,{type:'image/png'});
+    try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:`Итоги: ${T.title}`});return}}catch(e){if(e&&e.name==='AbortError')return}
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();toast('Картинка сохранена')},
   ctTurn(el){CT.turn=+el.dataset.i;CT.ser=0;ctSave();render()},
   ctMiss(){const c=CT;if(c.turn==null||c.done!=null)return;A._ctPush();c.turn=1-c.turn;c.ser=0;ctSave();render()},
