@@ -777,6 +777,7 @@ body.admv nav.main{flex:1;margin-left:0;gap:16px;align-self:stretch}body.admv .a
 .prw-st{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 28px}.prw-st li{display:flex;gap:12px;align-items:flex-start}.prw-st i{flex:none;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-style:normal;font-size:13px;font-weight:600}
 .prw-q{margin:36px 0 0;padding-top:20px;border-top:1px solid var(--line);color:var(--muted)}.prw-q a{color:var(--accent-ink);font-weight:600}
 @media(max-width:700px){.prw-f,.prw-st{grid-template-columns:minmax(0,1fr)}.prw-top .btn{width:100%;justify-content:center}.prw .pr-g{gap:16px}}
+.apl-h{margin:28px 0 12px;font-size:18px;font-weight:600}.apl-g,.apl-m{padding:6px 18px;margin-bottom:10px}.apl-m{padding:16px 18px;border-color:var(--accent)}.apl-r{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0}.apl-r+.apl-r{border-top:1px solid var(--line)}.apl-i b{display:block}.apl-i span{font-size:13px;color:var(--muted)}.apl-r .btn{flex:none}
 .stl{display:grid;gap:10px}.stc{display:block;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);text-decoration:none;transition:border-color .15s,box-shadow .15s}.stc:hover{border-color:var(--live-ink,#C4321F);box-shadow:0 2px 10px rgba(0,0,0,.06)}.stc-h{display:flex;justify-content:space-between;align-items:center;gap:10px}.stc-h b{font-size:15px;font-weight:700}.stc-s{font-size:12.5px;color:var(--muted);margin-top:2px}.stc-p{display:grid;grid-template-columns:1fr auto;gap:6px 12px;margin:12px 0;font-size:15px}.stc-p span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.stc-p b{font-size:17px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}.stc-go{display:flex;align-items:center;justify-content:center;gap:8px;height:42px;border-radius:10px;background:var(--live-soft);color:var(--live-ink,#C4321F);font-weight:600;font-size:14px}.stc:hover .stc-go{background:var(--live-ink,#C4321F);color:#fff}.stch{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 16px;border-radius:14px;background:var(--soft);color:var(--ink);text-decoration:none}.stch svg{color:var(--live-ink,#C4321F);flex:none}.stch span{display:flex;flex-direction:column;font-size:12.5px;color:var(--muted)}.stch b{font-size:14px;color:var(--ink);font-weight:600}
 .strow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--line);color:var(--ink);text-decoration:none}.strow span{display:flex;flex-direction:column;gap:2px;font-size:15px}.strow b{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.strow svg{color:var(--live-ink,#C4321F);flex:none}
 .org-r{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.org-r>div{display:flex;flex-direction:column;gap:4px}.org-r b{font-size:18px;font-weight:600}.org-r>div a{color:var(--sub);text-decoration:none}.org-r .btn{display:inline-flex;align-items:center;gap:8px}.org-r .btn svg{width:18px;height:18px}.about>.org-p{margin-bottom:20px}
@@ -1094,7 +1095,7 @@ const pTok=q=>String(q||'').toLowerCase().replace(/ё/g,'е').split(/\s+/).filte
 function pMatch(p,q){const t=Array.isArray(q)?q:pTok(q);if(!t.length)return true;const w=pTok((p.last||'')+' '+(p.first||'')+' '+(p.name||''));return t.every(x=>w.some(y=>y.startsWith(x)))}
 let PL_T=0;async function refreshPlayers(){if(!S.session||!SNAP.players||Date.now()-PL_T<30000)return;PL_T=Date.now();const c=club(S.session);const pl=await loadPlayers();if(!pl||!c||S.session!==c.id)return;let ch=0;const by=new Map((c.roster||[]).map(p=>[p.id,p]));
   pl.forEach(p=>{const j=JSON.stringify(pub(p));const loc=by.get(p.id);if(!loc){c.roster.push(p);SNAP.players[p.id]=j;ch++}else if(SNAP.players[p.id]!==j&&JSON.stringify(pub(loc))===SNAP.players[p.id]){Object.assign(loc,p);SNAP.players[p.id]=j;ch++}});if(ch)softRender()}
-async function loadPlayers(){const out=[];for(let from=0;;from+=1000){const r=await sb.from('player').select('id,data').order('id').range(from,from+999);if(r.error)return null;(r.data||[]).forEach(x=>out.push(cleanData(Object.assign({},x.data,{id:x.id}))));if(!r.data||r.data.length<1000)break}return out}
+async function loadPlayers(){const out=[];for(let from=0;;from+=1000){const r=await sb.from('player').select('id,data,created_by').is('merged_into',null).order('id').range(from,from+999);if(r.error)return null;(r.data||[]).forEach(x=>out.push(cleanData(Object.assign({},x.data,{id:x.id,_by:x.created_by||''}))));if(!r.data||r.data.length<1000)break}return out}
 const pub=p=>({id:p.id,first:p.first,last:p.last,name:p.name,city:p.city,rank:p.rank,birth:String(p.birth||'').slice(0,4),sex:p.sex||'',country:p.country||'',club:p.club||'',lvl:p.lvl||''});
 function tData(T){const d=Object.assign({},T);delete d.id;delete d.clubId;return d}
 /* защита от подмены данных в обход сайта: чистим всё, что пришло из базы */
@@ -1908,7 +1909,7 @@ const adClub=id=>AD.clubs.find(c=>c.id===id)||{};
 async function loadAdmin(force){if(!S.admin)return;if(AD.loading){if(force)AD.again=true;return}if(AD.loaded&&!force)return;AD.loading=true;AD.again=false;AD.err='';
   try{const [l,sub,pays,plans,promos,exps]=await Promise.all([adminCall({action:'list_clubs'}),sb.from('club_admin').select('*'),sb.from('payment').select('*').order('created_at',{ascending:false}),sb.from('plan').select('*').order('sort'),sb.from('promo').select('*'),sb.from('expense').select('*')]);
     if(l.error)throw new Error(l.error);if(sub.error||pays.error||plans.error||promos.error||exps.error)throw (sub.error||pays.error||plans.error||promos.error||exps.error);
-    AD.clubs=l.clubs.map(c=>cleanData(c));AD.sub={};sub.data.forEach(r=>AD.sub[r.club_id]=cleanData(r));AD.pays=pays.data.map(x=>cleanData(x));AD.plans=plans.data.map(x=>cleanData(x));AD.promos=promos.data.map(x=>cleanData(x));AD.exps=exps.data.map(x=>cleanData(x));AD.ver++;AD.loaded=true}
+    AD.clubs=l.clubs.map(c=>cleanData(c));AD.sub={};sub.data.forEach(r=>AD.sub[r.club_id]=cleanData(r));AD.pays=pays.data.map(x=>cleanData(x));AD.plans=plans.data.map(x=>cleanData(x));AD.promos=promos.data.map(x=>cleanData(x));AD.players=(await loadPlayers())||[];AD.exps=exps.data.map(x=>cleanData(x));AD.ver++;AD.loaded=true}
   catch(e){console.error(e);AD.err='Не удалось загрузить данные. Проверьте интернет и обновите страницу.'}
   AD.loading=false;if(AD.again)return loadAdmin(true);if(/^#admin/.test(location.hash))render()}
 function remindLink(c,s){const r=AD.sub[c.id]||{};if(!r.contact_phone)return'';const hi=r.contact_name?`Здравствуйте, ${r.contact_name}!`:'Здравствуйте!';
@@ -1916,7 +1917,7 @@ function remindLink(c,s){const r=AD.sub[c.id]||{};if(!r.contact_phone)return'';c
    :s.trial?`${hi} Бесплатный период kazbilliard для клуба «${c.name}» заканчивается ${fds(s.end)}. Подскажу тарифы и продлю — просто ответьте на это сообщение.`
    :`${hi} Подписка kazbilliard для клуба «${c.name}» заканчивается ${fds(s.end)}. Чтобы не прерываться, продлите её — просто ответьте на это сообщение.`;
   return waLink(r.contact_phone)+'?text='+encodeURIComponent(t)}
-function adTop(cur){const T=[['','Обзор'],['clubs','Клубы'],['pays','Оплаты'],['money','Деньги'],['plans','Тарифы'],['promo','Промокоды']];
+function adTop(cur){const T=[['','Обзор'],['clubs','Клубы'],['pays','Оплаты'],['money','Деньги'],['plans','Тарифы'],['promo','Промокоды'],['players','Игроки']];
   AD.nav=`<nav class="adm-tabs">${T.map(([k,l])=>`<a href="#admin${k?'/'+k:''}" class="${cur===k?'on':''}">${l}</a>`).join('')}</nav><div class="adm-me"><span>${esc(S.email)}</span><button class="btn sm ghost" data-act="logout">Выйти</button></div>`;return''}
 function renderAdmin(){
   if(!S.admin){
@@ -1930,6 +1931,7 @@ function renderAdmin(){
   if(sub==='pays')return adTop('pays')+adPaysPage();
   if(sub==='money')return adTop('money')+adMoneyPage();
   if(sub==='plans')return adTop('plans')+adPlansPage();
+  if(sub==='players')return adTop('players')+adPlayersPage();
   if(sub==='promo')return adTop('promo')+adPromosPage();
   return adTop('')+adOverview()}
 function adOverview(){const t=almatyToday(),ym=t.slice(0,7);const all=AD.clubs.map(c=>({c,s:subOf(c.id)}));const live=all.filter(x=>x.s.k!=='arch');
@@ -2136,6 +2138,20 @@ function adPlanHTML(id){const p=AD.plans.find(x=>x.id===id)||{title:'',months:1,
   <div class="field"><label>Порядок в списке</label><input id="pl-s" type="number" min="0" max="99" value="${p.sort}"></div>
   ${id==='trial'?'':`<label class="chk"><input type="checkbox" id="pl-a" ${p.active?'checked':''}><span>Показывать в окне «Продлить»</span></label>`}
   <button class="btn blue big" style="width:100%" data-act="adPlanSave" data-id="${esc(id)}">Сохранить</button><div class="err" id="pl-err"></div>`}
+const pNorm=p=>pTok((p.last||'')+' '+(p.first||'')).sort().join(' ');
+function adPlayersPage(){const P=AD.players||[];const cn=id=>{const c=AD.clubs.find(x=>x.id===id);return c?c.name:'—'};
+  const tc=p=>S.tournaments.filter(T=>!T.parent&&(T.players||[]).some(q=>q.id===p.id)).length;
+  const g={};P.forEach(p=>{const k=pNorm(p);if(k)(g[k]=g[k]||[]).push(p)});const D=Object.values(g).filter(a=>a.length>1);
+  const info=p=>`<b>${esc(p.name||((p.last||'')+' '+(p.first||'')))}</b><span>${[byear(p),p.city,p.rank].filter(Boolean).map(esc).join(' · ')||'без данных'} · турниров: ${tc(p)} · внёс ${esc(cn(p._by))}</span>`;
+  const sel=AD.pSel||[];const sp=sel.map(id=>P.find(p=>p.id===id)).filter(Boolean);
+  const q=AD.pQ||'';const L=[...P].filter(p=>pMatch(p,q)).sort((a,b)=>(a.name||'').localeCompare(b.name||'','ru')).slice(0,200);
+  return`<div class="adm-h"><h1>Игроки</h1></div><p class="muted adm-per">Общая база всех клубов: ${P.length}. Если один человек записан дважды, объедините записи — его турниры соберутся в одном профиле.</p>
+  <h3 class="apl-h">Возможные дубли${D.length?' · '+D.length:''}</h3>
+  ${D.length?D.map(a=>`<div class="panel apl-g">${a.map(p=>`<div class="apl-r"><div class="apl-i">${info(p)}</div><button class="btn sm ghost" data-act="adPlKeep" data-id="${esc(p.id)}" data-others="${esc(a.filter(x=>x!==p).map(x=>x.id).join(','))}">Оставить эту запись</button></div>`).join('')}</div>`).join(''):'<div class="panel muted">Совпадений по имени и фамилии нет.</div>'}
+  <h3 class="apl-h">Все игроки</h3>
+  ${sp.length===2?`<div class="panel apl-m"><b>Объединить двух выбранных. Какую запись оставить?</b>${sp.map((p,i)=>`<div class="apl-r"><div class="apl-i">${info(p)}</div><button class="btn sm blue" data-act="adPlKeep" data-id="${esc(p.id)}" data-others="${esc(sp[1-i].id)}">Оставить эту</button></div>`).join('')}<button class="lnk" data-act="adPlClear">Снять выбор</button></div>`:sp.length===1?'<p class="mut2" style="margin:0 0 10px">Выбран один игрок. Отметьте второго, чтобы объединить.</p>':''}
+  <div class="cb-q">${IC.srch}<input id="apl-q" placeholder="Найти игрока" autocomplete="off" value="${esc(q)}" oninput="AD.pQ=this.value;clearTimeout(AD._pq);AD._pq=setTimeout(()=>{render();const i=document.getElementById('apl-q');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},250)"></div>
+  ${L.length?`<div class="panel adm-tw"><table class="tb adm-tb"><thead><tr><th></th><th>Игрок</th><th class="c">Г.р.</th><th>Город</th><th>Звание</th><th class="c">Турниров</th><th>Внёс</th></tr></thead><tbody>${L.map(p=>`<tr><td><input type="checkbox" data-act="adPlSel" data-id="${esc(p.id)}" ${sel.includes(p.id)?'checked':''} aria-label="Выбрать"></td><td><b>${esc(p.name||'')}</b></td><td class="c">${byear(p)||'—'}</td><td>${esc(p.city||'—')}</td><td>${esc(p.rank||'—')}</td><td class="c">${tc(p)}</td><td>${esc(cn(p._by))}</td></tr>`).join('')}</tbody></table></div>${P.length>L.length&&!q?'<p class="mut2">Показаны первые 200. Остальных ищите по имени.</p>':''}`:'<div class="panel muted">Никого не нашли.</div>'}`}
 function adPromosPage(){const L=[...AD.promos].sort((a,b)=>(b.active-a.active)||(b.created_at||'').localeCompare(a.created_at||''));const t=almatyToday();
   const gave=id=>AD.pays.filter(p=>p.promo_id===id&&!p.cancelled_at).reduce((a,p)=>a+(p.discount||0),0);
   return`<div class="adm-h"><h1>Промокоды</h1><button class="btn blue" data-act="adPromoNew">${IC.plus}Промокод</button></div>
@@ -2660,6 +2676,14 @@ const A={
     const last=v('re-last'),first=v('re-first'),yb=v('re-birth'),y=+yb;if(!last||!first){e.textContent='Введите фамилию и имя';return}if(yb&&!(y>=1920&&y<=new Date().getFullYear())){e.textContent='Проверьте год рождения';return}
     const upd={last,first,name:last+' '+first,birth:yb?String(y):'',city:v('re-city'),rank:v('re-rank')||'б/р'};Object.assign(p,upd);
     S.tournaments.filter(T=>T.clubId===c.id&&T.status==='reg').forEach(T=>T.players.forEach(q=>{if(q.id===p.id)Object.assign(q,upd)}));save();closeModal();render();toast('Сохранено')},
+  adPlSel(el){let s=AD.pSel||[];const id=el.dataset.id;s=s.includes(id)?s.filter(x=>x!==id):[...s,id].slice(-2);AD.pSel=s;render()},
+  adPlClear(){AD.pSel=[];render()},
+  adPlKeep(el){const P=AD.players||[];const k=P.find(p=>p.id===el.dataset.id);const o=el.dataset.others.split(',').map(id=>P.find(p=>p.id===id)).filter(Boolean);if(!k||!o.length)return;const d=p=>esc(p.name||'')+' <span class="mut2">'+[byear(p),p.city].filter(Boolean).map(esc).join(' · ')+'</span>';
+    openModal(`<div class="dlg-h"><h3>Объединить записи?</h3><button class="x" data-act="close" aria-label="Закрыть">×</button></div><p style="margin-top:0"><b>Останется:</b> ${d(k)}</p><p><b>${o.length>1?'Присоединятся':'Присоединится'}:</b><br>${o.map(d).join('<br>')}</p><p class="muted">Турниры присоединённых записей перейдут к той, что остаётся. Отменить объединение нельзя.</p><div class="err" id="apl-err"></div><div class="pm-acts"><button class="btn blue" data-act="adPlMerge" data-id="${esc(k.id)}" data-others="${esc(o.map(p=>p.id).join(','))}">Объединить</button><button class="btn ghost" data-act="close">Отмена</button></div>`)},
+  async adPlMerge(el){const keep=el.dataset.id,others=el.dataset.others.split(',');const e=document.getElementById('apl-err');el.disabled=true;
+    for(const drop of others){const r=await sb.rpc('admin_merge_players',{p_keep:keep,p_drop:drop});const x=r.data||{};if(r.error||x.error){el.disabled=false;e.textContent=x.error||'Не получилось объединить';AD.players=(await loadPlayers())||AD.players;return}
+      S.tournaments.forEach(T=>(T.players||[]).forEach(p=>{if(p.id===drop)p.id=keep}))}
+    AD.pSel=[];AD.players=(await loadPlayers())||AD.players;closeModal();render();toast('Записи объединены')},
   accClose(el){UI.acc=false;const h=el.getAttribute("href");if(location.hash!==h)location.hash=h;else render()},
   accGo(el){UI.acc=false;const to=el.dataset.to;if(location.hash!=='#cabinet')location.hash='#cabinet';render();if(to)setTimeout(()=>{const e=document.getElementById(to);e&&e.scrollIntoView({behavior:'smooth',block:'start'})},60)},
   scrollTo(el){const e=document.getElementById(el.dataset.to);e&&e.scrollIntoView({behavior:'smooth',block:'start'})},
