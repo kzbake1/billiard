@@ -647,16 +647,16 @@ nav.main a{white-space:nowrap}
 .m-tv{display:inline-flex;align-items:center;margin-left:8px;color:var(--live-ink);vertical-align:-3px;text-decoration:none}.m-tv svg{width:16px;height:16px}.m-tv:hover{color:var(--live)}
 .pm-row.ed{grid-template-columns:minmax(0,1fr) 72px}.pm-row.ed .pm-s{width:72px;height:52px;border-color:var(--line2);background:#fff}.pm-row.ed .pm-s:focus{outline:0;border-color:var(--accent)}
 .pm-note{margin:12px 0 0;font-size:13px;color:var(--muted);line-height:1.45}
-.dlg:has(.mv){max-width:880px;padding:32px 36px}
+.dlg:has(.mv){max-width:640px;padding:32px 36px}
 .mv-h{display:flex;align-items:flex-start;gap:12px}.mv-ti{flex:1;min-width:0}.mv-ti b{display:block;font-size:21px;font-weight:600}.mv-ti span{display:block;margin-top:4px;font-size:14px;color:var(--muted)}
 .mv-chip{font-size:13px;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--soft);color:var(--sub);white-space:nowrap}.mv-chip.live{background:var(--live-soft);color:var(--live-ink)}.mv-chip.ok{background:var(--ok-soft);color:var(--ok)}
 .mv-facts{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px 24px;font-size:14px;color:var(--sub)}.mv-facts span{display:inline-flex;align-items:center;gap:7px}.mv-facts svg{color:var(--accent)}
 .mv-vs{margin-top:24px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:20px;align-items:center;background:#F7F7F7;border-radius:16px;padding:26px}
 .mv-pl{display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0}.mv-av{width:68px;height:68px;border-radius:16px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:23px;font-weight:600}
-.mv-pl.lo .mv-av{background:var(--accent-soft);color:var(--accent-ink)}.mv-pl b{margin-top:12px;font-size:19px;font-weight:600}.mv-pl.lo b{color:var(--sub);font-weight:500}
+.mv-pl.lo .mv-av{background:var(--accent-soft);color:var(--accent-ink)}.mv-pl b{font-size:19px;font-weight:600}.mv-pl.lo b{color:var(--sub);font-weight:500}
 .mv-m{margin-top:5px;font-size:13px;color:var(--muted)}.mv-tags{margin-top:9px;display:flex;gap:6px}.mv-tag{font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px;background:#fff;border:1px solid var(--line);color:var(--sub)}
 .mv-win{margin-top:10px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent-soft);padding:4px 10px;border-radius:999px}
-.mv-sc{font-size:60px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap}.mv-sc i{font-style:normal;color:#B0B0B0;margin:0 8px}.mv-sc .lo{color:#9A9A9A}
+.mv-sc{font-size:52px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap}.mv-sc i{font-style:normal;color:#B0B0B0;margin:0 8px}.mv-sc .lo{color:#9A9A9A}
 .mv-nx{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.mv-n{border:1px solid var(--line);border-radius:12px;padding:13px 16px;display:flex;align-items:center;gap:12px;font-size:14px}.mv-n[data-act]{cursor:pointer}.mv-n[data-act]:hover{border-color:var(--accent)}
 .mv-n small{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}.mv-n b{display:block;margin-top:3px;font-weight:600}.mv-n[data-act] b{color:var(--accent-ink)}.mv-n svg{margin-left:auto;color:var(--accent-ink);flex:none}
 .mv-tv{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:12px;background:var(--live);color:#fff;font-weight:600;font-size:15px;text-decoration:none}.mv-tv svg{width:18px;height:18px}
@@ -1665,9 +1665,9 @@ function viewMatchHTML(T,b,m){const r=m.res||{};const c=club(T.clubId);const sm=
     m.res&&mstart(r)?ic('<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>')+(d?hhmm(mstart(r))+' – '+hhmm(r.end||r.ts)+(mdur(r)?' · '+mdur(r):''):'с '+hhmm(mstart(r))):'',
     ic('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>')+'до '+mrace(T,m)+' побед'].filter(Boolean).map(x=>`<span>${x}</span>`).join('');
   const sc=k=>r.tp?(tpOf(r,k)?'ТП':''):(m.res?r['s'+k]:'');
-  const side=(s,k)=>{if(s.t!=='p')return`<div class="mv-pl lo"><div class="mv-av">?</div><b>${esc(pname(T,s))}</b></div>`;const p=pl(s.id);const w=win===s.id,lo=win&&!w;
+  const side=(s,k)=>{if(s.t!=='p')return`<div class="mv-pl lo"><b>${esc(pname(T,s))}</b></div>`;const p=pl(s.id);const w=win===s.id,lo=win&&!w;
     const meta=[p.city,byear(p)].filter(Boolean).join(' · ');const tags=[p.rank,p.lvl].filter(Boolean).map(t=>`<span class="mv-tag">${esc(t)}</span>`).join('');
-    return`<div class="mv-pl${lo?' lo':''}"><div class="mv-av">${esc(ini(p.name||pname(T,s)))}</div><b>${esc(pname(T,s))}</b>${meta?`<div class="mv-m">${esc(meta)}</div>`:''}${tags?`<div class="mv-tags">${tags}</div>`:''}${w?'<span class="mv-win">Победитель</span>':win?'<span class="mv-win" style="visibility:hidden">Победитель</span>':''}</div>`};
+    return`<div class="mv-pl${lo?' lo':''}"><b>${esc(pname(T,s))}</b>${meta?`<div class="mv-m">${esc(meta)}</div>`:''}${w?'<span class="mv-win">Победитель</span>':win?'<span class="mv-win" style="visibility:hidden">Победитель</span>':''}</div>`};
   const lsc=(k)=>{const v=sc(k);const o=k==='a'?'b':'a';return`<span class="${win&&!(m[k].t==='p'&&m[k].id===win)?'lo':''}">${v===''?'–':v}</span>`};
   const F=flow(T);const byNo=no=>b.all.find(x=>x.no===no);
   const nx=(lab,no,fall)=>{const t=no&&byNo(+no);return`<div class="mv-n"${t?` data-act="match" data-mid="${t.id}"`:''}><div><small>${lab}</small><b>${t?esc([sm[t.id],'Матч №'+t.no].filter(Boolean).join(' · ')):fall}</b></div>${t?'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>':''}</div>`};
@@ -1685,7 +1685,7 @@ function viewMatchHTML(T,b,m){const r=m.res||{};const c=club(T.clubId);const sm=
   return`<div class="mv"><div class="mv-h"><div class="mv-ti"><b>${esc([stg,'Матч №'+m.no].filter(Boolean).join(' · '))}</b><span>${esc([T.title,T.discipline].filter(Boolean).join(' · '))}</span></div>${chip}<button class="x" data-act="close" aria-label="Закрыть">×</button></div>
   <div class="mv-facts">${facts}</div>
   <div class="mv-vs">${side(m.a,'a')}<div class="mv-sc">${lsc('a')}<i>:</i>${lsc('b')}</div>${side(m.b,'b')}</div>
-  ${next}${tv}<div class="mv-path">${path(m.a)}${path(m.b)}</div></div>`}
+  ${tv}</div>`}
 function mDeps(T,b,m){if(T.format==='rr')return[];const F=flow(T);return[F.w[m.no],F.l[m.no]].filter(Boolean).map(no=>b.all.find(x=>x.no===+no)).filter(x=>x&&x.res&&(x.state==='done'||x.state==='live'))}
 function openMatch(mid){
   const {T,b}=CUR;const m=b.all.find(x=>x.id===mid);if(!m)return;const own=isOwner(T)&&!T.closed;
