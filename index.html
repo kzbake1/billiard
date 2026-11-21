@@ -647,6 +647,23 @@ nav.main a{white-space:nowrap}
 .m-tv{display:inline-flex;align-items:center;margin-left:8px;color:var(--live-ink);vertical-align:-3px;text-decoration:none}.m-tv svg{width:16px;height:16px}.m-tv:hover{color:var(--live)}
 .pm-row.ed{grid-template-columns:minmax(0,1fr) 72px}.pm-row.ed .pm-s{width:72px;height:52px;border-color:var(--line2);background:#fff}.pm-row.ed .pm-s:focus{outline:0;border-color:var(--accent)}
 .pm-note{margin:12px 0 0;font-size:13px;color:var(--muted);line-height:1.45}
+.dlg:has(.mv){max-width:880px;padding:32px 36px}
+.mv-h{display:flex;align-items:flex-start;gap:12px}.mv-ti{flex:1;min-width:0}.mv-ti b{display:block;font-size:21px;font-weight:600}.mv-ti span{display:block;margin-top:4px;font-size:14px;color:var(--muted)}
+.mv-chip{font-size:13px;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--soft);color:var(--sub);white-space:nowrap}.mv-chip.live{background:var(--live-soft);color:var(--live-ink)}.mv-chip.ok{background:var(--ok-soft);color:var(--ok)}
+.mv-facts{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px 24px;font-size:14px;color:var(--sub)}.mv-facts span{display:inline-flex;align-items:center;gap:7px}.mv-facts svg{color:var(--accent)}
+.mv-vs{margin-top:24px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:20px;align-items:center;background:#F7F7F7;border-radius:16px;padding:26px}
+.mv-pl{display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0}.mv-av{width:68px;height:68px;border-radius:16px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:23px;font-weight:600}
+.mv-pl.lo .mv-av{background:var(--accent-soft);color:var(--accent-ink)}.mv-pl b{margin-top:12px;font-size:19px;font-weight:600}.mv-pl.lo b{color:var(--sub);font-weight:500}
+.mv-m{margin-top:5px;font-size:13px;color:var(--muted)}.mv-tags{margin-top:9px;display:flex;gap:6px}.mv-tag{font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px;background:#fff;border:1px solid var(--line);color:var(--sub)}
+.mv-win{margin-top:10px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent-soft);padding:4px 10px;border-radius:999px}
+.mv-sc{font-size:60px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap}.mv-sc i{font-style:normal;color:#B0B0B0;margin:0 8px}.mv-sc .lo{color:#9A9A9A}
+.mv-nx{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.mv-n{border:1px solid var(--line);border-radius:12px;padding:13px 16px;display:flex;align-items:center;gap:12px;font-size:14px}.mv-n[data-act]{cursor:pointer}.mv-n[data-act]:hover{border-color:var(--accent)}
+.mv-n small{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}.mv-n b{display:block;margin-top:3px;font-weight:600}.mv-n[data-act] b{color:var(--accent-ink)}.mv-n svg{margin-left:auto;color:var(--accent-ink);flex:none}
+.mv-tv{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:12px;background:var(--live);color:#fff;font-weight:600;font-size:15px;text-decoration:none}.mv-tv svg{width:18px;height:18px}
+.mv-path{margin-top:26px;display:grid;grid-template-columns:1fr 1fr;gap:24px}.mv-path:empty{display:none}.mv-path h4{margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mv-pr{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.3fr) auto 52px;gap:10px;padding:10px 6px;border-top:1px solid var(--line);font-size:14px;align-items:center;cursor:pointer;border-radius:6px}.mv-pr:hover{background:#F7F7F7}.mv-pr.cur{background:var(--accent-soft)}
+.mv-pr span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mv-pr span:first-child{color:var(--muted);font-size:13px}.mv-pr .s{font-weight:600}.mv-pr .s.w{color:var(--ok)}.mv-pr .s.l{color:var(--live-ink)}.mv-pr .t{color:var(--muted);font-size:13px;text-align:right}
+@media(max-width:640px){.dlg:has(.mv){padding:22px 18px}.mv-vs{grid-template-columns:1fr;padding:20px}.mv-sc{order:0;text-align:center;font-size:48px}.mv-nx,.mv-path{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -1637,12 +1654,41 @@ function refreshPult(){if(!UI.pm||!CUR||!document.getElementById('modal').classL
 /* ============ modal ============ */
 function openModal(html){const m=document.getElementById('modal');m.innerHTML=`<div class="dlg">${html}</div>`;m.classList.add('open')}
 function closeModal(){UI.pm=null;UI.pmRace=null;UI.pmConfirm=null;UI.tpM=null;UI.tpSel=null;const m=document.getElementById('modal');m.classList.remove('open');m.innerHTML=''}
+function viewMatchHTML(T,b,m){const r=m.res||{};const c=club(T.clubId);const sm=stageMap(b);const stg=sm[m.id]||'';const d=m.state==='done',lv=m.state==='live';
+  const pl=id=>T.players.find(p=>p.id===id)||{};const win=d&&m.winner&&m.winner.t==='p'&&r.tp!=='both'?m.winner.id:null;
+  const chip=lv?'<span class="mv-chip live">● идёт</span>':d?'<span class="mv-chip">завершён</span>':m.state==='ready'?'<span class="mv-chip ok">на очереди</span>':'';
+  const ic=d2=>`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d2}</svg>`;
+  const facts=[r.table?ic('<path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/>')+esc(tlabel(c,r.table)):'',
+    m.res&&mstart(r)?ic('<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>')+(d?hhmm(mstart(r))+' – '+hhmm(r.end||r.ts)+(mdur(r)?' · '+mdur(r):''):'с '+hhmm(mstart(r))):'',
+    ic('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>')+'до '+mrace(T,m)+' побед'].filter(Boolean).map(x=>`<span>${x}</span>`).join('');
+  const sc=k=>r.tp?(tpOf(r,k)?'ТП':''):(m.res?r['s'+k]:'');
+  const side=(s,k)=>{if(s.t!=='p')return`<div class="mv-pl lo"><div class="mv-av">?</div><b>${esc(pname(T,s))}</b></div>`;const p=pl(s.id);const w=win===s.id,lo=win&&!w;
+    const meta=[p.city,byear(p)].filter(Boolean).join(' · ');const tags=[p.rank,p.lvl].filter(Boolean).map(t=>`<span class="mv-tag">${esc(t)}</span>`).join('');
+    return`<div class="mv-pl${lo?' lo':''}"><div class="mv-av">${esc(ini(p.name||pname(T,s)))}</div><b>${esc(pname(T,s))}</b>${meta?`<div class="mv-m">${esc(meta)}</div>`:''}${tags?`<div class="mv-tags">${tags}</div>`:''}${w?'<span class="mv-win">Победитель</span>':win?'<span class="mv-win" style="visibility:hidden">Победитель</span>':''}</div>`};
+  const lsc=(k)=>{const v=sc(k);const o=k==='a'?'b':'a';return`<span class="${win&&!(m[k].t==='p'&&m[k].id===win)?'lo':''}">${v===''?'–':v}</span>`};
+  const F=flow(T);const byNo=no=>b.all.find(x=>x.no===no);
+  const nx=(lab,no,fall)=>{const t=no&&byNo(+no);return`<div class="mv-n"${t?` data-act="match" data-mid="${t.id}"`:''}><div><small>${lab}</small><b>${t?esc([sm[t.id],'Матч №'+t.no].filter(Boolean).join(' · ')):fall}</b></div>${t?'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>':''}</div>`};
+  const plc=id=>{const x=(b.places||[]).find(p=>p.ids.includes(id));return x?(x.from===x.to?x.from:x.from+'–'+x.to)+' место':''};
+  const wNo=F.w[m.no],lNo=F.l[m.no];
+  const winFall=wNo?'':(d&&win?('Победитель турнира'):'Победитель турнира');
+  const loseFall=d&&win?((()=>{const lid=m.a.id===win?m.b.id:m.a.id;return plc(lid)||'выбывает'})()):'выбывает из турнира';
+  const next=(m===b.third)?'':`<div class="mv-nx">${nx('Победитель — дальше',wNo,wNo?'':winFall)}${nx('Проигравший — дальше',lNo,loseFall)}</div>`;
+  const tv=r.video?`<a class="mv-tv" href="${esc(r.video)}" target="_blank" rel="noopener">${IC.play}${lv?'Смотреть трансляцию':'Смотреть запись встречи'}</a>`:'';
+  const path=s=>{if(s.t!=='p')return'';const ms=b.all.filter(x=>(x.state==='done'||x.state==='live'||x.id===m.id)&&[x.a,x.b].some(y=>y.t==='p'&&y.id===s.id)).sort((x,y)=>x.no-y.no);if(ms.length<1)return'';
+    const rows=ms.map(x=>{const me=x.a.t==='p'&&x.a.id===s.id?'a':'b',op=me==='a'?'b':'a';const xr=x.res||{};const mine=xr.tp?(tpOf(xr,me)?'ТП':'+'):xr['s'+me],their=xr.tp?(tpOf(xr,op)?'ТП':'+'):xr['s'+op];
+      const st=x.state==='done'?(x.winner&&x.winner.id===s.id?'w':'l'):'';const scs=x.res?`${mine??''} : ${their??''}`:'—';
+      return`<div class="mv-pr${x.id===m.id?' cur':''}" data-act="match" data-mid="${x.id}"><span>${esc(sm[x.id]||'№'+x.no)}</span><span>${esc(x[op].t==='p'?sname(pname(T,x[op])):pname(T,x[op]))}</span><span class="s ${st}">${scs}</span><span class="t">${xr.table?'стол '+xr.table:''}</span></div>`}).join('');
+    return`<div><h4>Путь в турнире · ${esc(sname(pname(T,s)))}</h4>${rows}</div>`};
+  return`<div class="mv"><div class="mv-h"><div class="mv-ti"><b>${esc([stg,'Матч №'+m.no].filter(Boolean).join(' · '))}</b><span>${esc([T.title,T.discipline].filter(Boolean).join(' · '))}</span></div>${chip}<button class="x" data-act="close" aria-label="Закрыть">×</button></div>
+  <div class="mv-facts">${facts}</div>
+  <div class="mv-vs">${side(m.a,'a')}<div class="mv-sc">${lsc('a')}<i>:</i>${lsc('b')}</div>${side(m.b,'b')}</div>
+  ${next}${tv}<div class="mv-path">${path(m.a)}${path(m.b)}</div></div>`}
 function openMatch(mid){
   const {T,b}=CUR;const m=b.all.find(x=>x.id===mid);if(!m)return;const own=isOwner(T);
   const head=`<div class="dlg-h"><h3>Матч №${m.no}</h3><button class="x" data-act="close">×</button></div>`;
   if(m.state==='wait'||m.state==='bye'){openModal(head+`<p>${esc(pname(T,m.a))} — ${esc(pname(T,m.b))}</p><p class="muted">${m.state==='bye'?'Свободный проход: соперника нет, игрок проходит дальше без игры.':'Матч ждёт, пока определятся оба соперника.'}</p>`);return}
   const r=m.res||{};
-  if(!own){openModal(head+`<div class="score"><span class="nm">${esc(pname(T,m.a))}</span><span style="font-size:22px;font-weight:600;text-align:center">${m.res?(r.tp?(tpOf(r,'a')?'ТП':''):r.sa):'—'}</span></div><div class="score"><span class="nm">${esc(pname(T,m.b))}</span><span style="font-size:22px;font-weight:600;text-align:center">${m.res?(r.tp?(tpOf(r,'b')?'ТП':''):r.sb):'—'}</span></div><p class="muted" style="font-size:13px">${m.state==='live'?`Идёт${r.table?' за столом '+r.table:''}. `:''}${m.state==='done'?'Матч завершён.':m.state==='ready'?'Ожидает вызова к столу.':''} Игра до ${mrace(T,m)} побед.</p>`);return}
+  if(!own){openModal(viewMatchHTML(T,b,m));return}
   if(m.state!=='done'||(UI.undo&&UI.undo.mid===m.id&&UI.undo.tid===T.id)){UI.pm=m.id;openModal(pultHTML(T,m));return}
   if(r.tp){openModal(head+`<p style="margin-top:0">Техническое поражение${r.tp==='both'?' обоим':': <b>'+esc(pname(T,r.tp==='a'?m.a:m.b))+'</b>'} · ${TPR[r.reason||'no']}</p>
     <div class="acts"><button class="btn ghost" data-act="clearRes" data-mid="${m.id}">Отменить ТП</button><button class="btn ghost" data-act="printM" data-mid="${m.id}">Протокол</button></div>
