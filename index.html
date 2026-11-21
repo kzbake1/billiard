@@ -644,6 +644,7 @@ nav.main a{white-space:nowrap}
 .tcard{position:relative}.tc-tv{position:absolute;right:16px;top:46px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--live-ink,#C4321F);text-decoration:none;background:#fff}.tc-tv svg{width:16px;height:16px}
 .strow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--line);color:var(--ink);text-decoration:none}.strow span{display:flex;flex-direction:column;gap:2px;font-size:15px}.strow b{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.strow svg{color:var(--live-ink,#C4321F);flex:none}
 .org-r{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.org-r>div{display:flex;flex-direction:column;gap:4px}.org-r b{font-size:18px;font-weight:600}.org-r>div a{color:var(--sub);text-decoration:none}.org-r .btn{display:inline-flex;align-items:center;gap:8px}.org-r .btn svg{width:18px;height:18px}.about>.org-p{margin-bottom:20px}
+.m-tv{display:inline-flex;align-items:center;margin-left:8px;color:var(--live-ink);vertical-align:-3px;text-decoration:none}.m-tv svg{width:16px;height:16px}.m-tv:hover{color:var(--live)}
 </style>
 </head>
 <body>
@@ -1132,7 +1133,7 @@ function mCard(T,m,mk){
   const row=(s,sc)=>`<div class="row ${cls(s)}"${s.t==='p'?` data-pid="${s.id}"`:''}><span class="n">${s.t==='tbd'?'&nbsp;':s.t==='bye'?'—':esc(s.t==='p'?sname(pname(T,s)):pname(T,s))}${fo&&s.t==='p'&&s.id===fo.id?`<i class="fb" title="Фора ${fo.n} шар${fo.n>1&&fo.n<5?'а':fo.n>4?'ов':''}">+${fo.n}</i>`:''}</span><span class="sc">${showSc?sc:''}</span></div>`;
   const tm=m.state==='done'&&r&&r.ts?new Date(r.ts).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}):'';
   const st={live:m.res&&m.res.paused?'<span class="mst">пауза</span>':`<span class="mst live">● играют</span>`,ready:hasFree(T)?'<span class="mst ok">● на очереди</span>':'<span class="mst">ждут стола</span>',bye:''}[m.state]||'';
-  const rcls=m.state==='ready'&&!hasFree(T)?' nofree':'';return`<div class="mw"><div class="m-meta"><span>${mk?`<b class="mk ${mk.c}">${mk.n}</b>`:'№'+m.no}${(m.state==='done'||m.state==='live')&&r&&r.table?' · стол '+r.table:''}</span>${st}</div><div class="m s-${m.state}${rcls}" data-act="match" data-mid="${m.id}">${row(m.a,scTxt(r,'a'))}${row(m.b,scTxt(r,'b'))}</div></div>`;
+  const rcls=m.state==='ready'&&!hasFree(T)?' nofree':'';return`<div class="mw"><div class="m-meta"><span>${mk?`<b class="mk ${mk.c}">${mk.n}</b>`:'№'+m.no}${(m.state==='done'||m.state==='live')&&r&&r.table?' · стол '+r.table:''}${r&&r.video&&(m.state==='live'||m.state==='done')?`<a class="m-tv" href="${esc(r.video)}" target="_blank" rel="noopener" data-act="ext" title="${m.state==='live'?'Смотреть трансляцию':'Запись встречи'}" aria-label="Трансляция">${IC.play}</a>`:''}</span>${st}</div><div class="m s-${m.state}${rcls}" data-act="match" data-mid="${m.id}">${row(m.a,scTxt(r,'a'))}${row(m.b,scTxt(r,'b'))}</div></div>`;
 }
 function bracketHTML(T,rounds,opt){opt=opt||{};
   const rs=rounds.map((rd,i)=>{const n=rd.matches.length,nx=rounds[i+1]?rounds[i+1].matches.length:0;const join=!!nx&&n===nx*2;const step=join?2:1;const groups=[];
