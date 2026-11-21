@@ -1914,7 +1914,7 @@ const A={
   fgToggle(){const g=id=>{const x=document.getElementById(id);return x?x.value:''};const em=g('lg-email')||g('fg-email'),pw=g('lg-pass');UI.fg=!UI.fg;render();const a=document.getElementById('lg-email'),b=document.getElementById('fg-email'),c=document.getElementById('lg-pass');if(a)a.value=em;if(c)c.value=pw;if(b){b.value=em;b.focus()}},
   async fgSend(el){const em=(document.getElementById('fg-email').value||'').trim();const er=document.getElementById('fg-err'),ok=document.getElementById('fg-ok');er.textContent='';ok.textContent='';
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){er.textContent='Проверьте почту';return}
-    el.disabled=true;const r=await sb.auth.resetPasswordForEmail(em,{redirectTo:location.origin+location.pathname});el.disabled=false;
+    el.disabled=true;const r=await sb.auth.resetPasswordForEmail(em,{redirectTo:/(^|\.)kazbilliard\.com$/.test(location.hostname)?location.origin+'/':'https://test.kazbilliard.com/'});el.disabled=false;
     if(r.error&&/rate|limit|429/i.test(r.error.message||'')){er.textContent='Слишком много запросов. Попробуйте через час или напишите нам в WhatsApp';return}
     ok.textContent='Если такая почта есть в kazbilliard, письмо придёт в течение пары минут. Проверьте и папку «Спам».'},
   async pwSave(el){const a=document.getElementById('np1').value,b=document.getElementById('np2').value,er=document.getElementById('np-err');er.textContent='';
