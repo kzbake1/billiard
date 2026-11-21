@@ -1485,7 +1485,7 @@ function editTHTML(T){const pub=UI.ePub===undefined?isPub(T):UI.ePub;
   return`<div class="ed"><div class="pm-h"><div class="pm-ti"><b>Изменить турнир</b></div><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
   <div class="field"><label>Название</label><input id="e-title" value="${esc(T.title)}"></div>
   <div class="wz-row2"><div class="field"><label>Дисциплина</label><select id="e-disc">${DISC.map(d=>`<option ${T.discipline===d?'selected':''}>${d}</option>`).join('')}</select></div><div class="field"><label>Категория</label><select id="e-cat">${CATS.map(d=>`<option ${(T.category||'Клубный')===d?'selected':''}>${d}</option>`).join('')}</select></div></div>
-  <div class="wz-row3"><div class="field"><label>Начало</label><input id="e-date" type="date" value="${esc(T.date)}"></div><div class="field"><label>Время</label><input id="e-time" type="time" value="${esc(T.time||'')}"></div><div class="field"><label>Окончание</label><input id="e-end" type="date" value="${esc(T.dateEnd||'')}"></div></div>
+  <div class="wz-row3"><div class="field"><label>Начало</label><input id="e-date" type="date" value="${esc(T.date)}"></div><div class="field"><label>Время</label><input id="e-time" type="time" value="${esc(T.time||'')}"></div><div class="field"><label>Окончание</label><input id="e-end" type="date" min="${esc(T.date)}" value="${esc(T.dateEnd||'')}"></div></div>
   <div class="wz-row2"><div class="field"><label>Организатор</label><input id="e-org" value="${esc(T.orgName||'')}"></div><div class="field"><label>Телефон / WhatsApp</label><input id="e-oph" type="tel" value="${esc(T.orgPhone||'')}"></div></div>
   <input id="e-link" type="hidden" value="">
   <div class="field"><label>Трансляция <small>YouTube</small></label><input id="e-video" type="url" value="${esc(T.video||'')}" placeholder="https://youtube.com/…"></div>
@@ -1846,7 +1846,9 @@ document.addEventListener('click',e=>{if(UI.tmenu&&!(e.target.closest&&e.target.
   if(a==='fmt'||a==='seedMode'||a==='callSel'||a==='pmTable'||a==='pmRace'||a==='pmScore'||a==='pmStart'||a==='autoPr')return;
   if(A[a]){e.preventDefault();A[a](el)}
 });
-document.addEventListener('change',e=>{
+document.addEventListener('change',e=>{const t=e.target;const wz=t.dataset&&t.dataset.w==='date';if(t.id==='e-date'||wz){const en=document.querySelector(wz?'[data-w=dateEnd]':'#e-end');if(en){en.min=t.value;if(en.value&&t.value&&en.value<t.value){en.value=t.value;if(wz&&UI.wiz)UI.wiz.dateEnd=t.value}}if(wz&&UI.wiz)UI.wiz.date=t.value}
+  if(t.id==='e-end'||(t.dataset&&t.dataset.w==='dateEnd')){const st=document.querySelector(t.id==='e-end'?'#e-date':'[data-w=date]');if(st&&t.value&&st.value&&t.value<st.value){t.value=st.value;if(UI.wiz&&t.dataset.w)UI.wiz.dateEnd=st.value}}
+
   const a=e.target.dataset&&e.target.dataset.act;
   if(a==='fmt')A.fmt();
   if(a==='seedMode'){CUR.T.seedMode=e.target.value;save()}
