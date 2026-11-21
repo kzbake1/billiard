@@ -1194,7 +1194,7 @@ function render(){RENDER_N++;setTimeout(()=>{tabsIntoView();addEyes()},0);
   const nav=document.getElementById('nav');
   const me=S.session?club(S.session):null;
   nav.innerHTML=`${me?`<div class="acc-w"><button class="acc" data-act="accMenu" aria-expanded="${UI.acc?'true':'false'}"><i class="${me.logo?'im':''}">${avHTML(me)}</i><span class="acc-t">${esc(me.name)}<small>Кабинет клуба</small></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>${UI.acc?`<div class="acc-dd"><a href="#cabinet" data-act="accGo" data-to="">Кабинет клуба</a><button data-act="editClub">О клубе</button><button data-act="pwOpen">Сменить пароль</button><button class="r" data-act="logout">Выйти</button></div>`:''}</div>`:`<a href="${S.admin?'#admin':'#cabinet'}" class="cta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg><span>${S.admin?'Админ<span class="lg">истратор</span>':'Вход<span class="lg"> для клубов</span>'}</span></a>`}`;
-  if(ADM&&!S.admin)nav.innerHTML='';
+  if(ADM){nav.innerHTML='';const lg=document.querySelector('a.logo');if(lg)lg.setAttribute('href','#admin')}
   renderTicker(false);
   const app=document.getElementById('app');
   document.body.classList.remove('gonly','sbd','ctb','obs');document.documentElement.classList.remove('obs');
