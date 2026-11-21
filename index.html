@@ -706,6 +706,25 @@ nav.main a.cta{background:#fff;color:var(--ink);border:1px solid var(--line2)}
 @media(max-width:640px){.hhero{padding:28px 20px 24px}.hhero h1{font-size:34px}.hhero>p{font-size:15px}.hhero .hf-in{flex-direction:column}.hhero .search,.hhero .btn.white{height:52px}.hl-l{padding:20px}.hl-t{font-size:22px}.hjoin{flex-direction:column;align-items:flex-start;padding:22px}}
 .tabs{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}.tabs::-webkit-scrollbar{display:none}
 @media(max-width:640px){.ph{flex-wrap:wrap;gap:8px 16px}.ptools{flex-wrap:wrap;gap:8px 16px}.two>*{min-width:0}}
+.made{background:var(--ok-soft);border-radius:12px;padding:16px;margin-bottom:20px;display:flex;flex-direction:column;gap:10px}
+.made b{color:var(--ok)}
+.made pre{margin:0;white-space:pre-wrap;font:inherit;font-size:14px;background:#fff;border-radius:10px;padding:12px;border:1px solid var(--line)}
+.pw-tip{display:flex;align-items:center;gap:12px;background:var(--accent-soft);color:var(--accent-ink);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:14px;font-weight:500}
+.pw-tip svg{width:20px;height:20px;flex:none}
+.pw-tip .btn{margin-left:auto;flex:none}
+.cab-hero.nost{grid-template-columns:1fr}
+.fs{margin-top:24px}
+.fs ol{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.fs li{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);border-radius:12px}
+.fs li>i{font-style:normal;flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center}
+.fs li div{display:flex;flex-direction:column;min-width:0}
+.fs li div span{font-size:13.5px;color:var(--muted)}
+.fs li .btn{margin-left:auto;flex:none}
+.fs li.ok>i{background:var(--ok-soft);color:var(--ok)}
+.fs li.ok b{color:var(--muted)}
+.fs-h{margin:14px 0 0;font-size:14px;color:var(--muted)}
+.fs-h a{color:var(--accent-ink)}
+@media(max-width:560px){.pw-tip{flex-wrap:wrap}.pw-tip .btn{margin-left:0;width:100%}.fs li{flex-wrap:wrap}.fs li .btn{margin-left:44px}}
 .lg-wrap{max-width:480px;margin:24px auto 0}
 .lg-grid{display:grid;grid-template-columns:1fr;gap:16px;align-items:start}.lg-fg{margin:16px 0 0;font-size:14px;color:var(--muted)}.lg-fg a{color:var(--accent-ink)}
 .lg-new{background:var(--accent-soft);border-radius:16px;padding:28px}.lg-new h3{margin:0;font-size:20px;font-weight:600}.lg-new p{margin:8px 0 22px;color:var(--sub);font-size:15px}.lg-new ul{list-style:none;padding:0;margin:18px 0 22px;display:flex;flex-direction:column;gap:12px}.lg-new li{display:flex;align-items:center;gap:10px;font-size:15px}.lg-new li svg{color:var(--accent);flex:none}.lg-new .btn{display:inline-flex;align-items:center;gap:8px}
@@ -937,7 +956,7 @@ async function doSave(){
 async function loadSession(){
   S.session=null;S.admin=false;S.email='';SNAP.club=null;SNAP.roster=null;
   const {data}=await sb.auth.getSession();const u=data&&data.session&&data.session.user;
-  if(!u)return;S.email=u.email||'';
+  if(!u)return;S.email=u.email||'';S.pwOk=!!(u.user_metadata&&u.user_metadata.pw_changed);
   const [mc,ad]=await Promise.all([sb.rpc('my_club'),sb.rpc('is_admin')]);
   S.admin=!!ad.data;
   if(mc.data){let c=S.clubs.find(x=>x.id===mc.data);if(!c){const q=await sb.from('club').select('id,name,city,tables,floors,address,phone,instagram').eq('id',mc.data).maybeSingle();if(q.data){c=Object.assign({roster:[]},cleanData(q.data));S.clubs.push(c)}}if(c){S.session=c.id;const r=await sb.from('club_private').select('roster').eq('club_id',c.id).maybeSingle();c.roster=cleanData((r.data&&r.data.roster)||[]);
@@ -968,6 +987,10 @@ async function adminCall(body){
   catch(e){return{error:'Нет связи с сервером'}}
 }
 const ADM=/^admin\./.test(location.hostname);
+// адрес сайта для клубов в сообщении с паролем; при запуске поменять на https://kazbilliard.com
+const CLUB_SITE=ADM?'https://test.kazbilliard.com':location.origin;
+function madeText(m){return`Здравствуйте! Ваш клуб «${m.name}» подключён к kazbilliard.\n\nСайт: ${CLUB_SITE}\nВход: кнопка «Вход для клубов»\nПочта: ${m.email}\nПароль: ${m.pass}\n\nСоветуем сразу сменить пароль: меню клуба вверху справа → «Сменить пароль».`}
+function genPass(){const a='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';const r=new Uint32Array(10);crypto.getRandomValues(r);return Array.from(r,x=>a[x%a.length]).join('')}
 async function boot(){
   if(/^admin\./.test(location.hostname)&&!location.hash)history.replaceState(null,'','#admin');
   const app=document.getElementById('app');app.innerHTML='<div class="empty" role="status">Загружаем турниры…</div>';
@@ -1607,11 +1630,19 @@ function renderCabinet(){
   const row=(k,v)=>`<div class="sr"><span>${k}</span><b class="${v?'':'muted'}">${v||'не указан'}</b></div>`;
   const info=UI.clubEdit?`<h3>О клубе</h3><div class="field"><label>Название</label><input id="cl-name" value="${esc(c.name)}"></div><div class="field"><label>Город</label><input id="cl-city" value="${esc(c.city)}"></div><div class="field"><label>Залы и этажи</label><div id="cl-floors">${(floors(c)||[{name:'1 этаж',n:c.tables||6}]).map(flRow).join('')}</div><button class="lnk" style="font-size:14px;color:var(--accent-ink);margin-top:4px" data-act="addFloor">+ Добавить этаж или зал</button><p class="muted" style="font-size:13px;margin:6px 0 0">Номера столов сквозные: на первом этаже 1–8, на втором с 9 и дальше. Если зал один — этаж нигде не показывается.</p></div><div class="field"><label>Адрес</label><input id="cl-addr" maxlength="200" placeholder="Улица, дом, этаж" value="${esc(c.address||'')}"></div><div class="row2"><div class="field"><label>Телефон</label><input id="cl-phone" type="tel" maxlength="40" placeholder="+7 700 000 00 00" value="${esc(c.phone||'')}"></div><div class="field"><label>Instagram</label><input id="cl-insta" maxlength="60" placeholder="@club" value="${esc(c.instagram||'')}"></div></div><div style="display:flex;gap:8px"><button class="btn blue" data-act="saveClub">Сохранить</button><button class="btn ghost" data-act="cancelClub">Отмена</button></div><div class="err" id="cl-err"></div>`
    :`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h3 style="margin:0">О клубе</h3><button class="btn sm ghost" data-act="editClub">Изменить</button></div>${row('Адрес',esc(c.address||''))}${row('Телефон',esc(c.phone||''))}${row('Instagram',c.instagram?'@'+esc(c.instagram):'')}${row('Столов',floorRanges(c)?floorRanges(c).map(x=>esc(x.name)+' — '+(x.b-x.a+1)).join(', '):(c.tables||6))}${noInfo?`<p class="muted" style="font-size:13px;margin:12px 0 0">Адрес и телефон увидят игроки на странице турнира. <button class="lnk" style="font-size:13px;color:var(--accent-ink)" data-act="editClub">Заполнить</button></p>`:''}`;
-  return`<section class="cab-hero"><div class="ch-top"><div class="ch-av">${esc(ini(c.name))}</div><div class="ch-main"><div class="ch-over">Кабинет клуба</div>
+  const wa='https://wa.me/77764308322?text='+encodeURIComponent('Здравствуйте! Вопрос по кабинету клуба на kazbilliard');
+  const s1=!!(c.address||c.phone),s2=mine.length>0,firstT=mine[0],s3=mine.some(T=>(T.players||[]).length);
+  const steps=(s1&&s2&&s3)?'':`<section class="fs panel"><h3>Первые шаги</h3><ol>
+<li class="${s1?'ok':''}"><i>${s1?'✓':'1'}</i><div><b>Заполните «О клубе»</b><span>Адрес и телефон увидят игроки</span></div>${s1?'':'<button class="btn sm ghost" data-act="editClub">Заполнить</button>'}</li>
+<li class="${s2?'ok':''}"><i>${s2?'✓':'2'}</i><div><b>Создайте первый турнир</b><span>Название, дата и формат</span></div>${s2?'':'<button class="btn sm blue" data-act="newT">Создать</button>'}</li>
+<li class="${s3?'ok':''}"><i>${s3?'✓':'3'}</i><div><b>Внесите участников</b><span>В турнире, во вкладке «Участники»</span></div>${s3||!s2?'':`<a class="btn sm ghost" href="#t-${esc(firstT.id)}">Открыть турнир</a>`}</li>
+</ol><p class="fs-h">Вопросы? <a href="${wa}" target="_blank" rel="noopener">Напишите в WhatsApp</a></p></section>`;
+  const tip=S.pwOk?'':`<div class="pw-tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg><span>Советуем сменить пароль, который вам выдали.</span><button class="btn sm blue" data-act="pwOpen">Сменить пароль</button></div>`;
+  return`${tip}<section class="cab-hero${mine.length?'':' nost'}"><div class="ch-top"><div class="ch-av">${esc(ini(c.name))}</div><div class="ch-main"><div class="ch-over">Кабинет клуба</div>
   <h1>${esc(c.name)}</h1><p>${esc(c.city)}${c.address?', '+esc(c.address):''}</p><div class="ch-acts"><button class="btn blue" data-act="newT">${IC.plus}Новый турнир</button></div></div>${cabNow(mine)}</div>
-  <div class="ch-stats"><div><i>${IC.trophy}</i><b>${mine.length}</b><span>турнир${plural(mine.length)}</span></div><div><i>${IC.users}</i><b>${roster.length}</b><span>игрок${plural(roster.length)}</span></div><div><i>${IC.tbl}</i><b>${c.tables||6}</b><span>стол${plural(c.tables||6)}</span></div></div></section>
+  ${mine.length?`<div class="ch-stats"><div><i>${IC.trophy}</i><b>${mine.length}</b><span>турнир${plural(mine.length)}</span></div><div><i>${IC.users}</i><b>${roster.length}</b><span>игрок${plural(roster.length)}</span></div><div><i>${IC.tbl}</i><b>${c.tables||6}</b><span>стол${plural(c.tables||6)}</span></div></div>`:''}</section>${steps}
   ${mine.length?`<h2 id="cab-t">Мои турниры</h2><div class="hlist">${cabRows(mine)}</div>`:''}
-  <div class="two" style="margin-top:34px"><div class="panel" id="cab-p"><h3>Игроки клуба · ${roster.length}</h3>${roster.length?`<div style="max-height:420px;overflow:auto"><table class="tb"><thead><tr><th>Игрок</th><th class="c">Г.р.</th><th>Город</th><th>Звание</th></tr></thead><tbody>${[...roster].sort((a,b)=>a.name.localeCompare(b.name,'ru')).map(p=>`<tr><td><b>${esc(p.name)}</b></td><td class="c">${byear(p)}</td><td>${esc(p.city||'')}</td><td>${esc(p.rank||'')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="muted">Здесь появятся все игроки, которых вы добавите в турниры. В следующий раз их можно будет выбрать из списка, а не вводить заново.</div>'}</div>
+  <div class="two" style="margin-top:34px"><div class="panel" id="cab-p"><h3>Играли у вас · ${roster.length}</h3>${roster.length?`<div style="max-height:420px;overflow:auto"><table class="tb"><thead><tr><th>Игрок</th><th class="c">Г.р.</th><th>Город</th><th>Звание</th></tr></thead><tbody>${[...roster].sort((a,b)=>a.name.localeCompare(b.name,'ru')).map(p=>`<tr><td><b>${esc(p.name)}</b></td><td class="c">${byear(p)}</td><td>${esc(p.city||'')}</td><td>${esc(p.rank||'')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="muted">Здесь появятся игроки, которых вы внесёте в турниры. В следующий раз их можно выбрать из списка, а не вводить заново.</div>'}</div>
   <div class="panel" id="cab-i">${info}</div></div>`;
 }
 function ovHTML(d,de,skip){if(!d||!S.session)return'';const a=d,b2=de&&de>=d?de:d;
@@ -1660,8 +1691,8 @@ function renderAdmin(){
   }
   return`<div class="hero"><div><div class="who">Администратор · ${esc(S.email)}</div><h1>Клубы</h1></div><button class="btn ghost" data-act="logout">Выйти</button></div>
   <div class="two"><div class="panel"><h3>Клубы на платформе</h3><div id="ad-list"><div class="muted">Загрузка…</div></div></div>
-  <div class="panel"><h3>Новый клуб</h3><div class="field"><label>Название</label><input id="ac-name"></div><div class="row2"><div class="field"><label>Город</label><input id="ac-city"></div><div class="field"><label>Столов</label><input id="ac-tables" type="number" min="1" max="60" value="6"></div></div>
-  <div class="field"><label>Почта клуба (логин)</label><input id="ac-email" type="email" autocomplete="off"></div><div class="field"><label>Пароль (от 8 символов)</label><input id="ac-pass" autocomplete="off"></div>
+  <div class="panel">${UI.made?`<div class="made"><b>Клуб «${esc(UI.made.name)}» создан</b><pre id="made-t">${esc(madeText(UI.made))}</pre><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn blue" data-act="copyMade">Скопировать для WhatsApp</button><button class="btn ghost" data-act="hideMade">Готово</button></div></div>`:''}<h3>Новый клуб</h3><div class="field"><label>Название</label><input id="ac-name"></div><div class="row2"><div class="field"><label>Город</label><input id="ac-city"></div><div class="field"><label>Столов</label><input id="ac-tables" type="number" min="1" max="60" value="6"></div></div>
+  <div class="field"><label>Почта клуба (логин)</label><input id="ac-email" type="email" autocomplete="off"></div><div class="field"><label>Пароль · создан автоматически</label><div style="display:flex;gap:8px"><input id="ac-pass" autocomplete="off" value="${esc(UI.np||(UI.np=genPass()))}" style="flex:1;min-width:0"><button class="btn sm ghost" type="button" data-act="newPass">Другой</button></div></div>
   <button class="btn blue big" data-act="createClub">Создать клуб</button><div class="err" id="ac-err"></div><p class="muted" style="font-size:13px;margin:6px 0 0">Почту и пароль передайте клубу — по ним он входит на сайт.</p></div></div>`;
 }
 async function loadAdminList(){
@@ -1965,9 +1996,9 @@ const A={
     ok.textContent=`Письмо отправлено на ${em}. Если его нет через 5 минут — проверьте папку «Спам» и правильность почты.`},
   async pwSave(el){const a=document.getElementById('np1').value,b=document.getElementById('np2').value,er=document.getElementById('np-err');er.textContent='';
     if(a.length<8){er.textContent='Пароль должен быть не короче 8 символов';return}if(a!==b){er.textContent='Пароли не совпадают';return}
-    el.disabled=true;const r=await sb.auth.updateUser({password:a});el.disabled=false;
+    el.disabled=true;const r=await sb.auth.updateUser({password:a,data:{pw_changed:true}});el.disabled=false;
     if(r.error){er.textContent=/different|same/i.test(r.error.message||'')?'Новый пароль совпадает со старым':'Не получилось сохранить. Запросите новую ссылку';return}
-    UI.recovery=false;closeModal();if(!S.session)await loadSession();toast('Пароль сохранён');if(location.hash==='#reset')location.hash='#cabinet';else render()},
+    UI.recovery=false;S.pwOk=true;closeModal();if(!S.session)await loadSession();toast('Пароль сохранён');if(location.hash==='#reset')location.hash='#cabinet';else render()},
   pwOpen(){UI.acc=false;render();openModal(`<div class="pm"><div class="pm-h"><div class="pm-ti"><b>Сменить пароль</b><span>Для входа в кабинет клуба</span></div><button class="x" data-act="close" aria-label="Закрыть">×</button></div><div class="field"><label>Новый пароль</label><input id="np1" type="password" autocomplete="new-password"></div><div class="field"><label>Повторите пароль</label><input id="np2" type="password" autocomplete="new-password"></div><div class="err" id="np-err"></div><div class="pm-acts"><button class="btn blue" data-act="pwSave">Сохранить</button><button class="btn ghost" data-act="close">Отмена</button></div></div>`)},
   accMenu(){UI.acc=!UI.acc;render()},
   accGo(el){UI.acc=false;const to=el.dataset.to;if(location.hash!=='#cabinet')location.hash='#cabinet';render();if(to)setTimeout(()=>{const e=document.getElementById(to);e&&e.scrollIntoView({behavior:'smooth',block:'start'})},60)},
@@ -2011,7 +2042,7 @@ const A={
     const l=await sb.auth.signInWithPassword({email:v('bs-email').trim(),password:v('bs-pass')});S.adminExists=true;if(!l.error)await loadSession();render();toast('Администратор создан')},
   async createClub(el){const v=id=>document.getElementById(id).value.trim();const e=document.getElementById('ac-err');el.disabled=true;
     const r=await adminCall({action:'create_club',name:v('ac-name'),city:v('ac-city'),tables:v('ac-tables'),email:v('ac-email'),password:v('ac-pass')});el.disabled=false;if(r.error){e.textContent=r.error;return}
-    S.clubs.push({id:r.id,name:v('ac-name'),city:v('ac-city'),tables:Math.floor(+v('ac-tables')),roster:[]});render();toast('Клуб создан')},
+    UI.made={name:v('ac-name'),email:v('ac-email'),pass:v('ac-pass')};UI.np=null;S.clubs.push({id:r.id,name:v('ac-name'),city:v('ac-city'),tables:Math.floor(+v('ac-tables')),roster:[]});render();toast('Клуб создан')}, newPass(){UI.np=genPass();const i=document.getElementById('ac-pass');if(i)i.value=UI.np}, async copyMade(){try{await navigator.clipboard.writeText(madeText(UI.made));toast('Скопировано — вставьте в WhatsApp')}catch(e){toast('Выделите текст и скопируйте вручную')}}, hideMade(){UI.made=null;render()},
   async setPass(el){const i=document.getElementById('pw-'+el.dataset.id);const r=await adminCall({action:'set_password',club_id:el.dataset.id,password:i.value});if(r.error){toast(r.error);return}i.value='';toast('Пароль изменён')},
   fmt(){const v=document.querySelector('input[name=fmt]:checked').value;document.getElementById('gp-opts').style.display=v==='gp'?'grid':'none'},
   create(){const g=id=>document.getElementById(id).value.trim();const e=document.getElementById('f-err');
