@@ -681,6 +681,7 @@ nav.main .acc-dd a,.acc-dd button{display:block;width:100%;text-align:left;paddi
 @media(max-width:1100px){.ch-top{grid-template-columns:auto minmax(0,1fr)}.ch-now{grid-column:1/-1}}
 @media(max-width:640px){.ch-stats em{display:none}}
 .ov{margin:-4px 0 14px;background:var(--gold-bg,#FFF4D6);color:#5C4100;border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.45}
+.fr-h{padding:12px 16px 6px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -1036,8 +1037,8 @@ function renderHome(){
   const more=UI.homeMore;const dn=more?done:done.slice(0,6);
   const sec=(t,n,body,extra='')=>`<section class="hs"><div class="hs-h"><h2>${t}</h2>${n?`<span>${n}</span>`:''}${extra}</div>${body}</section>`;
   if(!S.tournaments.length)return`<div class="hfind"><h1>Бильярдные турниры</h1></div><div class="empty">${S.session?'Турниров пока нет.<br><br><button class="btn blue big" data-act="newT">+ Создать первый турнир</button>':'Турниров пока нет. Они появятся здесь, когда клубы их создадут.<br><br><a class="btn dark" href="#cabinet">Вы клуб? Войдите, чтобы создать турнир</a>'}</div>`;
-  return`<div class="hfind"><h1>Бильярдные турниры</h1><p>Найдите себя — покажем ваш турнир, следующий матч и стол.</p>
-  <div class="hf-in"><input id="pq" class="search" type="search" autocomplete="off" placeholder="Фамилия игрока" value="${esc(UI.pq||'')}">${S.session?`<button class="btn blue" data-act="newT">+ Новый турнир</button>`:''}</div><div id="find-res"></div></div>
+  return`<div class="hfind"><h1>Бильярдные турниры</h1><p>Найдите себя, турнир или клуб — покажем ваш следующий матч и стол.</p>
+  <div class="hf-in"><input id="pq" class="search" type="search" autocomplete="off" placeholder="Игрок, турнир или клуб" value="${esc(UI.pq||'')}">${S.session?`<button class="btn blue" data-act="newT">+ Новый турнир</button>`:''}</div><div id="find-res"></div></div>
   <div class="hgrid"><div class="hmain">${live.length?sec('Сейчас идут',live.length,`<div class="hlist">${live.map(x=>hLive(x.T,x.b)).join('')}</div>`):''}
   ${soon.length?sec('Скоро',soon.length,`<div class="hlist">${soon.map(x=>hSoon(x.T)).join('')}</div>`):''}
   ${done.length?sec('Завершённые',done.length,`<div class="hlist">${dn.map(x=>hDone(x.T,x.b)).join('')}</div>${done.length>6?`<button class="btn ghost hs-more" data-act="homeMore">${more?'Свернуть':'Показать все'}</button>`:''}`):''}</div>${hTop()}</div>`;
@@ -1082,7 +1083,12 @@ function renderFind(){const el=document.getElementById('find-res');if(!el)return
       else{txt='Выбыл';rank=4}}
     out.push({T,p,txt,rank,tag})}));
   out.sort((x,y)=>x.rank-y.rank||(y.T.date||'').localeCompare(x.T.date||''));
-  el.innerHTML=out.length?`<div class="fr">${out.slice(0,8).map(r=>`<a class="fr-i" href="#t-${r.T.id}"><div><b>${esc(r.p.name)}</b><span>${esc(r.T.title)} · ${esc(club(r.T.clubId).name)}</span></div><em class="${r.tag}">${esc(r.txt)}</em></a>`).join('')}</div>`:'<div class="fr-no">Игрок не найден</div>'}
+  const hit=t=>{t=(t||'').toLowerCase();return t.includes(q)};const SR={live:0,reg:1,done:2};
+  const ts=S.tournaments.filter(isPub).filter(T=>!T.parent&&(hit(T.title)||hit(club(T.clubId).name)||hit(T.city))).sort((a,b)=>SR[tStatus(a)]-SR[tStatus(b)]||(b.date||'').localeCompare(a.date||'')).slice(0,6);
+  const tl={live:['live','Идёт'],reg:['ok','Скоро'],done:['','Завершён']};
+  const tHtml=ts.length?`<div class="fr-h">Турниры</div>${ts.map(T=>{const st=tStatus(T);return`<a class="fr-i" href="#t-${T.id}"><div><b>${esc(T.title)}</b><span>${esc(club(T.clubId).name)} · ${esc(T.city||'')} · ${esc(fdates(T))}</span></div><em class="${tl[st][0]}">${tl[st][1]}</em></a>`}).join('')}`:'';
+  const pHtml=out.length?`${ts.length?'<div class="fr-h">Игроки</div>':''}${out.slice(0,8).map(r=>`<a class="fr-i" href="#t-${r.T.id}"><div><b>${esc(r.p.name)}</b><span>${esc(r.T.title)} · ${esc(club(r.T.clubId).name)}</span></div><em class="${r.tag}">${esc(r.txt)}</em></a>`).join('')}`:'';
+  el.innerHTML=ts.length||out.length?`<div class="fr">${tHtml}${pHtml}</div>`:'<div class="fr-no">Ничего не найдено</div>'}
 function tCard(T){
   const st=tStatus(T);const c=club(T.clubId);const [y,mo,d]=(T.date||'--').split('-');
   return`<a class="card" href="#t-${T.id}"><div class="date"><b>${d||'—'}</b><span>${MSHORT[+mo-1]||''}</span></div>
