@@ -664,6 +664,8 @@ nav.main a{white-space:nowrap}
 .mv-pr{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.3fr) auto 52px;gap:10px;padding:10px 6px;border-top:1px solid var(--line);font-size:14px;align-items:center;cursor:pointer;border-radius:6px}.mv-pr:hover{background:#F7F7F7}.mv-pr.cur{background:var(--accent-soft)}
 .mv-pr span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mv-pr span:first-child{color:var(--muted);font-size:13px}.mv-pr .s{font-weight:600}.mv-pr .s.w{color:var(--ok)}.mv-pr .s.l{color:var(--live-ink)}.mv-pr .t{color:var(--muted);font-size:13px;text-align:right}
 @media(max-width:640px){.dlg:has(.mv){padding:22px 18px}.mv-vs{grid-template-columns:1fr;padding:20px}.mv-sc{order:0;text-align:center;font-size:48px}.mv-nx,.mv-path{grid-template-columns:1fr}}
+.cbar{max-width:720px;display:flex;align-items:center;gap:16px;background:var(--accent-soft);color:var(--ink);border-radius:12px;padding:14px 18px;margin-bottom:16px;font-size:14px;line-height:1.45}.cbar span{flex:1}.cbar .btn{flex:none}.cbar.done{background:var(--soft)}.cbar .lnk{color:var(--accent-ink);font-size:14px;flex:none}
+@media(max-width:640px){.cbar{flex-direction:column;align-items:flex-start}}
 </style>
 </head>
 <body>
@@ -1370,7 +1372,8 @@ function renderResult(T,b){
     const done=b.all.filter(m=>m.state==='done').length,tot=b.all.filter(m=>m.state!=='bye').length;
     return`<div class="empty">Итоговые места появятся после финала.<br>Сыграно матчей: ${done} из ${tot}</div>`;
   }
-  return`<div class="panel" style="max-width:720px"><div class="ph"><h3>Итоговые места</h3><div class="ptools"><button data-act="shareRes">${IC.share||IC.print}Поделиться</button><button data-act="printPlaces">${IC.print}Печать</button><button data-act="xlsT">${IC.xls}Excel</button></div></div><ul class="places">${b.places.map(p=>`<li><span class="pl">${p.from===p.to?p.from:p.from+'–'+p.to} место</span><span>${p.ids.map(id=>esc(pname(T,P(id)))).join(', ')}${p.label?` <span class="muted">· ${p.label}</span>`:''}</span></li>`).join('')}</ul></div>`;
+  const cbar=isOwner(T)?(T.closed?`<div class="cbar done">${IC.lock||''}<span><b>Турнир закрыт</b> — итоги окончательные, правки отключены.</span><button class="lnk" data-act="reopenT">Открыть для правок</button></div>`:`<div class="cbar"><span><b>Все матчи сыграны.</b> Проверьте итоги и закройте турнир — после этого результаты нельзя будет случайно изменить.</span><button class="btn blue sm" data-act="closeAsk">Закрыть турнир</button></div>`):'';
+  return`${cbar}<div class="panel" style="max-width:720px"><div class="ph"><h3>Итоговые места</h3><div class="ptools"><button data-act="shareRes">${IC.share||IC.print}Поделиться</button><button data-act="printPlaces">${IC.print}Печать</button><button data-act="xlsT">${IC.xls}Excel</button></div></div><ul class="places">${b.places.map(p=>`<li><span class="pl">${p.from===p.to?p.from:p.from+'–'+p.to} место</span><span>${p.ids.map(id=>esc(pname(T,P(id)))).join(', ')}${p.label?` <span class="muted">· ${p.label}</span>`:''}</span></li>`).join('')}</ul></div>`;
 }
 
 /* ============ cabinet ============ */
@@ -1683,8 +1686,9 @@ function viewMatchHTML(T,b,m){const r=m.res||{};const c=club(T.clubId);const sm=
   <div class="mv-facts">${facts}</div>
   <div class="mv-vs">${side(m.a,'a')}<div class="mv-sc">${lsc('a')}<i>:</i>${lsc('b')}</div>${side(m.b,'b')}</div>
   ${next}${tv}<div class="mv-path">${path(m.a)}${path(m.b)}</div></div>`}
+function mDeps(T,b,m){if(T.format==='rr')return[];const F=flow(T);return[F.w[m.no],F.l[m.no]].filter(Boolean).map(no=>b.all.find(x=>x.no===+no)).filter(x=>x&&x.res&&(x.state==='done'||x.state==='live'))}
 function openMatch(mid){
-  const {T,b}=CUR;const m=b.all.find(x=>x.id===mid);if(!m)return;const own=isOwner(T);
+  const {T,b}=CUR;const m=b.all.find(x=>x.id===mid);if(!m)return;const own=isOwner(T)&&!T.closed;
   const head=`<div class="dlg-h"><h3>Матч №${m.no}</h3><button class="x" data-act="close">×</button></div>`;
   if(m.state==='wait'||m.state==='bye'){openModal(head+`<p>${esc(pname(T,m.a))} — ${esc(pname(T,m.b))}</p><p class="muted">${m.state==='bye'?'Свободный проход: соперника нет, игрок проходит дальше без игры.':'Матч ждёт, пока определятся оба соперника.'}</p>`);return}
   const r=m.res||{};
@@ -1698,10 +1702,10 @@ function openMatch(mid){
   <div class="pm-row ed"><span class="pm-n">${esc(pname(T,m.a))}</span><input class="pm-s" id="sa" type="number" min="0" inputmode="numeric" aria-label="Счёт" value="${r.sa??''}"></div>
   <div class="pm-row ed"><span class="pm-n">${esc(pname(T,m.b))}</span><input class="pm-s" id="sb" type="number" min="0" inputmode="numeric" aria-label="Счёт" value="${r.sb??''}"></div>
   <input type="hidden" id="tbl" value="${r.table??''}">
-  <p class="pm-note">Игра до ${mrace(T,m)} побед. Если ошиблись — исправьте счёт. Если победитель изменится, следующие матчи с его участием сбросятся.</p>
+  ${(()=>{const dp=mDeps(T,b,m);return dp.length?`<p class="pm-note">Игра до ${mrace(T,m)} побед. Дальше уже ${dp.length>1?'сыграны матчи':'сыгран матч'} ${dp.map(x=>'№'+x.no).join(' и ')} — счёт можно поправить, но победитель должен остаться тем же.</p>`:`<p class="pm-note">Игра до ${mrace(T,m)} побед. Если ошиблись — исправьте счёт. Если победитель изменится, следующий матч с его участием сбросится.</p>`})()}
   <div class="err" id="m-err"></div>
   <div class="pm-acts"><button class="btn blue" data-act="saveRes" data-mid="${m.id}">Сохранить счёт</button><button class="btn ghost" data-act="close">Отмена</button></div>
-  <div class="pm-tools"><button data-act="printM" data-mid="${m.id}">${PI.print}Протокол</button><button class="rs" data-act="clearRes" data-mid="${m.id}">${PI.reset}Переиграть матч</button></div></div>`);
+  <div class="pm-tools"><button data-act="printM" data-mid="${m.id}">${PI.print}Протокол</button>${mDeps(T,b,m).length?'':`<button class="rs" data-act="clearRes" data-mid="${m.id}">${PI.reset}Переиграть матч</button>`}</div></div>`);
 }
 
 /* ============ actions ============ */
@@ -1828,14 +1832,18 @@ const A={
   deView(el){UI.de[el.dataset.id]=el.dataset.v;render()},
   match(el){if(el.classList.contains('hid'))return;openMatch(el.dataset.mid)},
   close(){closeModal()},
+  closeAsk(){openModal(`<div class="pm"><div class="pm-h"><div class="pm-ti"><b>Закрыть турнир?</b><span>${esc(CUR.T.title)}</span></div><button class="x" data-act="close" aria-label="Закрыть">×</button></div><p class="pm-note" style="margin-top:0">Итоги станут окончательными: счёт матчей и сетку больше нельзя будет изменить. Если понадобится, откройте турнир снова в «Итогах».</p><div class="pm-acts"><button class="btn blue" data-act="closeT">Да, закрыть</button><button class="btn ghost" data-act="close">Отмена</button></div></div>`)},
+  closeT(){const T=CUR.T;if(!isOwner(T))return;T.closed=true;T.closedAt=Date.now();save();closeModal();render();toast('Турнир закрыт')},
+  reopenT(){const T=CUR.T;if(!isOwner(T))return;delete T.closed;delete T.closedAt;save();render();toast('Турнир открыт для правок')},
   saveRes(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);const sa=num('sa'),sb=num('sb'),tb=num('tbl');const e=document.getElementById('m-err');
     if(sa===null||sb===null||sa<0||sb<0){e.textContent='Введите счёт обоих игроков';return}
     if(sa===sb){e.textContent='Ничьих нет — у одного счёт должен быть больше';return}
     {const R=(T.results[el.dataset.mid]&&T.results[el.dataset.mid].race)||T.raceTo;if(Math.max(sa,sb)>R||(Math.max(sa,sb)<R&&!(T.results[el.dataset.mid]&&T.results[el.dataset.mid].forced))){e.textContent=`Победитель должен набрать ${R}`;return}}
+    {const dp=mDeps(T,b,m);const o=T.results[m.id]||{};if(dp.length&&o.done&&(o.sa>o.sb)!==(sa>sb)){e.textContent=`Победителя изменить нельзя — дальше уже ${dp.length>1?'сыграны матчи':'сыгран матч'} ${dp.map(x=>'№'+x.no).join(' и ')}. Сначала переиграйте ${dp.length>1?'их':'его'}.`;return}}
     {const o=T.results[m.id]||{};T.results[m.id]=Object.assign({},o,{a:m.a.id,b:m.b.id,sa,sb,done:true,live:false,table:tb||o.table})}save();closeModal();render();toast('Результат сохранён')},
   saveLive(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);const sa=num('sa')||0,sb=num('sb')||0,tb=num('tbl');if(!tb){document.getElementById('m-err').textContent='Выберите стол';return}
     T.results[m.id]={a:m.a.id,b:m.b.id,sa,sb,live:true,done:false,table:tb,ts:Date.now()};save();closeModal();render();toast("Игроки вызваны к столу")},
-  clearRes(el){const {T}=CUR;delete T.results[el.dataset.mid];save();closeModal();render();toast('Результат сброшен')},
+  clearRes(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(m&&mDeps(T,b,m).length){toast('Дальше уже сыграны матчи — сначала переиграйте их');return}delete T.results[el.dataset.mid];save();closeModal();render();toast('Результат сброшен')},
   editT(){const T=CUR&&CUR.T;if(!T||!isOwner(T))return;UI.tmenu=null;UI.ePub=undefined;render();openModal(editTHTML(T))},
   ePub(el){const T=CUR.T;const keep={};['e-title','e-disc','e-cat','e-date','e-time','e-end','e-org','e-oph','e-link','e-video'].forEach(i=>keep[i]=document.getElementById(i).value);UI.ePub=el.dataset.v==='1';openModal(editTHTML(T));Object.keys(keep).forEach(i=>document.getElementById(i).value=keep[i])},
   saveT(){const T=CUR&&CUR.T;if(!T||!isOwner(T))return;const v=i=>document.getElementById(i).value.trim();const e=document.getElementById('e-err');
