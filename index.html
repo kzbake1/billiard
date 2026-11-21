@@ -1089,7 +1089,12 @@ function computePlaces(T,b){
 let S={clubs:[],tournaments:[],session:null,admin:false,adminExists:true,email:''};
 const SB_URL='https://dhsrklircobualygdacz.supabase.co',SB_KEY='sb_publishable_CoPq83PXPQWtfTzMECB7jg_VI-tjPyM';
 let sb=null,saveQ=Promise.resolve(),pending=0;const OWN_TS={};
-const SNAP={t:{},own:{},club:null,roster:null};
+const SNAP={t:{},own:{},club:null,players:null};
+const pTok=q=>String(q||'').toLowerCase().replace(/ё/g,'е').split(/\s+/).filter(Boolean);
+function pMatch(p,q){const t=Array.isArray(q)?q:pTok(q);if(!t.length)return true;const w=pTok((p.last||'')+' '+(p.first||'')+' '+(p.name||''));return t.every(x=>w.some(y=>y.startsWith(x)))}
+let PL_T=0;async function refreshPlayers(){if(!S.session||!SNAP.players||Date.now()-PL_T<30000)return;PL_T=Date.now();const c=club(S.session);const pl=await loadPlayers();if(!pl||!c||S.session!==c.id)return;let ch=0;const by=new Map((c.roster||[]).map(p=>[p.id,p]));
+  pl.forEach(p=>{const j=JSON.stringify(pub(p));const loc=by.get(p.id);if(!loc){c.roster.push(p);SNAP.players[p.id]=j;ch++}else if(SNAP.players[p.id]!==j&&JSON.stringify(pub(loc))===SNAP.players[p.id]){Object.assign(loc,p);SNAP.players[p.id]=j;ch++}});if(ch)softRender()}
+async function loadPlayers(){const out=[];for(let from=0;;from+=1000){const r=await sb.from('player').select('id,data').order('id').range(from,from+999);if(r.error)return null;(r.data||[]).forEach(x=>out.push(cleanData(Object.assign({},x.data,{id:x.id}))));if(!r.data||r.data.length<1000)break}return out}
 const pub=p=>({id:p.id,first:p.first,last:p.last,name:p.name,city:p.city,rank:p.rank,birth:String(p.birth||'').slice(0,4),sex:p.sex||'',country:p.country||'',club:p.club||'',lvl:p.lvl||''});
 function tData(T){const d=Object.assign({},T);delete d.id;delete d.clubId;return d}
 /* защита от подмены данных в обход сайта: чистим всё, что пришло из базы */
@@ -1137,18 +1142,18 @@ async function doSave(){
     else if(SNAP.t[T.id]!==j)jobs.push(saveT1(T))}
   for(const id of Object.keys(SNAP.own)){if(!S.tournaments.some(t=>t.id===id))jobs.push(sb.from('tournament').update({deleted_at:new Date().toISOString()}).eq('id',id).then(r=>{if(!r.error){delete SNAP.own[id];delete SNAP.t[id]}return r}))}
   if(me){const cj=JSON.stringify([me.name,me.city,me.tables,me.address,me.phone,me.instagram,me.tiktok,me.logo,me.floors||[]]);if(SNAP.club!==cj)jobs.push(sb.from('club').update({name:me.name,city:me.city,tables:me.tables,floors:me.floors||[],address:me.address||'',phone:me.phone||'',instagram:me.instagram||'',tiktok:me.tiktok||'',logo:me.logo||''}).eq('id',me.id).then(r=>{if(!r.error)SNAP.club=cj;return r}));
-    const rj=JSON.stringify(me.roster||[]);if(SNAP.roster!==rj)jobs.push(sb.from('club_private').update({roster:me.roster||[]}).eq('club_id',me.id).then(r=>{if(!r.error)SNAP.roster=rj;return r}))}
+    if(SNAP.players){const ch=(me.roster||[]).filter(p=>p&&p.id&&p.last&&p.first).map(p=>({id:p.id,data:pub(p)})).filter(x=>SNAP.players[x.id]!==JSON.stringify(x.data));if(ch.length)jobs.push(sb.from('player').upsert(ch,{onConflict:'id'}).then(r=>{if(!r.error)ch.forEach(x=>SNAP.players[x.id]=JSON.stringify(x.data));return r}))}}
   const res=await Promise.all(jobs);if(res.some(r=>r&&r.error&&/old_client/.test(r.error.message||''))){staleReload();return}if(res.some(r=>r&&r.error)){console.error(res.filter(r=>r&&r.error).map(r=>r.error));toast('Не сохранилось — проверьте интернет и повторите')}
 }
 async function loadSession(){
-  S.session=null;S.admin=false;S.email='';SNAP.club=null;SNAP.roster=null;
+  S.session=null;S.admin=false;S.email='';SNAP.club=null;SNAP.players=null;
   const {data}=await sb.auth.getSession();const u=data&&data.session&&data.session.user;
   if(!u)return;S.email=u.email||'';S.pwOk=!!(u.user_metadata&&u.user_metadata.pw_changed);
   const [mc,ad]=await Promise.all([sb.rpc('my_club'),sb.rpc('is_admin')]);
   S.admin=!!ad.data;if(S.admin&&PUB_KB&&!mc.data){S.admin=false;S.adminOff=true;await sb.auth.signOut();S.email='';return}
   S.sub=null;if(mc.data){sb.rpc('my_subscription').then(r=>{S.sub=r.data?cleanData(r.data):null;if(location.hash==='#cabinet'||location.hash==='#price')render()});}
-  if(mc.data){let c=S.clubs.find(x=>x.id===mc.data);if(!c){const q=await sb.from('club').select('id,name,city,tables,floors,address,phone,instagram,tiktok,logo').eq('id',mc.data).maybeSingle();if(q.data){c=Object.assign({roster:[]},cleanData(q.data));S.clubs.push(c)}}if(c){S.session=c.id;const r=await sb.from('club_private').select('roster').eq('club_id',c.id).maybeSingle();c.roster=cleanData((r.data&&r.data.roster)||[]);
-    SNAP.club=JSON.stringify([c.name,c.city,c.tables,c.address,c.phone,c.instagram,c.tiktok,c.logo,c.floors||[]]);SNAP.roster=JSON.stringify(c.roster)}}
+  if(mc.data){let c=S.clubs.find(x=>x.id===mc.data);if(!c){const q=await sb.from('club').select('id,name,city,tables,floors,address,phone,instagram,tiktok,logo').eq('id',mc.data).maybeSingle();if(q.data){c=Object.assign({roster:[]},cleanData(q.data));S.clubs.push(c)}}if(c){S.session=c.id;const pl=await loadPlayers();PL_T=Date.now();c.roster=pl||[];SNAP.players=pl?Object.fromEntries(pl.map(p=>[p.id,JSON.stringify(pub(p))])):null;
+    SNAP.club=JSON.stringify([c.name,c.city,c.tables,c.address,c.phone,c.instagram,c.tiktok,c.logo,c.floors||[]]);}}
   SNAP.own={};S.tournaments.forEach(T=>{if(T.clubId===S.session)SNAP.own[T.id]=1});
 }
 async function load(){
@@ -1283,14 +1288,14 @@ function render(){RENDER_N++;setTimeout(()=>{tabsIntoView();addEyes()},0);
   if(h.startsWith('tablo-')){app.innerHTML=renderObs(h.slice(6));setTimeout(fitObs,0);return}
   if(h.startsWith('s-')){const x=h.slice(2),i=x.indexOf('-');const T=tById(x.slice(0,i));if(T){app.innerHTML=renderBoard(T,x.slice(i+1));return}}
   if(h.startsWith('g-')){const T=tById(h.slice(2));if(T){app.innerHTML=renderGridOnly(T);return}}
-  if(h.startsWith('t-')){const T=tById(h.slice(2));if(T&&!isPub(T)&&!isOwner(T)){app.innerHTML='<div class="empty">Турнир ещё не опубликован. <a href="#home">Все турниры</a></div>';return}if(T){app.innerHTML=renderT(T);renderRoster();return}}
+  if(h.startsWith('t-')){const T=tById(h.slice(2));if(T&&!isPub(T)&&!isOwner(T)){app.innerHTML='<div class="empty">Турнир ещё не опубликован. <a href="#home">Все турниры</a></div>';return}if(T){app.innerHTML=renderT(T);renderRoster();if(isOwner(T))refreshPlayers();return}}
   if(h.startsWith('c-')){const c=S.clubs.find(x=>x.id===h.slice(2));if(c){app.innerHTML=renderClub(c);return}}
   if(h==='price'){app.innerHTML=renderPrice();loadPlans();return}
   if(h==='schet'){app.innerHTML=renderCounter();ctWake();return}
   if(/access_token=|type=recovery/.test(h)){app.innerHTML='<div class="empty">Открываем смену пароля…</div>';return}
   if(/error_code=|error=/.test(h)){app.innerHTML=`<div style="max-width:460px"><h1>Ссылка не сработала</h1><p class="muted lead">Ссылка для смены пароля устарела или уже использована. Запросите новую на странице входа.</p><a class="btn blue big" href="#cabinet">Ко входу</a></div>`;return}
   if(h==='reset'){app.innerHTML=renderReset();return}
-  if(h==='cabinet'){app.innerHTML=renderCabinet();return}
+  if(h==='cabinet'){app.innerHTML=renderCabinet();refreshPlayers();return}
   if(h==='admin'||h.startsWith('admin/')){if(PUB_KB){location.replace('https://admin.kazbilliard.com/#'+h);return}AD.nav='';app.innerHTML=renderAdmin();if(S.admin&&AD.nav){nav.innerHTML=AD.nav;document.body.classList.add('admv')}return}
   if(h==='create'){app.innerHTML=S.session?renderCreate():renderCabinet();renderWizRoster();return}
   if(h.startsWith('pult-')){location.replace('#t-'+h.slice(5));return}
@@ -1701,7 +1706,7 @@ function withExcel(cb){if(window.ExcelJS)return cb();toast('Готовлю фа�
 function renderRoster(){
   const el=document.getElementById('rs-list');if(!el||!CUR)return;const T=CUR.T;const c=club(T.clubId);const q=(document.getElementById('rs-q').value||'').trim().toLowerCase();
   const inT=new Set(T.players.map(p=>p.id));
-  const list=(c.roster||[]).filter(p=>!inT.has(p.id)&&(!q||p.name.toLowerCase().includes(q))).slice(0,8);
+  const list=(c.roster||[]).filter(p=>!inT.has(p.id)&&pMatch(p,q)).slice(0,8);
   el.innerHTML=list.length?list.map(p=>`<div class="mr" style="grid-template-columns:1fr auto auto;cursor:default"><span><b>${esc(p.name)}</b> <span class="muted">${byear(p)} · ${esc(p.city||'')}</span></span><span class="muted" style="font-size:12px">${esc(p.rank||'')}</span><button class="btn sm ghost" data-act="addR" data-id="${p.id}">Добавить</button></div>`).join(''):`<div class="muted" style="font-size:13px">${(c.roster||[]).length?'Никого не найдено':'База пока пустая'}</div>`;
 }
 function minPlayers(T){if(T.format==='se')return 2;if(T.format==='gp')return T.groups.count*Math.max(2,T.groups.advance+1);return 3}
@@ -1875,7 +1880,7 @@ function renderCreate(){
 function renderWizRoster(){
   const el=document.getElementById('wq-list');if(!el)return;const w=UI.wiz;const c=club(S.session);const q=w.q.trim().toLowerCase();
   const inT=new Set(w.players.map(p=>p.id));
-  const list=(c.roster||[]).filter(p=>!inT.has(p.id)&&(!q||p.name.toLowerCase().includes(q))).slice(0,6);
+  const list=(c.roster||[]).filter(p=>!inT.has(p.id)&&pMatch(p,q)).slice(0,6);
   el.innerHTML=list.length?list.map(p=>`<div class="wr"><span style="flex:1;min-width:0"><b>${esc(p.name)}</b><br><span class="muted" style="font-size:13px">${byear(p)} · ${esc(p.city||'')} · ${esc(p.rank||'')}</span></span><button class="btn blue" data-act="wAddR" data-id="${p.id}">+ Добавить</button></div>`).join(''):`<div class="muted" style="font-size:13px;padding:8px 0">${(c.roster||[]).length?'Никого не найдено':'База пока пустая'}</div>`;
 }
 /* ============ admin ============ */
@@ -2212,9 +2217,9 @@ function cabBody(c,mine){const roster=c.roster||[];const tab=UI.cabTab||'t',ed=U
     const add=`<button class="btn blue" data-act="newT">${IC.plus}Новый турнир</button>`;
     body=sec(mine.length?'Турниры':'',add,mine.length?[now?blk('Сейчас','Ближайший турнир и что с ним нужно сделать.',now):'',blk('Все турниры'+(mine.length>1?` <em>(${mine.length})</em>`:''),'',`${segs}<div class="hlist">${cabRows(list)}</div>`)]
       :[blk('','',`<div class="cb-empty"><b>Турниров пока нет</b><span>Создайте первый — игроки увидят его на главной странице.</span>${add}</div>`)])}
-  else if(tab==='p'){const tc=p=>mine.filter(T=>(T.players||[]).some(q=>q.id===p.id)).length;
+  else if(tab==='p'){const allT=S.tournaments.filter(T=>!T.parent);const tc=p=>allT.filter(T=>(T.players||[]).some(q=>q.id===p.id)).length;
     const prow=p=>`<tr data-q="${esc((p.name+' '+(p.city||'')).toLowerCase())}"><td><b>${esc(p.name)}</b></td><td class="c">${byear(p)||'—'}</td><td>${esc(p.city||'—')}</td><td>${esc(p.rank||'—')}</td><td class="c">${tc(p)}</td><td class="r"><button class="lnk" data-act="rEdit" data-id="${esc(p.id)}">Изменить</button></td></tr>`;
-    body=sec('Игроки','',[blk('База клуба'+(roster.length?` <em>(${roster.length})</em>`:''),'Все, кого вы вносили в турниры. В новом турнире их можно выбрать из списка, а не вводить заново.',roster.length?`${roster.length>6?`<div class="cb-q">${IC.srch}<input id="cb-q" placeholder="Найти игрока" autocomplete="off" oninput="cbQ(this.value)"></div>`:''}<div class="panel cb-tb"><table class="tb"><thead><tr><th>Игрок</th><th class="c">Г.р.</th><th>Город</th><th>Звание</th><th class="c">Турниров</th><th></th></tr></thead><tbody>${[...roster].sort((a,b)=>a.name.localeCompare(b.name,'ru')).map(prow).join('')}</tbody></table><div class="cb-none" hidden>Никого не нашли</div></div>`:'<div class="cb-empty"><b>Игроков пока нет</b><span>Они появятся здесь, когда вы внесёте участников в первый турнир.</span></div>')])}
+    body=sec('Игроки','',[blk('Общая база игроков'+(roster.length?` <em>(${roster.length})</em>`:''),'Игроки всех клубов kazbilliard. Кого внёс один клуб, могут выбрать для своего турнира и остальные. Править игрока может любой клуб.',roster.length?`${roster.length>6?`<div class="cb-q">${IC.srch}<input id="cb-q" placeholder="Найти игрока" autocomplete="off" oninput="cbQ(this.value)"></div>`:''}<div class="panel cb-tb"><table class="tb"><thead><tr><th>Игрок</th><th class="c">Г.р.</th><th>Город</th><th>Звание</th><th class="c">Турниров</th><th></th></tr></thead><tbody>${[...roster].sort((a,b)=>a.name.localeCompare(b.name,'ru')).map(prow).join('')}</tbody></table><div class="cb-none" hidden>Никого не нашли</div></div>`:'<div class="cb-empty"><b>Игроков пока нет</b><span>Они появятся здесь, когда клубы внесут участников в турниры.</span></div>')])}
   else if(tab==='z'){const nt=c.tables||0;const fr=floorRanges(c)||[{name:'Общий зал',a:1,b:nt}];
     body=sec('Залы и столы','',[ed==='z'?blk('Изменить залы','Выберите зал и укажите, сколько в нём столов. Номера идут подряд: в первом зале с 1, в следующем продолжаются.',`<div class="field" style="margin:16px 0 0"><div id="cl-floors">${(floors(c)||[{name:'Общий зал',n:nt||6}]).map(flRow).join('')}</div><div><button class="btn sm ghost" style="margin-top:4px;width:auto;display:inline-flex;align-items:center;gap:6px" data-act="addFloor">${IC.plus}Добавить зал</button></div></div><div class="err" id="cl-err"></div>`,'<button class="btn blue" data-act="saveFloors">Сохранить</button><button class="btn ghost" data-act="cancelClub">Отмена</button>')
      :blk('Столы клуба','Столы для турниров берутся отсюда.',`<div class="panel cb-zl">${fr.map(z=>`<div><b>${esc(z.name)}</b><span>${z.a===z.b?'стол '+z.a:'столы '+z.a+'–'+z.b}</span><em>${z.b-z.a+1} стол${plural(z.b-z.a+1)}</em></div>`).join('')}${fr.length>1?`<div class="tot"><b>Всего</b><span></span><em>${nt} стол${plural(nt)}</em></div>`:''}</div>`,'<button class="btn ghost" data-act="editFloors">Изменить</button>')])}
@@ -2227,9 +2232,9 @@ function cabBody(c,mine){const roster=c.roster||[];const tab=UI.cabTab||'t',ed=U
     body=sec('Подписка и вход','',[blk('Подписка','Пока подписка действует, вы можете создавать турниры.',`<div class="panel">${kv(sub)}</div>`,'<a class="btn ghost" href="#price">Тарифы и продление</a>'),blk('Вход в профиль','Почта и пароль, с которыми вы входите на сайт.',`<div class="panel">${kv([['Почта',esc(S.email||'')],['Пароль','••••••••']])}</div>`,'<button class="btn ghost" data-act="pwOpen">Сменить пароль</button>')])}
   const nav=['',['t',IC.trophy,'Турниры',mine.length],['p',IC.users,'Игроки',roster.length],'Настройки',['z',IC.tbl,'Залы и столы',''],['i',IC.info,'О клубе',''],['a',IC.card,'Подписка и вход','']];
   return`<div class="cb-side"><nav class="cb-nav">${nav.map(n=>typeof n==='string'?(n?'<i></i>':''):`<a href="#cabinet" class="${tab===n[0]?'on':''}" data-act="cbGo" data-to="${n[0]}">${n[1]}<span>${n[2]}</span>${n[3]?`<em>${n[3]}</em>`:''}</a>`).join('')}</nav><div class="cb-body">${body}</div></div>`}
-function cbQ(v){const q=(v||'').trim().toLowerCase();let n=0;document.querySelectorAll('.cb-tb tbody tr').forEach(r=>{const ok=!q||r.dataset.q.includes(q);r.hidden=!ok;if(ok)n++});const e=document.querySelector('.cb-none');if(e)e.hidden=n>0}
+function cbQ(v){const t=pTok(v);let n=0;document.querySelectorAll('.cb-tb tbody tr').forEach(r=>{const w=pTok(r.dataset.q);const ok=t.every(x=>w.some(y=>y.startsWith(x)));r.hidden=!ok;if(ok)n++});const e=document.querySelector('.cb-none');if(e)e.hidden=n>0}
 function rEditHTML(p){const f=(id,l,v,ph)=>`<div class="field"><label>${l}</label><input id="${id}" value="${esc(v||'')}" placeholder="${ph||''}"></div>`;
-  return`<div class="dlg-h"><h3>Игрок</h3><button class="x" data-act="close" aria-label="Закрыть">×</button></div>${f('re-last','Фамилия',p.last)}${f('re-first','Имя',p.first)}<div class="cl-two" style="gap:12px">${f('re-birth','Год рождения <small>необязательно</small>',byear(p),'1990')}${f('re-city','Город <small>необязательно</small>',p.city)}</div>${f('re-rank','Звание <small>необязательно</small>',p.rank,'б/р')}<p class="mut2" style="margin:0 0 12px">Изменения попадут в базу клуба и в турниры, которые ещё не начались.</p><div class="err" id="re-err"></div><button class="btn blue big" style="width:100%" data-act="rSave" data-id="${esc(p.id)}">Сохранить</button>`}
+  return`<div class="dlg-h"><h3>Игрок</h3><button class="x" data-act="close" aria-label="Закрыть">×</button></div>${f('re-last','Фамилия',p.last)}${f('re-first','Имя',p.first)}<div class="cl-two" style="gap:12px">${f('re-birth','Год рождения <small>необязательно</small>',byear(p),'1990')}${f('re-city','Город <small>необязательно</small>',p.city)}</div>${f('re-rank','Звание <small>необязательно</small>',p.rank,'б/р')}<p class="mut2" style="margin:0 0 12px">Изменения увидят все клубы. В ваших турнирах, которые ещё не начались, данные тоже обновятся.</p><div class="err" id="re-err"></div><button class="btn blue big" style="width:100%" data-act="rSave" data-id="${esc(p.id)}">Сохранить</button>`}
 function cabSet(c){const x=S.sub,t=(x&&x.today)||almatyToday();let sub='Подписка не подключена';
   if(x){const paid=x.paid_until&&x.paid_until>=t,trial=!paid&&x.trial_until&&x.trial_until>=t;
     sub=x.status==='paused'||x.status==='archived'?'Приостановлена':paid?'Действует до '+fds(x.paid_until):trial?'Бесплатный период до '+fds(x.trial_until):'Закончилась'}
@@ -2707,9 +2712,9 @@ const A={
     const x={sex:v('np-sex'),country:v('np-country'),club:v('np-club'),lvl:v('np-lvl')};
     const r=addPlayer(T,c,first,last,birth?String(y):'',v('np-city'),v('np-rank'),x);if(r){e.textContent=r;return}
     save();render();toast('Участник зарегистрирован');const f=document.getElementById('np-last');f&&f.focus()},
-  npSim(){const el=document.getElementById('np-sim');if(!el||!CUR)return;const T=CUR.T,c=club(T.clubId);const l=(document.getElementById('np-last').value||'').trim().toLowerCase(),f=(document.getElementById('np-first').value||'').trim().toLowerCase();if(l.length<2){el.innerHTML='';return}
-    const inT=new Set(T.players.map(p=>p.id));const L=(c.roster||[]).filter(p=>(p.last||'').toLowerCase().startsWith(l)&&(!f||(p.first||'').toLowerCase().startsWith(f))).slice(0,5);
-    el.innerHTML=L.length?`<div class="np-sim"><b>Похожие в базе клуба — выберите, если это он:</b>${L.map(p=>`<div class="np-sr"><span><b>${esc(p.name)}</b><small>${esc([byear(p),p.city,p.club,p.rank].filter(Boolean).join(' · '))||'без данных'}</small></span>${inT.has(p.id)?'<em>уже в турнире</em>':`<button class="btn sm ghost" data-act="addR" data-id="${p.id}">Это он</button>`}</div>`).join('')}</div>`:''},
+  npSim(){const el=document.getElementById('np-sim');if(!el||!CUR)return;const T=CUR.T,c=club(T.clubId);const l=(document.getElementById('np-last').value||'').trim().toLowerCase(),f=(document.getElementById('np-first').value||'').trim().toLowerCase();if((l+f).length<2){el.innerHTML='';return}
+    const inT=new Set(T.players.map(p=>p.id));const L=(c.roster||[]).filter(p=>!inT.has(p.id)&&pMatch(p,l+' '+f)).slice(0,5);
+    el.innerHTML=L.length?`<div class="np-sim"><b>Похожие в общей базе — выберите, если это он:</b>${L.map(p=>`<div class="np-sr"><span><b>${esc(p.name)}</b><small>${esc([byear(p),p.city,p.club,p.rank].filter(Boolean).join(' · '))||'без данных'}</small></span>${inT.has(p.id)?'<em>уже в турнире</em>':`<button class="btn sm ghost" data-act="addR" data-id="${p.id}">Это он</button>`}</div>`).join('')}</div>`:''},
   drawOpen(){A.drawApply()},
   drawApply(){const T=CUR.T;const a=T.players.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
     a.forEach((p,i)=>{p.no=i+1;p.seed=false});T.players=a;T.drawn=true;T.seeds=0;UI.psort={k:'pos',d:1};save();closeModal();render();toast('Жеребьёвка проведена')},
