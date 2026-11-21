@@ -134,11 +134,12 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
   footer{padding:20px 0 28px}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+.logo img{display:block;flex:none}.logo .lg-s{display:none}@media(max-width:640px){.logo .lg-f{display:none}.logo .lg-s{display:block}}
 </style>
 </head>
 <body>
 <header><div class="wrap top">
-  <div class="logo"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#1667FF"/><g fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"><path d="M32 30V70"/><path d="M70 30H60C50 30 52 50 42 50H32"/><path d="M70 70H60C50 70 52 50 42 50"/></g></svg><span><b>kazbilliard</b><small>турнирная платформа</small></span></div>
+  <div class="logo"><img class="lg-f" src="/logo.svg" alt="kazbilliard — турнирная платформа" width="175" height="40"><img class="lg-s" src="/logo-short.svg" alt="kazbilliard" width="122" height="28"></div>
   <div class="soon">Скоро запуск</div>
 </div></header>
 
