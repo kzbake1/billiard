@@ -1692,9 +1692,9 @@ const A={
     Object.assign(T,{title:v('e-title'),discipline:v('e-disc'),category:v('e-cat'),date:v('e-date'),time:v('e-time'),dateEnd:v('e-end')&&v('e-end')!==v('e-date')?v('e-end'):'',link:normUrl(v('e-link')),video:normUrl(v('e-video')),orgName:v('e-org').slice(0,80),orgPhone:v('e-oph').slice(0,30)});
     if(UI.ePub!==undefined)T.pub=UI.ePub;UI.ePub=undefined;save();closeModal();render();toast('Сохранено')},
   pubT(){const T=CUR&&CUR.T;if(!T||!isOwner(T))return;T.pub=true;save();render();toast('Турнир опубликован')},
-  askDel(el){UI.confirm='del-'+el.dataset.id;UI.tmenu=null;render()},
+  askDel(el){const T=tById(el.dataset.id);UI.tmenu=null;render();if(!T)return;const n=T.players.length;openModal(`<div class="dlg-h"><h3>Удалить турнир?</h3><button class="x" data-act="close">×</button></div><p style="margin:0 0 6px"><b>${esc(T.title)}</b></p><p class="muted" style="margin:0 0 20px">Турнир пропадёт с сайта вместе с сеткой и результатами${n?' — '+n+' игрок'+plural(n):''}. Игроки останутся в базе клуба.</p><div class="pm-acts"><button class="btn red" data-act="delT" data-id="${T.id}">Да, удалить</button><button class="btn ghost" data-act="close">Отмена</button></div>`)},
   cancelConfirm(){UI.confirm=null;render()},
-  delT(el){S.tournaments=S.tournaments.filter(t=>t.id!==el.dataset.id);UI.confirm=null;save();go('cabinet');toast('Турнир удалён')},
+  delT(el){closeModal();S.tournaments=S.tournaments.filter(t=>t.id!==el.dataset.id);UI.confirm=null;save();go('cabinet');toast('Турнир удалён')},
   async login(el){const e=document.getElementById('lg-err');const email=document.getElementById('lg-email').value.trim(),password=document.getElementById('lg-pass').value;if(!email||!password){e.textContent='Введите почту и пароль';return}
     el.disabled=true;const r=await sb.auth.signInWithPassword({email,password});if(r.error){el.disabled=false;e.textContent='Неверная почта или пароль';return}
     await loadSession();if(S.session)go('cabinet');else if(S.admin)go('admin');else{e.textContent='К этой почте не привязан клуб — обратитесь к администратору';await sb.auth.signOut();await loadSession();el.disabled=false}},
