@@ -1920,7 +1920,7 @@ const A={
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){er.textContent='Проверьте почту';return}
     el.disabled=true;const r=await sb.auth.resetPasswordForEmail(em,{redirectTo:/(^|\.)kazbilliard\.com$/.test(location.hostname)?location.origin+'/':'https://test.kazbilliard.com/'});el.disabled=false;
     if(r.error&&/rate|limit|429/i.test(r.error.message||'')){er.textContent='Слишком много запросов. Попробуйте через час или напишите нам в WhatsApp';return}
-    ok.textContent='Если такая почта есть в kazbilliard, письмо придёт в течение пары минут. Проверьте и папку «Спам».'},
+    ok.textContent=`Письмо отправлено на ${em}. Если его нет через 5 минут — проверьте папку «Спам» и правильность почты.`},
   async pwSave(el){const a=document.getElementById('np1').value,b=document.getElementById('np2').value,er=document.getElementById('np-err');er.textContent='';
     if(a.length<8){er.textContent='Пароль должен быть не короче 8 символов';return}if(a!==b){er.textContent='Пароли не совпадают';return}
     el.disabled=true;const r=await sb.auth.updateUser({password:a});el.disabled=false;
