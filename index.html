@@ -71,7 +71,7 @@ h3{font-family:Inter,sans-serif;font-size:17px;margin:0 0 10px;font-weight:600;l
 .hl-r em.lv{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--live-ink)}.hl-r em.lv i{width:7px;height:7px;border-radius:50%;background:var(--live);animation:pulse 1.4s infinite}
 @media(max-width:640px){.hrow{flex-wrap:wrap;gap:6px 14px;padding:14px 16px}.hl-m{flex:1 1 0;padding-left:14px}.hl-r{flex:1 1 100%;flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding-left:68px;text-align:left}}
 .hs-more{margin-top:14px}
-@media(max-width:640px){.hfind h1{font-size:30px}.hgrid{grid-template-columns:1fr}.fr-i{flex-direction:column;align-items:flex-start;gap:6px}.fr-i em{text-align:left}}
+@media(max-width:640px){.hfind h1{font-size:30px}.hgrid{grid-template-columns:1fr}.fr-i{flex-direction:column;align-items:flex-start;gap:6px}.fr-i em{text-align:left}.fr-i.sh{flex-direction:row;align-items:center;gap:12px}.fr-i.sh em{text-align:right;flex:none;white-space:nowrap}}
 .hero{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:22px}
 .hero p{margin:0;color:var(--muted);max-width:520px}
 .feat{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:56px}
@@ -1153,9 +1153,9 @@ function renderFind(){const el=document.getElementById('find-res');if(!el)return
   const hit=t=>{t=(t||'').toLowerCase();return t.includes(q)};const SR={live:0,reg:1,done:2};
   const ts=S.tournaments.filter(isPub).filter(T=>!T.parent&&(hit(T.title)||hit(club(T.clubId).name)||hit(T.city))).sort((a,b)=>SR[tStatus(a)]-SR[tStatus(b)]||(b.date||'').localeCompare(a.date||'')).slice(0,6);
   const cs=S.clubs.filter(c=>c.name&&(hit(c.name)||hit(c.city)||hit(c.address))).slice(0,4);
-  const cHtml=cs.length?`<div class="fr-h">Клубы</div>${cs.map(c=>{const n=S.tournaments.filter(t=>inList(t)&&t.clubId===c.id).length;return`<a class="fr-i" href="#c-${c.id}"><div><b>${esc(c.name)}</b><span>${esc([c.city,c.address].filter(Boolean).join(', '))}</span></div><em>${n?n+' турнир'+plural(n):'клуб'}</em></a>`}).join('')}`:'';
+  const cHtml=cs.length?`<div class="fr-h">Клубы</div>${cs.map(c=>{const n=S.tournaments.filter(t=>inList(t)&&t.clubId===c.id).length;return`<a class="fr-i sh" href="#c-${c.id}"><div><b>${esc(c.name)}</b><span>${esc([c.city,c.address].filter(Boolean).join(', '))}</span></div><em>${n?n+' турнир'+plural(n):'клуб'}</em></a>`}).join('')}`:'';
   const tl={live:['live','Идёт'],reg:['ok','Скоро'],done:['','Завершён']};
-  const tHtml=ts.length?`<div class="fr-h">Турниры</div>${ts.map(T=>{const st=tStatus(T);return`<a class="fr-i" href="#t-${T.id}"><div><b>${esc(T.title)}</b><span>${esc(club(T.clubId).name)} · ${esc(T.city||'')} · ${esc(fdates(T))}</span></div><em class="${tl[st][0]}">${tl[st][1]}</em></a>`}).join('')}`:'';
+  const tHtml=ts.length?`<div class="fr-h">Турниры</div>${ts.map(T=>{const st=tStatus(T);return`<a class="fr-i sh" href="#t-${T.id}"><div><b>${esc(T.title)}</b><span>${esc(club(T.clubId).name)} · ${esc(T.city||'')} · ${esc(fdates(T))}</span></div><em class="${tl[st][0]}">${tl[st][1]}</em></a>`}).join('')}`:'';
   const pHtml=out.length?`${ts.length||cs.length?'<div class="fr-h">Игроки</div>':''}${out.slice(0,8).map(r=>`<a class="fr-i" href="#t-${r.T.id}"><div><b>${esc(r.p.name)}</b><span>${esc(r.T.title)} · ${esc(club(r.T.clubId).name)}</span></div><em class="${r.tag}">${esc(r.txt)}</em></a>`).join('')}`:'';
   el.innerHTML=cs.length||ts.length||out.length?`<div class="fr">${cHtml}${tHtml}${pHtml}</div>`:'<div class="fr-no">Ничего не найдено</div>'}
 function tCard(T){
