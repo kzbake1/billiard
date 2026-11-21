@@ -1090,7 +1090,7 @@ function renderT(T){
   ${!isPub(T)&&own?`<div class="th-draft">Турнир не опубликован — его видите только вы. <button class="lnk" data-act="pubT">Опубликовать</button></div>`:''}
 </div>${side}</div></div>
   <div class="tabs">${tabs.map(t=>`<button class="${t[0]===tab?'on':''}" data-act="tab" data-id="${T.id}" data-tab="${t[0]}">${t[1]}${t[2]?`<span class="cnt">${t[2]}</span>`:''}</button>`).join('')}</div></div>
-  ${T.parent&&tById(T.parent)?`<div class="stg-bar">Этап турнира <a href="#t-${T.parent}">«${esc(tById(T.parent).title)}»</a></div>`:''}${own&&T.status==='reg'?prepBar(T):''}${body}`;
+  ${T.parent&&tById(T.parent)?`<div class="stg-bar">Этап турнира <a href="#t-${T.parent}">«${esc(tById(T.parent).title)}»</a></div>`:''}${own&&T.status==='reg'&&tab!=='about'?prepBar(T):''}${body}`;
 }
 function flRow(x){return`<div class="flrow"><input class="fl-name" maxlength="30" placeholder="Название, например 2 этаж" value="${esc(x.name||'')}"><input class="fl-n" type="number" min="1" max="60" value="${x.n||''}" aria-label="Столов"><span class="muted">стол.</span><button class="lnk" data-act="delFloor" aria-label="Убрать">Убрать</button></div>`}
 function floors(c){const f=Array.isArray(c&&c.floors)?c.floors.filter(x=>x&&x.n>0):[];return f.length>1?f:null}
