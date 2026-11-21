@@ -1088,7 +1088,7 @@ function renderGrid(){
 function renderT(T){
   const b=build(T);CUR={T,b};const st=tStatus(T,b);const c=club(T.clubId);const own=isOwner(T);
   const showA=own||T.rules||(T.judges||[]).length||T.orgName||T.orgPhone;
-  const tabs=T.stages?[['stages','Этапы'],['people','Участники',T.players.length],...(showA?[['about','О турнире']]:[]),...(b.finished?[['result','Итоги']]:[])]:T.status==='reg'?[['people','Участники',T.players.length],...(showA?[['about','О турнире']]:[])]:[['grid','Сетка'],['tables','Столы',b.all.filter(m=>m.state==='live').length||''],['sheet','Ведомость'],['people','Участники',T.players.length],...(showA?[['about','О турнире']]:[]),...(b.finished?[['result','Итоги']]:[])];
+  const tabs=T.stages?[...(b.finished?[['result','Итоги']]:[]),['stages','Этапы'],['people','Участники',T.players.length],...(showA?[['about','О турнире']]:[])]:T.status==='reg'?[['people','Участники',T.players.length],...(showA?[['about','О турнире']]:[])]:b.finished?[['result','Итоги'],['grid','Сетка'],['sheet','Ведомость'],['people','Участники',T.players.length],...(showA?[['about','О турнире']]:[])]:[['grid','Сетка'],['tables','Столы',b.all.filter(m=>m.state==='live').length||''],['sheet','Ведомость'],['people','Участники',T.players.length],...(showA?[['about','О турнире']]:[])];
   let tab=UI.tab[T.id];if(!tabs.some(t=>t[0]===tab))tab=tabs[0][0];
   const cdel='del-'+T.id;
   let body='';
