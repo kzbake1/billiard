@@ -1554,7 +1554,7 @@ function pultHTML(T,m){const r=m.res||{};const c=club(T.clubId);const n=c.tables
   <div class="pm-grid"><label><span>Стол</span>${tbl}</label><label><span>Игра до побед</span><input id="pm-r" type="number" inputmode="numeric" min="1" max="25" value="${R}" data-act="pmRace" data-mid="${m.id}"></label>
   ${rdy?'':`<label><span>Начало</span><input type="time" value="${hhmm(mstart(r))}" data-act="pmStart" data-mid="${m.id}"></label><label><span>Длительность</span><b class="pm-v">${mdur(r)}</b></label><label style="grid-column:1/-1"><span>Трансляция встречи</span><input type="url" inputmode="url" placeholder="https://youtube.com/…" value="${esc(r.video||'')}" data-act="pmVideo" data-mid="${m.id}"></label>`}</div>
   ${rdy?`<label class="chk sm pm-ap"><input type="checkbox" data-act="autoPr" ${T.autoPrint?'checked':''}><span>Печатать протокол при начале</span></label>`:''}
-  <div class="pm-acts">${rdy?`<button class="btn blue" data-act="startM" data-mid="${m.id}" ${free.length?'':'disabled'}>Начать встречу</button>`:`<button class="btn blue" data-act="finishM" data-mid="${m.id}" ${r.sa===r.sb?'disabled':''}>Завершить встречу</button><button class="btn ghost" data-act="pauseM" data-mid="${m.id}">${r.paused?'Продолжить':'Пауза'}</button>`}</div>
+  <div class="pm-acts">${rdy?`<button class="btn blue" data-act="startM" data-mid="${m.id}" ${free.length?'':'disabled'}>Начать встречу</button>`:`<button class="btn ghost" data-act="pauseM" data-mid="${m.id}" style="flex:1">${r.paused?'Продолжить':'Пауза'}</button>`}</div>
   ${pmTools(T,m,!rdy)}</div>`}
 function printProtos(T,mids){const b=build(T);CUR={T,b};const ms=mids.map(id=>b.all.find(x=>x.id===id)).filter(Boolean);if(!ms.length)return;
   let box=document.getElementById('printbox');if(!box){box=document.createElement('div');box.id='printbox';document.body.appendChild(box)}
@@ -1626,7 +1626,7 @@ const A={
     r[k]=Math.max(0,Math.min(R,r[k]+(+el.dataset.d)));
     if(r[k]===R&&r.sa!==r.sb)A._fin(T,m,r,prev);
     save();render();refreshPult()},
-  pmScore(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.paused||r.done)return;const R=r.race||T.raceTo;r['s'+el.dataset.side]=Math.max(0,Math.min(R,Math.floor(+el.value||0)));save();render();refreshPult()},
+  pmScore(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.paused||r.done)return;const R=r.race||T.raceTo;const prev=Object.assign({},r);r['s'+el.dataset.side]=Math.max(0,Math.min(R,Math.floor(+el.value||0)));if((r.sa===R||r.sb===R)&&r.sa!==r.sb)A._fin(T,m,r,prev);save();render();refreshPult()},
   finishM(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.sa===r.sb){toast('При равном счёте завершить нельзя');return}const prev=Object.assign({},r);A._fin(T,m,r,prev);save();render();refreshPult()},
   pauseM(el){const {T}=CUR;const r=T.results[el.dataset.mid];if(!r||r.done)return;if(r.paused){r.pausedMs=(r.pausedMs||0)+Date.now()-r.pauseAt;r.paused=false;delete r.pauseAt}else{r.paused=true;r.pauseAt=Date.now()}save();render();refreshPult()},
   pmVideo(el){const {T}=CUR;const r=T.results[el.dataset.mid];if(!r)return;const v=normUrl(el.value);if(!okUrl(v)){toast('Проверьте ссылку');return}r.video=v.slice(0,300);el.value=r.video;save();render();refreshPult();toast(v?'Трансляция добавлена':'Ссылка убрана')},
