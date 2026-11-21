@@ -22,7 +22,7 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#F7F7F7;--card:#fff;--ink:#111111;--muted:#6E6E6E;--sub:#4D4D4D;--line:#E4E4E4;--line2:#D0D0D0;--soft:#F0F0F0;--accent:#1667FF;--accent-ink:#0F4FD9;--accent-soft:#E6EEFF;--live:#D93A26;--live-ink:#C4321F;--live-soft:#FDECEA;--ok:#0B7A47;--ok-soft:#E3F3EA;--gold:#8A6100;--gold-bg:#FFF4D6;--board:#0B1220;--board-line:#1E2A3D;--blue-tint:#C9DAFF}
 *{box-sizing:border-box}
@@ -2148,14 +2148,11 @@ function renderPult(T){
   <section><div class="sec-h"><h2>За столами</h2><span class="muted">свободно столов: ${free.length} из ${n}</span></div>
   ${atT.length?`<div class="plive">${atT.map(m=>`<div class="plcard"><div class="pc-l" style="display:flex;justify-content:space-between;gap:8px"><span><span class="lv">● ${m.res.table?esc(tlabel(c,m.res.table)):'Стол —'}</span> · до ${raceW(T,T.raceTo)}</span>${m.res.sa+m.res.sb===0?`<button class="lnk" data-act="uncall" data-mid="${m.id}">убрать со стола</button>`:''}</div><div class="plgrid">${st(m,'a')}${st(m,'b')}</div></div>`).join('')}</div><p class="muted" style="font-size:13px;margin:10px 0 0">Нажимайте «+» за каждую выигранную партию. Кто набрал ${T.raceTo} — матч закрывается сам, стол освобождается.</p>`:`<div class="empty" style="padding:28px">${b.finished?'Турнир завершён. Итоги — на странице турнира.':'Пока никто не играет.<br>Нажмите «К столу» у матча из очереди.'}</div>`}</section>
   </div>
-  <div>
-    <div class="dev">
-      <div class="lap"><div class="lap-s"><img src="/img/screen-laptop.jpg" width="1600" height="1000" alt="Сетка турнира на kazbilliard — экран ноутбука"></div><div class="lap-b"></div></div>
-      <div class="ph"><img src="/img/screen-phone.jpg" width="585" height="1266" alt="Страница турнира на kazbilliard — экран телефона"></div>
-    </div>
-    <p class="note">Так выглядит турнир на сайте</p>
-  </div>
-</div>
+  <aside class="pult-side"><h2 style="margin-bottom:4px">Очередь</h2><p class="muted" style="margin:0 0 12px;font-size:14px">${!ready.length?'':free.length?'Одно нажатие — матч начинается за свободным столом.':'Все столы заняты — дождитесь окончания матча.'}</p>
+  ${ready.length?ready.map(m=>`<div class="pq"><div style="font-weight:600;font-size:16px;margin-bottom:10px">${esc(pname(T,m.a))} — ${esc(pname(T,m.b))}</div><div class="pq-t">${free.length?`<button class="btn dark" data-act="callT" data-mid="${m.id}" data-t="${free[0]}">К столу ${free[0]}</button>${free.length>1?`<select class="tsel" aria-label="Другой стол" data-act="callSel" data-mid="${m.id}"><option value="">другой стол</option>${free.slice(1).map(k=>`<option value="${k}">Стол ${k}</option>`).join('')}</select>`:''}`:'<span class="muted" style="font-size:13px">нет свободных столов</span>'}</div></div>`).join(''):`<div class="empty" style="padding:24px">${b.finished?'Все матчи сыграны':'Следующие матчи появятся, когда закончатся идущие'}</div>`}
+  </aside></div>
+  ${UI.undo&&UI.undo.tid===T.id?`<div class="undo" role="status"><span>${esc(UI.undo.text)}</span><button class="btn light" data-act="undo">Отменить</button></div>`:''}`;
+}
 
 const isCont=T=>/продолжением/i.test((T&&T.discipline)||'');const FB=8;
 const raceW=(T,n)=>isCont(T)?n+' '+(n%10===1&&n%100!==11?'шара':'шаров'):n+' побед';
