@@ -1064,7 +1064,7 @@ async function loadSession(){
   const {data}=await sb.auth.getSession();const u=data&&data.session&&data.session.user;
   if(!u)return;S.email=u.email||'';S.pwOk=!!(u.user_metadata&&u.user_metadata.pw_changed);
   const [mc,ad]=await Promise.all([sb.rpc('my_club'),sb.rpc('is_admin')]);
-  S.admin=!!ad.data;
+  S.admin=!!ad.data;if(S.admin&&PUB_KB&&!mc.data){S.admin=false;S.adminOff=true;await sb.auth.signOut();S.email='';return}
   S.sub=null;if(mc.data){sb.rpc('my_subscription').then(r=>{S.sub=r.data?cleanData(r.data):null;if(location.hash==='#cabinet')render()});}
   if(mc.data){let c=S.clubs.find(x=>x.id===mc.data);if(!c){const q=await sb.from('club').select('id,name,city,tables,floors,address,phone,instagram,tiktok,logo').eq('id',mc.data).maybeSingle();if(q.data){c=Object.assign({roster:[]},cleanData(q.data));S.clubs.push(c)}}if(c){S.session=c.id;const r=await sb.from('club_private').select('roster').eq('club_id',c.id).maybeSingle();c.roster=cleanData((r.data&&r.data.roster)||[]);
     SNAP.club=JSON.stringify([c.name,c.city,c.tables,c.address,c.phone,c.instagram,c.tiktok,c.logo,c.floors||[]]);SNAP.roster=JSON.stringify(c.roster)}}
@@ -1093,7 +1093,7 @@ async function adminCall(body){
     const r=await fetch(SB_URL+'/functions/v1/admin',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+tok},body:JSON.stringify(body)});return await r.json()}
   catch(e){return{error:'Нет связи с сервером'}}
 }
-const ADM=/^admin\./.test(location.hostname);
+const ADM=/^admin\./.test(location.hostname);const PUB_KB=!ADM&&/(^|\.)kazbilliard\.com$/.test(location.hostname);
 // адрес сайта для клубов в сообщении с паролем; при запуске поменять на https://kazbilliard.com
 const CLUB_SITE=ADM||location.hostname==='test.kazbilliard.com'?'https://kazbilliard.com':location.origin;
 function madeText(m){return`Здравствуйте! Ваш клуб «${m.name}» подключён к kazbilliard.\n\nСайт: ${CLUB_SITE}\nВход: кнопка «Вход для клубов»\nПочта: ${m.email}\nПароль: ${m.pass}\n\nСоветуем сразу сменить пароль: меню клуба вверху справа → «Сменить пароль».`}
@@ -1209,7 +1209,7 @@ function render(){RENDER_N++;setTimeout(()=>{tabsIntoView();addEyes()},0);
   if(/error_code=|error=/.test(h)){app.innerHTML=`<div style="max-width:460px"><h1>Ссылка не сработала</h1><p class="muted lead">Ссылка для смены пароля устарела или уже использована. Запросите новую на странице входа.</p><a class="btn blue big" href="#cabinet">Ко входу</a></div>`;return}
   if(h==='reset'){app.innerHTML=renderReset();return}
   if(h==='cabinet'){app.innerHTML=renderCabinet();return}
-  if(h==='admin'||h.startsWith('admin/')){app.innerHTML=renderAdmin();return}
+  if(h==='admin'||h.startsWith('admin/')){if(PUB_KB){location.replace('https://admin.kazbilliard.com/#'+h);return}app.innerHTML=renderAdmin();return}
   if(h==='create'){app.innerHTML=S.session?renderCreate():renderCabinet();renderWizRoster();return}
   if(h.startsWith('pult-')){location.replace('#t-'+h.slice(5));return}
   app.innerHTML=renderHome();renderFind();
@@ -2535,7 +2535,7 @@ const A={
   delT(el){closeModal();S.tournaments=S.tournaments.filter(t=>t.id!==el.dataset.id);UI.confirm=null;save();go('cabinet');toast('Турнир удалён')},
   async login(el){const e=document.getElementById('lg-err');const email=document.getElementById('lg-email').value.trim(),password=document.getElementById('lg-pass').value;if(!email||!password){e.textContent='Введите почту и пароль';return}
     el.disabled=true;const r=await sb.auth.signInWithPassword({email,password});if(r.error){el.disabled=false;e.textContent='Неверная почта или пароль';return}
-    await loadSession();if(S.session)go('cabinet');else if(S.admin)go('admin');else{e.textContent='К этой почте не привязан клуб — обратитесь к администратору';await sb.auth.signOut();await loadSession();el.disabled=false}},
+    await loadSession();if(S.session)go('cabinet');else if(S.admin)go('admin');else if(S.adminOff){S.adminOff=false;el.disabled=false;e.innerHTML='Это вход для клубов. Админка — <a href="https://admin.kazbilliard.com">admin.kazbilliard.com</a>';return}else{e.textContent='К этой почте не привязан клуб — обратитесь к администратору';await sb.auth.signOut();await loadSession();el.disabled=false}},
   async logout(){await sb.auth.signOut();await loadSession();go(ADM?'admin':'home')},
   reload(){location.reload()},
   tvAdd(){const w=document.getElementById('e-tv');const T=CUR&&CUR.T;if(!w||!T||w.children.length>=30)return;const used=[...w.querySelectorAll('.tv-k')].map(x=>+x.value);const n=club(T.clubId).tables||6;let k=1;while(used.includes(k)&&k<n)k++;w.insertAdjacentHTML('beforeend',tvRow(T,{table:k,video:''}))},
