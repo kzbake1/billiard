@@ -989,9 +989,11 @@ function cleanData(v,k){
   if(k==='birth')return/^\d{4}$/.test(v)?v:'';
   return v.replace(/[<>`]/g,'').replace(/"/g,'”').replace(/'/g,'’')}
 const safeHref=u=>/^https?:\/\/[^\s"'<>`]+$/i.test(u||'')?u:'';
-function tFromRow(r){const t=Object.assign(cleanData(r.data||{}),{id:String(r.id).replace(/[^a-z0-9]/g,''),clubId:r.club_id});delete t._w;return t}
+function tFromRow(r){const t=Object.assign(cleanData(r.data||{}),{id:String(r.id).replace(/[^a-z0-9]/g,''),clubId:r.club_id});delete t._w;delete t._v;return t}
 const MYW={};function wTag(id){const w=uid()+Date.now().toString(36);(MYW[id]=MYW[id]||new Set()).add(w);if(MYW[id].size>200)MYW[id].delete(MYW[id].values().next().value);return w}
-function noW(d){if(d&&d._w!==undefined){d=Object.assign({},d);delete d._w}return d}
+function noW(d){if(d&&(d._w!==undefined||d._v!==undefined)){d=Object.assign({},d);delete d._w;delete d._v}return d}
+// версия записи: база не принимает изменения турниров от старых открытых вкладок (триггер tournament_version); при обновлении поднять и тут, и в триггере
+const APP_V=3;let RELOADING=false;function staleReload(){if(RELOADING)return;RELOADING=true;toast('Сайт обновился — перезагружаем страницу');setTimeout(()=>location.reload(),1500)}
 function save(){if(S.session)S.tournaments.forEach(t=>{if(t.clubId===S.session&&t.draw&&!t.poPerm&&maybeDraw(t))setTimeout(()=>toast('Жеребьёвка олимпийки проведена'),50)});pending++;saveQ=saveQ.then(doSave).catch(()=>{}).then(()=>{pending--})}
 const jsq=x=>JSON.stringify(x,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.keys(v).sort().reduce((o,kk)=>(o[kk]=v[kk],o),{}):v);
 function merge3(b,l,s){b=b||{};l=l||{};s=s||{};const out={};const ks=o=>Object.keys(o||{});
@@ -1002,18 +1004,18 @@ function merge3(b,l,s){b=b||{};l=l||{};s=s||{};const out={};const ks=o=>Object.k
 function applyData(T,d){Object.keys(T).forEach(k=>{if(k!=='id'&&k!=='clubId')delete T[k]});Object.assign(T,JSON.parse(jsq(d)))}
 async function saveT1(T){const base=JSON.parse(SNAP.t[T.id]);const sent=tData(T);
   const {data:row,error}=await sb.from('tournament').select('data').eq('id',T.id).maybeSingle();if(error)return{error};
-  const merged=merge3(base,sent,(row&&row.data?noW(cleanData(row.data)):null)||base);const r=await sb.from('tournament').update({data:Object.assign({},merged,{_w:wTag(T.id)})}).eq('id',T.id);
+  const merged=merge3(base,sent,(row&&row.data?noW(cleanData(row.data)):null)||base);const r=await sb.from('tournament').update({data:Object.assign({},merged,{_w:wTag(T.id),_v:APP_V})}).eq('id',T.id);
   if(!r.error){SNAP.t[T.id]=jsq(merged);OWN_TS[T.id]=Date.now();const now=tData(T);const fin=merge3(sent,now,merged);if(jsq(fin)!==jsq(now)){applyData(T,fin);softRender()}}
   return r}
 async function doSave(){
   if(!S.session||!sb)return;const jobs=[];const me=S.clubs.find(c=>c.id===S.session);
   for(const T of S.tournaments){if(T.clubId!==S.session)continue;const j=jsq(tData(T));
-    if(SNAP.t[T.id]===undefined)jobs.push(sb.from('tournament').insert({id:T.id,club_id:T.clubId,data:Object.assign(tData(T),{_w:wTag(T.id)})}).then(r=>{if(!r.error){SNAP.t[T.id]=j;SNAP.own[T.id]=1;OWN_TS[T.id]=Date.now()}return r}));
+    if(SNAP.t[T.id]===undefined)jobs.push(sb.from('tournament').insert({id:T.id,club_id:T.clubId,data:Object.assign(tData(T),{_w:wTag(T.id),_v:APP_V})}).then(r=>{if(!r.error){SNAP.t[T.id]=j;SNAP.own[T.id]=1;OWN_TS[T.id]=Date.now()}return r}));
     else if(SNAP.t[T.id]!==j)jobs.push(saveT1(T))}
   for(const id of Object.keys(SNAP.own)){if(!S.tournaments.some(t=>t.id===id))jobs.push(sb.from('tournament').update({deleted_at:new Date().toISOString()}).eq('id',id).then(r=>{if(!r.error){delete SNAP.own[id];delete SNAP.t[id]}return r}))}
   if(me){const cj=JSON.stringify([me.name,me.city,me.tables,me.address,me.phone,me.instagram,me.floors||[]]);if(SNAP.club!==cj)jobs.push(sb.from('club').update({name:me.name,city:me.city,tables:me.tables,floors:me.floors||[],address:me.address||'',phone:me.phone||'',instagram:me.instagram||''}).eq('id',me.id).then(r=>{if(!r.error)SNAP.club=cj;return r}));
     const rj=JSON.stringify(me.roster||[]);if(SNAP.roster!==rj)jobs.push(sb.from('club_private').update({roster:me.roster||[]}).eq('club_id',me.id).then(r=>{if(!r.error)SNAP.roster=rj;return r}))}
-  const res=await Promise.all(jobs);if(res.some(r=>r&&r.error)){console.error(res.filter(r=>r&&r.error).map(r=>r.error));toast('Не сохранилось — проверьте интернет и повторите')}
+  const res=await Promise.all(jobs);if(res.some(r=>r&&r.error&&/old_client/.test(r.error.message||''))){staleReload();return}if(res.some(r=>r&&r.error)){console.error(res.filter(r=>r&&r.error).map(r=>r.error));toast('Не сохранилось — проверьте интернет и повторите')}
 }
 async function loadSession(){
   S.session=null;S.admin=false;S.email='';SNAP.club=null;SNAP.roster=null;
@@ -1035,7 +1037,7 @@ async function load(){
 }
 function softRender(){const ae=document.activeElement;const typing=ae&&/^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName);if(typing||location.hash==='#create')return;if(document.getElementById('modal').classList.contains('open')){if(UI.pm){render();refreshPult()}return}render()}
 function onRemote(p){
-  const r=p.new;if(!r||!r.id)return;const i=S.tournaments.findIndex(t=>t.id===r.id);
+  const r=p.new;if(!r||!r.id)return;if(r.data&&+r.data._v>APP_V){staleReload();return}const i=S.tournaments.findIndex(t=>t.id===r.id);
   if(r.deleted_at){if(i>=0){S.tournaments.splice(i,1);delete SNAP.t[r.id];delete SNAP.own[r.id];softRender()}return}
   if(r.data&&r.data._w&&MYW[r.id]&&MYW[r.id].has(r.data._w))return;
   const T=tFromRow(r),j=jsq(tData(T));if(SNAP.t[r.id]===j&&i>=0)return;
