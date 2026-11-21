@@ -578,6 +578,26 @@ nav.main a{white-space:nowrap}
 .ch-stats span{display:block;font-size:13px;color:var(--muted);margin-top:6px}
 @media(max-width:640px){.cab-hero{grid-template-columns:auto minmax(0,1fr)}.ch-acts{grid-column:1/-1}.ch-av{width:64px;height:64px;font-size:22px;border-radius:12px}.cab-hero h1{font-size:28px}.ch-stats b{font-size:28px}.ch-stats div{padding:12px 14px}}
 .ptab.free .felt{background:var(--bg);box-shadow:none}.ptab.free .ph{color:var(--muted)}.ptab.free .pf{color:var(--muted)}.ptab.free .pnx span{color:var(--ink)}.ptab.free .pnx .btn{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* столы — карточки (вариант A, 21.11.2026) */
+.tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.tcard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;min-height:150px;box-sizing:border-box;display:flex;flex-direction:column}
+.tcard.live{border-color:var(--live);box-shadow:0 0 0 1px var(--live);cursor:pointer}
+.tcard.call{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);cursor:pointer}
+.tcard.off{background:var(--bg)}
+.tc-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tc-h b{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tpill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;background:var(--soft);color:var(--sub);white-space:nowrap}
+.tpill i{width:7px;height:7px;border-radius:9px;background:currentColor}
+.tpill.live{background:var(--live-soft);color:var(--live-ink)}.tpill.call{background:var(--accent-soft);color:var(--accent-ink)}
+.tc-s{font-size:12px;color:var(--muted);margin-top:6px}
+.tc-p{margin-top:auto;padding-top:14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;font-size:16px;line-height:1.35}
+.tc-p span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tcard.call .tc-p{grid-template-columns:1fr}
+.tc-p b{font-weight:600;font-variant-numeric:tabular-nums}
+.tc-n{margin-top:auto;padding-top:14px;display:flex;justify-content:space-between;align-items:flex-end;gap:10px;font-size:16px;line-height:1.5}
+.tc-n span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tc-e{margin-top:auto;padding-top:14px;font-size:13px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -1157,9 +1177,14 @@ function tablesBoard(T){const c=club(T.clubId);const n=c.tables||6;const map={};
   const busy=Object.keys(map).length;const occ=busyTables(T.clubId);const own=isOwner(T);const q=own&&CUR&&CUR.b?CUR.b.all.filter(m=>m.state==='ready').sort((x,y)=>x.no-y.no):[];
   const freeK=Array.from({length:n},(_,i)=>i+1).filter(k=>!occ.has(k));const nextOf={};freeK.forEach((k,i)=>{if(q[i])nextOf[k]=q[i]});
   const fill=own&&Object.keys(nextOf).length>1?`<button class="btn sm blue" data-act="callAll">Вызвать на все свободные · ${Object.keys(nextOf).length}</button>`:'';
-  return`<div class="sec"><div class="sec-h"><h2>Столы</h2><span class="muted">${busy?'играют за '+busy+' из '+n:'все '+n+' свободны'}</span><span class="tb-right">${own?`<label class="chk sm"><input type="checkbox" data-act="autoPr" ${T.autoPrint?'checked':''}><span>Печатать протокол при вызове</span></label>`:''}${fill}</span></div><div class="tables">${Array.from({length:n},(_,i)=>i+1).map(k=>{const x=map[k];
-  const pk='<i class="pk c1"></i><i class="pk c2"></i><i class="pk c3"></i><i class="pk c4"></i><i class="pk m1"></i><i class="pk m2"></i>';
-  return`<div class="ptab ${x?'busy':'free'}" ${x?`data-act="match" data-mid="${x.m.id}"`:''}><div class="felt">${pk}<div class="ph"><span>Стол ${k}</span>${x?`<i>№${x.m.no}${x.m.res.paused?' · пауза':''}</i>`:''}</div>${x?`<div class="pls"><div class="pl"><span>${esc(pname(T,x.m.a))}</span><b>${x.m.res.sa}</b></div><div class="pl"><span>${esc(pname(T,x.m.b))}</span><b>${x.m.res.sb}</b></div></div>`:(nextOf[k]?`<div class="pnx"><span>№${nextOf[k].no} · ${esc(sname(pname(T,nextOf[k].a)))} — ${esc(sname(pname(T,nextOf[k].b)))}</span><button class="btn sm" data-act="callT" data-mid="${nextOf[k].id}" data-t="${k}">Вызвать</button></div>`:`<div class="pf">Свободен</div>`)}</div></div>`}).join('')}</div></div>`}
+  return`<div class="sec"><div class="sec-h"><h2>Столы</h2><span class="muted">${busy?'играют за '+busy+' из '+n:'все '+n+' свободны'}</span><span class="tb-right">${own?`<label class="chk sm"><input type="checkbox" data-act="autoPr" ${T.autoPrint?'checked':''}><span>Печатать протокол при вызове</span></label>`:''}${fill}</span></div><div class="tables">${Array.from({length:n},(_,i)=>i+1).map(k=>{const x=map[k];const stg=CUR&&CUR.b?stageMap(CUR.b):{};
+  const hd=(pill)=>`<div class="tc-h"><b>Стол ${k}</b>${pill}</div>`;
+  if(x){const live=x.m.state==='live';const sub=[`Матч №${x.m.no}`,stg[x.m.id]||'',x.m.res.paused?'пауза':''].filter(Boolean).join(' · ');
+    return`<div class="tcard ${live?'live':'call'}" data-act="match" data-mid="${x.m.id}">${hd(live?'<span class="tpill live"><i></i>Идёт</span>':'<span class="tpill call"><i></i>Вызваны</span>')}<div class="tc-s">${esc(sub)}</div><div class="tc-p">${live?`<span>${esc(pname(T,x.m.a))}</span><b>${x.m.res.sa}</b><span>${esc(pname(T,x.m.b))}</span><b>${x.m.res.sb}</b>`:`<span>${esc(pname(T,x.m.a))}</span><span>${esc(pname(T,x.m.b))}</span>`}</div></div>`}
+  if(occ.has(k))return`<div class="tcard off">${hd('<span class="tpill">Занят</span>')}<div class="tc-e">Идёт матч другого турнира клуба</div></div>`;
+  const nx=nextOf[k];
+  if(nx)return`<div class="tcard free">${hd('<span class="tpill">Свободен</span>')}<div class="tc-s">Следующий: матч №${nx.no}${stg[nx.id]?' · '+esc(stg[nx.id]):''}</div><div class="tc-n"><span>${esc(sname(pname(T,nx.a)))}<br>${esc(sname(pname(T,nx.b)))}</span><button class="btn sm blue" data-act="callT" data-mid="${nx.id}" data-t="${k}">Вызвать</button></div></div>`;
+  return`<div class="tcard free">${hd('<span class="tpill">Свободен</span>')}<div class="tc-e">${own&&!(CUR&&CUR.b&&CUR.b.finished)?'Матчей в очереди нет — стол ждёт следующий раунд':''}</div></div>`}).join('')}</div></div>`}
 function renderTablesTab(T,b){
   const ready=b.all.filter(m=>m.state==='ready');
   return tablesBoard(T)+
