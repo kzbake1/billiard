@@ -1929,15 +1929,6 @@ function renderWizRoster(){
   el.innerHTML=list.length?list.map(p=>`<div class="wr"><span style="flex:1;min-width:0"><b>${esc(p.name)}</b><br><span class="muted" style="font-size:13px">${byear(p)} · ${esc(p.city||'')} · ${esc(p.rank||'')}</span></span><button class="btn blue" data-act="wAddR" data-id="${p.id}">+ Добавить</button></div>`).join(''):`<div class="muted" style="font-size:13px;padding:8px 0">${(c.roster||[]).length?'Никого не найдено':'База пока пустая'}</div>`;
 }
 
-/* свободное перемещение сетки пальцем: по горизонтали и вертикали одновременно */
-(function(){let st=null;
-  const box=t=>t&&t.closest&&(t.closest('.uni')||t.closest('.bracket'));
-  document.addEventListener('touchstart',e=>{if(e.touches.length!==1){st=null;return}const b=box(e.target);if(!b||b.scrollWidth<=b.clientWidth+2){st=null;return}const t=e.touches[0];st={b,x:t.clientX,y:t.clientY,lock:null}},{passive:true});
-  document.addEventListener('touchmove',e=>{if(!st||e.touches.length!==1){st=null;return}const t=e.touches[0];const dx=t.clientX-st.x,dy=t.clientY-st.y;
-    if(st.lock===null){if(Math.abs(dx)+Math.abs(dy)<6)return;st.lock=true}
-    e.preventDefault();st.b.scrollLeft-=dx;window.scrollBy(0,-dy);st.x=t.clientX;st.y=t.clientY},{passive:false});
-  document.addEventListener('touchend',()=>{st=null},{passive:true});document.addEventListener('touchcancel',()=>{st=null},{passive:true});
-})();
 /* ============ admin ============ */
 /* ============ админка: подписки (этап 1) ============ */
 const AD={loaded:false,loading:false,clubs:[],sub:{},pays:[],plans:[],promos:[],exps:[],q:'',f:'all',sort:1,month:'',err:'',per:'month',ver:0,money:null,mkey:''};
