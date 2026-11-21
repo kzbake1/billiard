@@ -640,6 +640,9 @@ nav.main a{white-space:nowrap}
 .tfloor b{font-size:18px;font-weight:600}.tfloor span{font-size:14px;color:var(--muted)}
 .flrow{display:grid;grid-template-columns:minmax(0,1fr) 84px auto auto;gap:8px;align-items:center;margin-bottom:8px}
 .flrow input{min-width:0}
+.pm-vid{display:block;margin:4px 0 12px}.pm-vid span{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}.pm-vid input{width:100%}
+.tcard{position:relative}.tc-tv{position:absolute;right:16px;top:46px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--live-ink,#C4321F);text-decoration:none;background:#fff}.tc-tv svg{width:16px;height:16px}
+.strow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--line);color:var(--ink);text-decoration:none}.strow span{display:flex;flex-direction:column;gap:2px;font-size:15px}.strow b{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.strow svg{color:var(--live-ink,#C4321F);flex:none}
 </style>
 </head>
 <body>
@@ -1082,7 +1085,7 @@ function renderT(T){
   return`<div class="tband"><div class="th-hero"><div class="th-top"><a class="back" href="#${T.parent?'t-'+T.parent:'home'}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:4px"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>${T.parent?'Все этапы':'Все турниры'}</a><div class="th-act">${own&&UI.confirm===cdel?`<span class="muted" style="font-size:13px">Удалить турнир?</span><button class="btn sm red" data-act="delT" data-id="${T.id}">Да, удалить</button><button class="btn sm ghost" data-act="cancelConfirm">Нет</button>`:`${own?`<button class="btn sm ghost th-ed" data-act="editT">${IC.edit}<span>Изменить</span></button>`:''}<div class="tmenu"><button class="dots" data-act="tmenu" aria-label="Действия" title="Действия"><i></i><i></i><i></i></button>${UI.tmenu===T.id?`<div class="pop"><button data-act="shareT">${IC.share}<span>Поделиться</span></button><button data-act="xlsT">${IC.xls}<span>Скачать в Excel</span></button><a href="#g-${T.id}" target="_blank" rel="noopener">${IC.open}<span>Открыть только сетку</span></a>${own?`${T.status!=='reg'&&!Object.keys(T.results||{}).length?`<button data-act="schOpen">${IC.grid}<span>Изменить схему</span></button>`:''}<button class="del" data-act="askDel" data-id="${T.id}">${IC.del}<span>Удалить турнир</span></button>`:''}</div>`:''}</div>`}</div></div>
   <div class="th-main"><div class="th-l"><div class="th-over"><span class="dot ${st}"></span>${ST_LABEL[st]}<i></i>${esc(T.discipline)}${T.category?`<i></i>${esc(T.category)}`:''}${isPub(T)?'':'<i></i><span class="draft">черновик</span>'}</div><h1>${esc(T.title)}</h1>
   <ul class="th-info"><li>${IC.cal}<span>${facts[0]}</span></li>${facts[1]?`<li>${IC.net}<span>${facts[1]}</span></li>`:''}<li>${IC.users}<span>${n} ${pw}</span></li>${champ?`<li>${IC.trophy}<span>Победитель — ${esc(champ)}</span></li>`:''}</ul>
-  ${T.video?`<div class="th-links">${T.video?`<a class="btn sm tv" href="${esc(T.video)}" target="_blank" rel="noopener">${IC.play}Смотреть трансляцию</a>`:''}</div>`:''}
+  ${(()=>{const lv=b.all.filter(m=>m.state==='live'&&m.res&&m.res.video);const btn=lv.length===1?`<a class="btn sm tv" href="${esc(lv[0].res.video)}" target="_blank" rel="noopener">${IC.play}Смотреть трансляцию</a>`:lv.length>1?`<button class="btn sm tv" data-act="streams">${IC.play}Смотреть трансляцию · ${lv.length}</button>`:T.video?`<a class="btn sm tv" href="${esc(T.video)}" target="_blank" rel="noopener">${IC.play}Канал трансляций</a>`:'';return btn?`<div class="th-links">${btn}</div>`:''})()}
   ${!isPub(T)&&own?`<div class="th-draft">Турнир не опубликован — его видите только вы. <button class="lnk" data-act="pubT">Опубликовать</button></div>`:''}
 </div>${side}</div></div>
   <div class="tabs">${tabs.map(t=>`<button class="${t[0]===tab?'on':''}" data-act="tab" data-id="${T.id}" data-tab="${t[0]}">${t[1]}${t[2]?`<span class="cnt">${t[2]}</span>`:''}</button>`).join('')}</div></div>
@@ -1227,7 +1230,7 @@ function tablesBoard(T){const c=club(T.clubId);const n=c.tables||6;const map={};
   const card=k=>{const x=map[k];const stg=CUR&&CUR.b?stageMap(CUR.b):{};
   const hd=(pill)=>`<div class="tc-h"><b>Стол ${k}</b>${pill}</div>`;
   if(x){const live=x.m.state==='live';const sub=[`Матч №${x.m.no}`,stg[x.m.id]||'',x.m.res.paused?'пауза':''].filter(Boolean).join(' · ');
-    return`<div class="tcard ${live?'live':'call'}" data-act="match" data-mid="${x.m.id}">${hd(live?'<span class="tpill live"><i></i>Идёт</span>':'<span class="tpill call"><i></i>Вызваны</span>')}<div class="tc-s">${esc(sub)}</div><div class="tc-p">${live?`<span>${esc(pname(T,x.m.a))}</span><b>${x.m.res.sa}</b><span>${esc(pname(T,x.m.b))}</span><b>${x.m.res.sb}</b>`:`<span>${esc(pname(T,x.m.a))}</span><span>${esc(pname(T,x.m.b))}</span>`}</div></div>`}
+    return`<div class="tcard ${live?'live':'call'}" data-act="match" data-mid="${x.m.id}">${x.m.res.video?`<a class="tc-tv" data-act="ext" href="${esc(x.m.res.video)}" target="_blank" rel="noopener">${IC.play}Смотреть</a>`:''}${hd(live?'<span class="tpill live"><i></i>Идёт</span>':'<span class="tpill call"><i></i>Вызваны</span>')}<div class="tc-s">${esc(sub)}</div><div class="tc-p">${live?`<span>${esc(pname(T,x.m.a))}</span><b>${x.m.res.sa}</b><span>${esc(pname(T,x.m.b))}</span><b>${x.m.res.sb}</b>`:`<span>${esc(pname(T,x.m.a))}</span><span>${esc(pname(T,x.m.b))}</span>`}</div></div>`}
   if(occ.has(k))return`<div class="tcard off">${hd('<span class="tpill">Занят</span>')}<div class="tc-e">Идёт матч другого турнира клуба</div></div>`;
   const nx=nextOf[k];
   if(nx)return`<div class="tcard free">${hd('<span class="tpill">Свободен</span>')}<div class="tc-s">Следующий: матч №${nx.no}${stg[nx.id]?' · '+esc(stg[nx.id]):''}</div><div class="tc-n"><span>${esc(sname(pname(T,nx.a)))}<br>${esc(sname(pname(T,nx.b)))}</span><button class="btn sm blue" data-act="callT" data-mid="${nx.id}" data-t="${k}">Вызвать</button></div></div>`;
@@ -1449,7 +1452,7 @@ function renderCreate(){
     <div class="field"><label>Категория</label><select data-w="cat">${CATS.map(d=>`<option ${w.cat===d?'selected':''}>${d}</option>`).join('')}</select></div></div>
     <div class="wz-row3"><div class="field"><label>Начало</label><input type="date" data-w="date" value="${w.date}"></div><div class="field"><label>Время</label><input type="time" data-w="time" value="${esc(w.time)}"></div><div class="field"><label>Окончание</label><input type="date" data-w="dateEnd" min="${w.date}" value="${esc(w.dateEnd)}"></div></div>
     <div class="wz-row2"><div class="field"><label>Организатор <small>имя</small></label><input data-w="orgName" value="${esc(w.orgName)}" placeholder="Фамилия Имя"></div><div class="field"><label>Телефон / WhatsApp</label><input type="tel" inputmode="tel" data-w="orgPhone" value="${esc(w.orgPhone)}" placeholder="+7 700 000 00 00"></div></div>
-    <div class="wz-row2"><div class="field"><label>Трансляция <small>YouTube, необязательно</small></label><input type="url" inputmode="url" data-w="video" value="${esc(w.video)}" placeholder="https://youtube.com/…"></div></div>
+    <div class="wz-row2"><div class="field"><label>Канал трансляций <small>YouTube, необязательно</small></label><input type="url" inputmode="url" data-w="video" value="${esc(w.video)}" placeholder="https://youtube.com/@club"><p class="muted" style="font-size:13px;margin:6px 0 0">Ссылка на YouTube-канал клуба. Трансляцию каждой встречи судья добавит в пульте матча.</p></div></div>
     <div class="field" style="margin-bottom:0"><label>Опубликовать</label><div class="fpills sm">${[[1,'Да, показывать на сайте'],[0,'Нет, пока черновик']].map(([k,l])=>`<button class="${(w.pub?1:0)===k?'on':''}" data-act="wPub" data-v="${k}">${l}</button>`).join('')}</div></div>
     <div class="err" id="w-err"></div>
     <div class="wz-acts"><button class="btn blue big" data-act="wSave">Сохранить</button><button class="btn ghost big" data-act="wDrop">Удалить</button></div></div></div>`;
@@ -1488,7 +1491,7 @@ function editTHTML(T){const pub=UI.ePub===undefined?isPub(T):UI.ePub;
   <div class="wz-row3"><div class="field"><label>Начало</label><input id="e-date" type="date" value="${esc(T.date)}"></div><div class="field"><label>Время</label><input id="e-time" type="time" value="${esc(T.time||'')}"></div><div class="field"><label>Окончание</label><input id="e-end" type="date" min="${esc(T.date)}" value="${esc(T.dateEnd||'')}"></div></div>
   <div class="wz-row2"><div class="field"><label>Организатор</label><input id="e-org" value="${esc(T.orgName||'')}"></div><div class="field"><label>Телефон / WhatsApp</label><input id="e-oph" type="tel" value="${esc(T.orgPhone||'')}"></div></div>
   <input id="e-link" type="hidden" value="">
-  <div class="field"><label>Трансляция <small>YouTube</small></label><input id="e-video" type="url" value="${esc(T.video||'')}" placeholder="https://youtube.com/…"></div>
+  <div class="field"><label>Канал трансляций <small>YouTube</small></label><input id="e-video" type="url" value="${esc(T.video||'')}" placeholder="https://youtube.com/@club"><p class="muted" style="font-size:13px;margin:6px 0 0">Ссылка на YouTube-канал клуба. Трансляцию каждой встречи судья добавит в пульте матча.</p></div>
   <div class="field"><label>Опубликовать</label><div class="fpills sm">${[[1,'Да'],[0,'Нет, черновик']].map(([k,l])=>`<button class="${(pub?1:0)===k?'on':''}" data-act="ePub" data-v="${k}">${l}</button>`).join('')}</div></div>
   <div class="err" id="e-err"></div><div class="pm-acts"><button class="btn blue" data-act="saveT">Сохранить</button><button class="btn ghost" data-act="close">Отмена</button></div></div>`}
 function addPlayer(T,c,first,last,birth,city,rank,x){
@@ -1549,7 +1552,7 @@ function pultHTML(T,m){const r=m.res||{};const c=club(T.clubId);const n=c.tables
   const chip=rdy?'<span class="pm-chip ok">на очереди</span>':r.paused?'<span class="pm-chip">пауза</span>':'<span class="pm-chip live">● играют</span>';
   return`<div class="pm">${head(chip)}${row('a')}${row('b')}
   <div class="pm-grid"><label><span>Стол</span>${tbl}</label><label><span>Игра до побед</span><input id="pm-r" type="number" inputmode="numeric" min="1" max="25" value="${R}" data-act="pmRace" data-mid="${m.id}"></label>
-  ${rdy?'':`<label><span>Начало</span><input type="time" value="${hhmm(mstart(r))}" data-act="pmStart" data-mid="${m.id}"></label><label><span>Длительность</span><b class="pm-v">${mdur(r)}</b></label>`}</div>
+  ${rdy?'':`<label><span>Начало</span><input type="time" value="${hhmm(mstart(r))}" data-act="pmStart" data-mid="${m.id}"></label><label><span>Длительность</span><b class="pm-v">${mdur(r)}</b></label><label style="grid-column:1/-1"><span>Трансляция встречи</span><input type="url" inputmode="url" placeholder="https://youtube.com/…" value="${esc(r.video||'')}" data-act="pmVideo" data-mid="${m.id}"></label>`}</div>
   ${rdy?`<label class="chk sm pm-ap"><input type="checkbox" data-act="autoPr" ${T.autoPrint?'checked':''}><span>Печатать протокол при начале</span></label>`:''}
   <div class="pm-acts">${rdy?`<button class="btn blue" data-act="startM" data-mid="${m.id}" ${free.length?'':'disabled'}>Начать встречу</button>`:`<button class="btn blue" data-act="finishM" data-mid="${m.id}" ${r.sa===r.sb?'disabled':''}>Завершить встречу</button><button class="btn ghost" data-act="pauseM" data-mid="${m.id}">${r.paused?'Продолжить':'Пауза'}</button>`}</div>
   ${pmTools(T,m,!rdy)}</div>`}
@@ -1626,6 +1629,8 @@ const A={
   pmScore(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.paused||r.done)return;const R=r.race||T.raceTo;r['s'+el.dataset.side]=Math.max(0,Math.min(R,Math.floor(+el.value||0)));save();render();refreshPult()},
   finishM(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.sa===r.sb){toast('При равном счёте завершить нельзя');return}const prev=Object.assign({},r);A._fin(T,m,r,prev);save();render();refreshPult()},
   pauseM(el){const {T}=CUR;const r=T.results[el.dataset.mid];if(!r||r.done)return;if(r.paused){r.pausedMs=(r.pausedMs||0)+Date.now()-r.pauseAt;r.paused=false;delete r.pauseAt}else{r.paused=true;r.pauseAt=Date.now()}save();render();refreshPult()},
+  pmVideo(el){const {T}=CUR;const r=T.results[el.dataset.mid];if(!r)return;const v=normUrl(el.value);if(!okUrl(v)){toast('Проверьте ссылку');return}r.video=v.slice(0,300);el.value=r.video;save();render();refreshPult();toast(v?'Трансляция добавлена':'Ссылка убрана')},
+  streams(){const {T,b}=CUR;const c=club(T.clubId);const lv=b.all.filter(m=>m.state==='live'&&m.res&&m.res.video);openModal(`<div class="pm"><div class="pm-h"><div class="pm-ti"><b>Трансляции</b><span>сейчас идут ${lv.length}</span></div><button class="x" data-act="close" aria-label="Закрыть">×</button></div>${lv.map(m=>`<a class="strow" href="${esc(m.res.video)}" target="_blank" rel="noopener"><span><b>${esc(tlabel(c,m.res.table))}</b>${esc(sname(pname(T,m.a)))} — ${esc(sname(pname(T,m.b)))}</span>${IC.play}</a>`).join('')}${T.video?`<a class="strow" href="${esc(T.video)}" target="_blank" rel="noopener"><span><b>Канал трансляций</b>все записи клуба</span>${IC.play}</a>`:''}</div>`)},
   pmStart(el){const {T}=CUR;const r=T.results[el.dataset.mid];if(!r||!el.value)return;const [hh,mm]=el.value.split(':').map(Number);const d=new Date(mstart(r));d.setHours(hh,mm,0,0);if(+d>Date.now()){toast('Время начала ещё не наступило');refreshPult();return}r.start=+d;save();refreshPult()},
   resetM(el){const {T}=CUR;const r=T.results[el.dataset.mid];if(r&&r.sa+r.sb===0){A.uncall(el);return}UI.pmConfirm=el.dataset.mid;refreshPult()},
   tpOpen(el){UI.tpM=el.dataset.mid;UI.tpSel={reason:'no'};UI.pmConfirm=null;refreshPult()},
@@ -1843,7 +1848,7 @@ const A={
 document.addEventListener('click',e=>{if(UI.tmenu&&!(e.target.closest&&e.target.closest('.tmenu'))){UI.tmenu=null;render()}
   if(e.target.id==='modal'){closeModal();return}
   const el=e.target.closest('[data-act]');if(!el)return;const a=el.dataset.act;
-  if(a==='fmt'||a==='seedMode'||a==='callSel'||a==='pmTable'||a==='pmRace'||a==='pmScore'||a==='pmStart'||a==='autoPr')return;
+  if(a==='fmt'||a==='seedMode'||a==='callSel'||a==='pmTable'||a==='pmRace'||a==='pmScore'||a==='pmStart'||a==='pmVideo'||a==='autoPr')return;
   if(A[a]){e.preventDefault();A[a](el)}
 });
 document.addEventListener('change',e=>{const t=e.target;const wz=t.dataset&&t.dataset.w==='date';if(t.id==='e-date'||wz){const en=document.querySelector(wz?'[data-w=dateEnd]':'#e-end');if(en){en.min=t.value;if(en.value&&t.value&&en.value<t.value){en.value=t.value;if(wz&&UI.wiz)UI.wiz.dateEnd=t.value}}if(wz&&UI.wiz)UI.wiz.date=t.value}
@@ -1852,7 +1857,7 @@ document.addEventListener('change',e=>{const t=e.target;const wz=t.dataset&&t.da
   const a=e.target.dataset&&e.target.dataset.act;
   if(a==='fmt')A.fmt();
   if(a==='seedMode'){CUR.T.seedMode=e.target.value;save()}
-  if(a==='pmTable'||a==='pmRace'||a==='pmScore'||a==='pmStart')A[a](e.target);
+  if(a==='pmTable'||a==='pmRace'||a==='pmScore'||a==='pmStart'||a==='pmVideo')A[a](e.target);
   if(a==='callSel'&&e.target.value){A.callT({dataset:{mid:e.target.dataset.mid,t:e.target.value}})}
 });
 document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.ct==='disc')A.ctDisc(e.target);if(e.target.dataset&&e.target.dataset.act==='autoPr')A.autoPr(e.target);if(e.target.dataset&&e.target.dataset.dr&&UI.dr)A.drawIn(e.target);if(e.target.dataset&&e.target.dataset.tpr&&UI.tpSel)UI.tpSel.reason=e.target.value;if(e.target.dataset&&e.target.dataset.sch&&UI.sch)A.schIn(e.target);if(e.target.dataset&&e.target.dataset.sp&&UI.sp){UI.sp.k=+e.target.value;openModal(splitHTML(CUR.T))}if(e.target.dataset&&e.target.dataset.fn&&UI.fn){UI.fn.third=e.target.checked}});
