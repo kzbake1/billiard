@@ -543,11 +543,12 @@ nav.main a{white-space:nowrap}
 .sp-lv{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}.sp-lv div{padding:10px 14px;border-radius:10px;background:#F4F5F7}.sp-lv b{display:block;font-size:18px}.sp-lv span{font-size:12px;color:var(--muted)}
 .fr-l{display:flex;flex-direction:column;gap:8px}.fr-r{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px}
 @media(max-width:640px){.stg{flex-wrap:wrap}}
+.logo img{display:block;flex:none}.logo .lg-s{display:none}@media(max-width:640px){.logo .lg-f{display:none}.logo .lg-s{display:block}}
 </style>
 </head>
 <body>
 <header class="top"><div class="top-in">
-  <a class="logo" href="#home"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#1667FF"/><g fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"><path d="M32 30V70"/><path d="M70 30H60C50 30 52 50 42 50H32"/><path d="M70 70H60C50 70 52 50 42 50"/></g></svg><span><b>kazbilliard</b><small>турнирная платформа</small></span></a>
+  <a class="logo" href="#home"><img class="lg-f" src="/logo.svg" alt="kazbilliard — турнирная платформа" width="175" height="40"><img class="lg-s" src="/logo-short.svg" alt="kazbilliard" width="122" height="28"></a>
   <nav class="main" id="nav"></nav>
 </div></header>
 <div id="ticker"></div>
