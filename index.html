@@ -1304,7 +1304,7 @@ function schHTML(T){const u=UI.sch;const n=T.players.length;const tmp={format:u.
   <div class="err" id="sch-err"></div><div class="pm-acts"><button class="btn blue" data-act="schApply" ${n<min?'disabled':''}>Применить</button><button class="btn ghost" data-act="close">Отмена</button></div></div>`}
 function drawHTML(T){const n=T.players.length;
   return`<div class="ed"><div class="pm-h"><div class="pm-ti"><b>Жеребьёвка</b><span>${n} участник${plural(n)}</span></div><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
-  <div class="sch-sum"><p>Сайт случайно раздаст всем участникам номера в сетке.${T.drawn?' Прошлая жеребьёвка будет заменена.':''}</p></div>
+  <div class="sch-sum"><p>Сайт случайно раздаст всем участникам номера в сетке.</p></div>
   <div class="pm-acts"><button class="btn blue" data-act="drawApply">${T.drawn?'Провести заново':'Провести жеребьёвку'}</button><button class="btn ghost" data-act="close">Отмена</button></div></div>`}
 function editPHTML(T,p){const reg=T.status==='reg';
   return`<div class="ed"><div class="pm-h"><div class="pm-ti"><b>Участник</b>${p.no?`<span>жребий №${p.no}</span>`:''}</div><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
