@@ -1603,28 +1603,28 @@ function printProtos(T,mids){const b=build(T);CUR={T,b};const ms=mids.map(id=>b.
   let box=document.getElementById('printbox');if(!box){box=document.createElement('div');box.id='printbox';document.body.appendChild(box)}
   box.innerHTML=ms.map((m,i)=>`<div style="${i<ms.length-1?'page-break-after:always;break-after:page':''}">${protoHTML(T,m)}</div>`).join('');document.body.classList.add('pp');
   const off=()=>{document.body.classList.remove('pp');window.removeEventListener('afterprint',off)};window.addEventListener('afterprint',off);setTimeout(()=>window.print(),60)}
-function protoHTML(T,m){const r=m.res||{};const c=club(T.clubId);const stg=CUR&&CUR.b?stageMap(CUR.b)[m.id]:'';const d=m.state==='done';const win=s=>d&&m.winner&&m.winner.id===s.id;
-  const B='1px solid #111',G='1px solid #bbb';const lab='font-size:9.5px;color:#555;text-transform:uppercase;letter-spacing:.07em;font-weight:600';
-  const cell=(k,v)=>`<td style="border:${B};padding:8px 10px;width:25%;vertical-align:top"><div style="${lab}">${k}</div><div style="font-size:14px;font-weight:600;margin-top:4px;min-height:19px">${v||''}</div></td>`;
-  const sc=k=>r.tp?(tpOf(r,k)?'ТП':''):(m.res&&(d||m.state==='live')?r['s'+k]:'');
-  const pl=(s,k,i)=>`<tr><td style="border:${B};padding:16px 12px;width:36px;text-align:center;font-size:13px;color:#555">${i}</td><td style="border:${B};padding:16px 14px;font-size:18px;${win(s)?'font-weight:700':''}">${esc(pname(T,s))}${win(s)?'<span style="margin-left:10px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0F4FD9;border:1px solid #0F4FD9;border-radius:4px;padding:2px 6px;vertical-align:3px">победитель</span>':''}</td><td style="border:${B};width:96px;text-align:center;font-size:30px;font-weight:700;font-variant-numeric:tabular-nums">${sc(k)}</td></tr>`;
-  const judge=(T.judges||[]).find(j=>j.role!=='hall');
-  const sign=(t,n)=>`<td style="width:33%;padding:0 12px 0 0;vertical-align:bottom"><div style="height:40px;border-bottom:${B}"></div><div style="font-size:10px;color:#555;margin-top:5px">${t}</div><div style="font-size:12px;margin-top:2px;min-height:15px">${n||''}</div></td>`;
+function protoHTML(T,m){const r=m.res||{};const c=club(T.clubId);const stg=CUR&&CUR.b?stageMap(CUR.b)[m.id]:'';const d=m.state==='done';
+  const lab='font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6E6E6E';
+  const winId=d&&m.winner&&m.winner.t==='p'&&!(r.tp==='both')?m.winner.id:null;
+  const stamp='<span style="display:inline-block;transform:rotate(-8deg);border:2.5px solid #1667FF;border-radius:8px;padding:3px;color:#1667FF"><span style="display:block;border:1px solid #1667FF;border-radius:5px;padding:5px 12px;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;line-height:1">Победитель</span></span>';
+  const row=(s,k,first)=>{const w=winId&&s.id===winId;const sc=r.tp?(tpOf(r,k)?'ТП':(d?'':'')):r['s'+k];
+    const right=d?`<td style="width:96px;text-align:right;font-size:${r.tp?28:44}px;font-weight:700;color:${w?'#111':'#4D4D4D'};font-variant-numeric:tabular-nums">${sc??''}</td>`:`<td style="width:96px"><div style="height:56px;border:1.5px solid #111;border-radius:6px"></div></td>`;
+    return`<tr${first?'':' style="border-top:1px solid #D0D0D0"'}><td style="padding:22px 0;font-size:22px;${d?(w?'font-weight:700;color:#111':'color:#4D4D4D'):'color:#111'}">${esc(pname(T,s))}</td><td style="text-align:right;padding-right:24px">${w?stamp:''}</td>${right}</tr>`};
+  const det=(k,v)=>`<td style="width:25%;vertical-align:top;padding-right:16px"><div style="${lab}">${k}</div>${v?`<div style="margin-top:5px;font-size:15px;font-weight:600">${v}</div>`:`<div style="margin-top:5px;height:20px;border-bottom:1px solid #999"></div>`}</td>`;
   const tbl=r.table?'№'+r.table+(floorOf(c,r.table)?' · '+esc(floorOf(c,r.table)):''):'';
-  const res=d?(r.tp?'Техническое поражение · '+TPR[r.reason||'no']:`${esc(pname(T,m.winner))} · ${Math.max(r.sa,r.sb)} : ${Math.min(r.sa,r.sb)}`):'';
-  const now=new Date();const stamp=now.toLocaleDateString('ru-RU')+' '+hhmm(+now);
-  return`<div style="font-family:Inter,Arial,sans-serif;color:#111;max-width:680px;margin:0 auto;padding:8px 0">
-  <table style="width:100%;border-collapse:collapse"><tr><td style="vertical-align:middle"><img src="logo.svg" alt="kazbilliard" style="height:34px;display:block"></td><td style="text-align:right;vertical-align:middle"><div style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase">Протокол встречи</div><div style="font-size:28px;font-weight:700;line-height:1.1;margin-top:2px">№${m.no}</div></td></tr></table>
-  <div style="border-top:2px solid #111;margin:14px 0 16px"></div>
-  <div style="${lab}">Турнир</div>
-  <div style="font-size:22px;font-weight:700;margin:3px 0 3px">${esc(T.title)}</div>
-  <div style="font-size:13px;color:#333;margin-bottom:16px">${esc([c.name,[c.city,c.address].filter(Boolean).join(', ')].filter(Boolean).join(' · '))}</div>
-  <table style="width:100%;border-collapse:collapse"><tr>${cell('Дисциплина',esc(T.discipline))}${cell('Стадия',esc(stg))}${cell('Стол',tbl)}${cell('Игра до',mrace(T,m)+' побед')}</tr><tr>${cell('Дата',fdate(T.date))}${cell('Начало',m.res&&mstart(r)?hhmm(mstart(r)):'')}${cell('Окончание',d?hhmm(r.end||r.ts):'')}${cell('Длительность',d?mdur(r):'')}</tr></table>
-  <div style="${lab};margin:22px 0 8px">Участники и счёт</div>
-  <table style="width:100%;border-collapse:collapse"><tr><th style="border:${B};padding:6px;${lab}">№</th><th style="border:${B};padding:6px 14px;text-align:left;${lab}">Игрок</th><th style="border:${B};padding:6px;${lab}">Счёт</th></tr>${pl(m.a,'a',1)}${pl(m.b,'b',2)}</table>
-  <table style="width:100%;border-collapse:collapse;margin-top:12px"><tr><td style="border:${B};padding:10px 12px"><span style="${lab}">Результат</span><span style="font-size:14px;font-weight:600;margin-left:12px">${res||'&nbsp;'}</span></td></tr></table>
-  <table style="width:100%;border-collapse:collapse;margin-top:44px"><tr>${sign('Подпись игрока',esc(pname(T,m.a)))}${sign('Подпись игрока',esc(pname(T,m.b)))}${sign('Судья',judge?esc(judge.name):'')}</tr></table>
-  <div style="border-top:${G};margin-top:36px;padding-top:8px;font-size:10px;color:#777;display:flex;justify-content:space-between"><span>Сформировано на kazbilliard.com</span><span>${stamp}</span></div></div>`}
+  const judge=(T.judges||[]).find(j=>j.role!=='hall');
+  const sign=(t,n)=>`<td style="width:33%;padding-right:32px;vertical-align:top"><div style="border-top:1px solid #111;padding-top:7px;font-size:10px;color:#6E6E6E">${t}</div><div style="margin-top:3px;font-size:13px;min-height:16px">${n||''}</div></td>`;
+  const now=new Date();const stamp2=now.toLocaleDateString('ru-RU')+' '+hhmm(+now);
+  const title=[stg,'Матч №'+m.no].filter(Boolean).join(' · ');
+  return`<div style="font-family:Inter,Arial,sans-serif;color:#111;max-width:666px;margin:0 auto;padding:8px 0">
+  <table style="width:100%;border-collapse:collapse"><tr><td style="vertical-align:middle"><img src="logo.svg" alt="kazbilliard" style="height:30px;display:block"></td><td style="text-align:right;vertical-align:middle"><div style="${lab}">Протокол встречи</div><div style="font-size:12px;color:#4D4D4D;margin-top:3px">${fdate(T.date)}</div></td></tr></table>
+  <div style="margin-top:44px;font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1.1">${esc(title)}</div>
+  <div style="margin-top:10px;font-size:16px;font-weight:500">${esc([T.title,T.discipline].filter(Boolean).join(' · '))}</div>
+  <div style="margin-top:4px;font-size:13px;color:#6E6E6E">${esc([c.name,[c.city,c.address].filter(Boolean).join(', ')].filter(Boolean).join(' · '))}</div>
+  <table style="width:100%;border-collapse:collapse;margin-top:36px;border-top:2px solid #111;border-bottom:2px solid #111">${row(m.a,'a',1)}${row(m.b,'b',0)}</table>
+  <table style="width:100%;border-collapse:collapse;margin-top:28px"><tr>${det('Стол',tbl)}${det('Игра до',mrace(T,m)+' побед')}${det('Время',d&&mstart(r)?hhmm(mstart(r))+' – '+hhmm(r.end||r.ts):'')}${det(r.tp&&d?'Причина':'Длительность',d?(r.tp?'ТП · '+TPR[r.reason||'no']:mdur(r)):'')}</tr></table>
+  <table style="width:100%;border-collapse:collapse;margin-top:72px"><tr>${sign('Подпись игрока',esc(pname(T,m.a)))}${sign('Подпись игрока',esc(pname(T,m.b)))}${sign('Судья',judge?esc(judge.name):'')}</tr></table>
+  <div style="margin-top:56px;padding-top:10px;border-top:1px solid #E4E4E4;font-size:9px;color:#999;display:flex;justify-content:space-between"><span>kazbilliard.com</span><span>Распечатано ${stamp2}</span></div></div>`}
 function renderBoard(T,mid){const b=build(T);CUR={T,b};document.body.classList.add('gonly','sbd');const m=b.all.find(x=>x.id===mid);if(!m)return'<div class="sb"><div class="sb-foot">Матч не найден</div></div>';const r=m.res||{};
   const R=mrace(T,m),d=m.state==='done',stg=stageMap(b)[m.id]||'';const c=club(T.clubId);
   const st=m.state==='live'?(r.paused?'<span class="sb-chip">пауза</span>':'<span class="sb-chip live"><i></i>играют</span>'):d?'<span class="sb-chip">матч завершён</span>':'<span class="sb-chip">ожидает начала</span>';
