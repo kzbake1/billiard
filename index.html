@@ -965,6 +965,7 @@ async function adminCall(body){
     const r=await fetch(SB_URL+'/functions/v1/admin',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+tok},body:JSON.stringify(body)});return await r.json()}
   catch(e){return{error:'Нет связи с сервером'}}
 }
+const ADM=/^admin\./.test(location.hostname);
 async function boot(){
   if(/^admin\./.test(location.hostname)&&!location.hash)history.replaceState(null,'','#admin');
   const app=document.getElementById('app');app.innerHTML='<div class="empty" role="status">Загружаем турниры…</div>';
@@ -1061,6 +1062,7 @@ function render(){RENDER_N++;setTimeout(()=>{tabsIntoView();addEyes()},0);
   const nav=document.getElementById('nav');
   const me=S.session?club(S.session):null;
   nav.innerHTML=`<a href="#home" class="${h==='home'||h.startsWith('t-')?'on':''}">Турниры</a>${me?`<div class="acc-w"><button class="acc" data-act="accMenu" aria-expanded="${UI.acc?'true':'false'}"><i>${esc(ini(me.name))}</i><span class="acc-t">${esc(me.name)}<small>Кабинет клуба</small></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>${UI.acc?`<div class="acc-dd"><a href="#cabinet" data-act="accGo" data-to="">Кабинет клуба</a><a href="#cabinet" data-act="accGo" data-to="cab-i">О клубе</a><button data-act="pwOpen">Сменить пароль</button><button class="r" data-act="logout">Выйти</button></div>`:''}</div>`:`<a href="${S.admin?'#admin':'#cabinet'}" class="cta">${S.admin?'Админ<span class="lg">истратор</span>':'Вход<span class="lg"> для клубов</span>'}</a>`}`;
+  if(ADM&&!S.admin)nav.innerHTML='';
   renderTicker(false);
   const app=document.getElementById('app');
   document.body.classList.remove('gonly','sbd','ctb');
@@ -1652,7 +1654,7 @@ function renderAdmin(){
   if(!S.admin){
     if(!S.adminExists)return`<div style="max-width:520px"><h1>Первый запуск</h1><p class="muted lead">Создайте администратора платформы. Код установки вам передали вместе со ссылкой на сайт.</p>
     <div class="panel"><div class="field"><label>Код установки</label><input id="bs-code" autocomplete="off"></div><div class="field"><label>Ваша почта</label><input id="bs-email" type="email" autocomplete="username"></div><div class="field"><label>Пароль (от 8 символов)</label><input id="bs-pass" type="password" autocomplete="new-password"></div><button class="btn blue big" data-act="bootstrap">Создать администратора</button><div class="err" id="bs-err"></div></div></div>`;
-    return`<div class="empty">Раздел для администратора платформы. <a href="#cabinet">Войти</a></div>`;
+    return`<div style="max-width:440px;margin:24px auto 0"><h1 style="font-size:34px">Вход администратора</h1><p class="muted lead">Управление клубами платформы.</p><div class="panel"><div class="field"><label>Почта</label><input id="lg-email" type="email" autocomplete="username"></div><div class="field"><label>Пароль</label><input id="lg-pass" type="password" autocomplete="current-password"></div><button class="btn blue big" data-act="login">Войти</button><div class="err" id="lg-err"></div></div></div>`;
   }
   return`<div class="hero"><div><div class="who">Администратор · ${esc(S.email)}</div><h1>Клубы</h1></div><button class="btn ghost" data-act="logout">Выйти</button></div>
   <div class="two"><div class="panel"><h3>Клубы на платформе</h3><div id="ad-list"><div class="muted">Загрузка…</div></div></div>
@@ -1995,7 +1997,7 @@ const A={
   async login(el){const e=document.getElementById('lg-err');const email=document.getElementById('lg-email').value.trim(),password=document.getElementById('lg-pass').value;if(!email||!password){e.textContent='Введите почту и пароль';return}
     el.disabled=true;const r=await sb.auth.signInWithPassword({email,password});if(r.error){el.disabled=false;e.textContent='Неверная почта или пароль';return}
     await loadSession();if(S.session)go('cabinet');else if(S.admin)go('admin');else{e.textContent='К этой почте не привязан клуб — обратитесь к администратору';await sb.auth.signOut();await loadSession();el.disabled=false}},
-  async logout(){await sb.auth.signOut();await loadSession();go('home')},
+  async logout(){await sb.auth.signOut();await loadSession();go(ADM?'admin':'home')},
   reload(){location.reload()},
   addFloor(){const w=document.getElementById('cl-floors');if(!w||w.children.length>=8)return;w.insertAdjacentHTML('beforeend',flRow({name:(w.children.length+1)+' этаж',n:''}));const i=w.lastElementChild.querySelector('.fl-n');i&&i.focus()},
   delFloor(el){const w=document.getElementById('cl-floors');if(w&&w.children.length>1)el.closest('.flrow').remove()},
