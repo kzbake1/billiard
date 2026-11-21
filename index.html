@@ -703,7 +703,7 @@ nav.main a.cta{background:#fff;color:var(--ink);border:1px solid var(--line2)}
 .tabs{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}.tabs::-webkit-scrollbar{display:none}
 @media(max-width:640px){.ph{flex-wrap:wrap;gap:8px 16px}.ptools{flex-wrap:wrap;gap:8px 16px}.two>*{min-width:0}}
 .lg-grid{display:grid;grid-template-columns:minmax(0,460px) minmax(0,420px);gap:24px;align-items:start}.lg-fg{margin:16px 0 0;font-size:14px;color:var(--muted)}.lg-fg a{color:var(--accent-ink)}
-.lg-new{background:var(--accent-soft);border-radius:16px;padding:28px}.lg-new h3{margin:0;font-size:20px;font-weight:600}.lg-new p{margin:8px 0 0;color:var(--sub);font-size:15px}.lg-new ul{list-style:none;padding:0;margin:18px 0 22px;display:flex;flex-direction:column;gap:12px}.lg-new li{display:flex;align-items:center;gap:10px;font-size:15px}.lg-new li svg{color:var(--accent);flex:none}.lg-new .btn{display:inline-flex;align-items:center;gap:8px}
+.lg-new{background:var(--accent-soft);border-radius:16px;padding:28px}.lg-new h3{margin:0;font-size:20px;font-weight:600}.lg-new p{margin:8px 0 22px;color:var(--sub);font-size:15px}.lg-new ul{list-style:none;padding:0;margin:18px 0 22px;display:flex;flex-direction:column;gap:12px}.lg-new li{display:flex;align-items:center;gap:10px;font-size:15px}.lg-new li svg{color:var(--accent);flex:none}.lg-new .btn{display:inline-flex;align-items:center;gap:8px}
 @media(max-width:800px){.lg-grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -1549,7 +1549,7 @@ function renderCabinet(){
     return`<h1>Вход для клубов</h1><p class="muted lead">Клуб создаёт турниры, вносит игроков и ведёт счёт.</p>
     <div class="lg-grid"><div class="panel"><div class="field"><label>Почта</label><input id="lg-email" type="email" autocomplete="username"></div><div class="field"><label>Пароль</label><input id="lg-pass" type="password" autocomplete="current-password"></div><button class="btn blue big" data-act="login">Войти</button><div class="err" id="lg-err"></div>
     <p class="lg-fg">Забыли пароль? <a href="https://wa.me/77764308322?text=${encodeURIComponent('Здравствуйте! Забыл пароль от кабинета клуба')}" target="_blank" rel="noopener">Напишите нам в WhatsApp</a></p></div>
-    <div class="lg-new"><h3>Ещё нет аккаунта?</h3><p>Подключим ваш клуб и выдадим почту и пароль для входа.</p><ul><li>${IC.net}Турниры с сеткой и жеребьёвкой</li><li>${IC.tbl}Счёт и столы онлайн</li><li>${IC.trophy}Итоги и протоколы встреч</li></ul><a class="btn blue" href="https://wa.me/77764308322?text=${encodeURIComponent('Здравствуйте! Хочу подключить клуб к kazbilliard')}" target="_blank" rel="noopener">${IC.wa}Подключить клуб в WhatsApp</a></div></div>`;
+    <div class="lg-new"><h3>Ещё нет аккаунта?</h3><p>Подключим ваш клуб и выдадим почту и пароль для входа.</p><a class="btn blue" href="https://wa.me/77764308322?text=${encodeURIComponent('Здравствуйте! Хочу подключить клуб к kazbilliard')}" target="_blank" rel="noopener">${IC.wa}Подключить клуб в WhatsApp</a></div></div>`;
   }
   const c=club(S.session);const mine=S.tournaments.filter(t=>t.clubId===c.id&&!t.parent);
   const live=mine.filter(t=>t.status==='live'&&!build(t).finished);const noInfo=!c.address||!c.phone;const roster=c.roster||[];
