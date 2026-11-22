@@ -1615,9 +1615,9 @@ function uniHTML(T,b){const f=flow(T);const L=b.lb.length;const pl=[];let p=b.K+
   const mk={};(b.rounds[0]?b.rounds[0].matches:[]).forEach(m=>{mk[m.no]={n:'№'+m.no,c:'b'}});
   const tag=no=>mk[no]?`<b class="mk ${mk[no].c}">${mk[no].n}</b>`:'№'+no;
   const ARL='<span class="ar">←</span>',ARR='<span class="ar">→</span>';
-  const capL=(m,i)=>i===L-1?(f.w[m.no]?'победитель на '+tag(f.w[m.no]):b.stop?'победитель — в финал':'победитель в олимпийку'):(b.stop&&i===L-1?'':'');
+  const capL=(m,i)=>i===L-1?(f.w[m.no]?'победитель на '+tag(f.w[m.no]):b.stop?'победитель — выходит в финал':'победитель в олимпийку'):(b.stop&&i===L-1?'':'');
   const R=b.rounds.length;
-  const capU=(m,i)=>{if(i<b.wb.length)return i>=1&&f.l[m.no]?'проигравший на №'+f.l[m.no]:'';const k=i-b.wb.length;return k===R-1?'<b>Финал</b>':k===R-2?'<b>Полуфинал</b>':''};
+  const capU=(m,i)=>{if(i<b.wb.length){const lo=i>=1&&f.l[m.no]?'проигравший на №'+f.l[m.no]:'';return b.stop&&i===b.wb.length-1?'победитель — выходит в финал'+(lo?'<br>'+lo:''):lo}const k=i-b.wb.length;return k===R-1?'<b>Финал</b>':k===R-2?'<b>Полуфинал</b>':''};
   const poSub=k=>{const n=b.rounds[k].matches.length;return k===R-1?'':n===2&&b.third?'проигравший — в матч за 3 место':'проигравший — '+(n>1?(n+1)+'–'+(2*n):'3–4')+' место'};
   const lbR=b.lb.map((rd,i)=>({title:'Нижняя · раунд '+(i+1),sub:f.full?'проигравший — '+pl[i]+' место':'',matches:rd.matches})),wbR=b.wb.map((rd,i)=>({title:'Верхняя · раунд '+(i+1),matches:rd.matches}));
   requestAnimationFrame(uniInit);
