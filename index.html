@@ -1433,7 +1433,7 @@ function homeClubs(){const cs=S.clubs.filter(c=>c.name);if(!cs.length)return'';
 function hSoon(T){const c=club(T.clubId);
   const ph=T.orgPhone||c.phone;return`<div class="hrow-o">`+hRow(T,'',``)+`<div class="hl-bt"><a class="btn sm ghost" href="#t-${T.id}">Подробнее</a></div></div>`}
 function hDone(T,b){const c=club(T.clubId);const w=b.places&&b.places[0]&&b.places[0].ids[0];
-  return hRow(T,`${hCat(T)}${esc(c.name)} · ${esc(T.city)} · ${esc(T.discipline)}`,b.stop&&b.finished?`<span>вышли в финал</span><em>${stQuals(T).map(p=>esc(surname(p.name))).join(', ')}</em>`:w?`<span>победитель</span><em>${esc(pname(T,P(w)))}</em>`:'')}
+  return hRow(T,`${hCat(T)}${esc(c.name)} · ${esc(T.city)} · ${esc(T.discipline)}`,b.stop?'':w?`<span>победитель</span><em>${esc(pname(T,P(w)))}</em>`:'')}
 function renderFind(){const el=document.getElementById('find-res');if(!el)return;const q=(UI.pq||'').trim().toLowerCase();
   if(q.length<2){el.innerHTML='';return}
   const out=[];
