@@ -1047,7 +1047,7 @@ function buildDE(ctx,ids){
   if(K){const h=K/2,sh=h/2;const ps=[];const T=ctx.T;
     const perm=T.draw&&Array.isArray(T.poPerm)&&T.poPerm.length===h?T.poPerm:null;
     for(let i=0;i<h;i++){ps.push(cur[i],T.draw?(perm?lc[perm[i]]:TBD('По жребию')):lc[h===2&&Wr%2===0?i:i^1])}
-    const se=buildSE(ctx,ps,'p');if(T.stopAt&&+T.stopAt<K){const cut=Math.round(Math.log2(K/+T.stopAt));const rs=se.rounds.slice(0,cut);return{wb,lb,rounds:rs,champ:BYE,third:null,K,stop:true,q:rs[rs.length-1].matches.map(m=>m.winner),stopN:+T.stopAt,name:(compact?N*3/4:N)+'-'+K,draw:!!T.draw,drawn:!!perm,up:cur,low:lc}}return{wb,lb,rounds:se.rounds,champ:se.champ,third:se.third,K,name:(compact?N*3/4:N)+'-'+K,draw:!!T.draw,drawn:!!perm,up:cur,low:lc}}
+    const se=buildSE(ctx,ps,'p');if(T.stopAt&&+T.stopAt<K){const cut=Math.round(Math.log2(K/+T.stopAt));const rs=se.rounds.slice(0,cut);const drop=new Set(se.rounds.slice(cut).flatMap(r=>r.matches));if(se.third)drop.add(se.third);for(let i=ctx.all.length-1;i>=0;i--)if(drop.has(ctx.all[i]))ctx.all.splice(i,1);return{wb,lb,rounds:rs,champ:BYE,third:null,K,stop:true,q:rs[rs.length-1].matches.map(m=>m.winner),stopN:+T.stopAt,name:(compact?N*3/4:N)+'-'+K,draw:!!T.draw,drawn:!!perm,up:cur,low:lc}}return{wb,lb,rounds:se.rounds,champ:se.champ,third:se.third,K,name:(compact?N*3/4:N)+'-'+K,draw:!!T.draw,drawn:!!perm,up:cur,low:lc}}
   const wbChamp=cur[0],lbChamp=lc[0];
   const gf=mk(ctx,'gf',wbChamp,lbChamp);let final=gf,gf2=null;
   if(gf.state==='done'&&lbChamp.t==='p'&&gf.winner.id===lbChamp.id){gf2=mk(ctx,'gf2',wbChamp,lbChamp);final=gf2}
