@@ -1151,7 +1151,10 @@ const jsq=x=>JSON.stringify(x,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?O
 function merge3(b,l,s){b=b||{};l=l||{};s=s||{};const out={};const ks=o=>Object.keys(o||{});
   for(const k of new Set([...ks(b),...ks(l),...ks(s)])){if(k==='results')continue;const v=jsq(l[k])!==jsq(b[k])?l[k]:s[k];if(v!==undefined)out[k]=v}
   const rb=b.results||{},rl=l.results||{},rs=s.results||{},R={};
-  for(const k of new Set([...ks(rb),...ks(rl),...ks(rs)])){const v=jsq(rl[k])!==jsq(rb[k])?rl[k]:rs[k];if(v!==undefined)R[k]=v}
+  for(const k of new Set([...ks(rb),...ks(rl),...ks(rs)])){const lc=jsq(rl[k])!==jsq(rb[k]),sc=jsq(rs[k])!==jsq(rb[k]);let v=lc?rl[k]:rs[k];
+    // оба устройства меняли один матч: завершённый результат на сервере не затирается незавершённым (вызов к столу, старая вкладка)
+    if(lc&&sc&&rl[k]&&rs[k]){if(rs[k].done&&!rl[k].done)v=rs[k];else if(rs[k].done&&rl[k].done&&(+rs[k].ts||0)>(+rl[k].ts||0))v=rs[k]}
+    if(v!==undefined)R[k]=v}
   out.results=R;return out}
 function applyData(T,d){Object.keys(T).forEach(k=>{if(k!=='id'&&k!=='clubId')delete T[k]});Object.assign(T,JSON.parse(jsq(d)))}
 async function saveT1(T){const base=JSON.parse(SNAP.t[T.id]);const sent=tData(T);let r={};
