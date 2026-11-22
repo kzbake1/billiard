@@ -1433,7 +1433,7 @@ function homeClubs(){const cs=S.clubs.filter(c=>c.name);if(!cs.length)return'';
 function hSoon(T){const c=club(T.clubId);
   const ph=T.orgPhone||c.phone;return`<div class="hrow-o">`+hRow(T,'',``)+`<div class="hl-bt"><a class="btn sm ghost" href="#t-${T.id}">Подробнее</a></div></div>`}
 function hDone(T,b){const c=club(T.clubId);const w=b.places&&b.places[0]&&b.places[0].ids[0];
-  return hRow(T,`${hCat(T)}${esc(c.name)} · ${esc(T.city)} · ${esc(T.discipline)}`,w?`<span>победитель</span><em>${esc(pname(T,P(w)))}</em>`:'')}
+  return hRow(T,`${hCat(T)}${esc(c.name)} · ${esc(T.city)} · ${esc(T.discipline)}`,b.stop&&b.finished?`<span>вышли в финал</span><em>${stQuals(T).map(p=>esc(surname(p.name))).join(', ')}</em>`:w?`<span>победитель</span><em>${esc(pname(T,P(w)))}</em>`:'')}
 function renderFind(){const el=document.getElementById('find-res');if(!el)return;const q=(UI.pq||'').trim().toLowerCase();
   if(q.length<2){el.innerHTML='';return}
   const out=[];
@@ -1493,7 +1493,7 @@ function renderT(T){
   const fmt=tFmt(T,b);
   const n=T.players.length,pw=T.pair?pairW(n).replace(/^\d+ /,''):n%10===1&&n%100!==11?'игрок':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?'игрока':'игроков');
   const facts=[fdates(T)+(T.time?' · '+esc(T.time):''),...(T.status==='reg'?[]:[fmt])];
-  const champ=b.finished&&b.places&&b.places[0]&&b.places[0].ids[0]?pname(T,P(b.places[0].ids[0])):'';
+  const champ=b.finished&&!b.stop&&b.places&&b.places[0]&&b.places[0].ids[0]?pname(T,P(b.places[0].ids[0])):'';
   const place=[c.city,c.address].filter(Boolean).map(esc).join(', ');
   const cl=[`<b>${esc(c.name)}</b>`,place,c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:'',c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:'',c.tiktok?`<a href="${esc(ttLink(c.tiktok))}" target="_blank" rel="noopener">TikTok @${esc(c.tiktok)}</a>`:''].filter(Boolean);
   const org=T.orgPhone||T.orgName?`<div class="th-org"><span class="lbl">Организатор</span>${T.orgName?`<b>${esc(T.orgName)}</b>`:''}${T.orgPhone?`<a href="tel:${esc(T.orgPhone.replace(/[^+\d]/g,''))}">${esc(T.orgPhone)}</a><a class="wa" href="${waLink(T.orgPhone)}" target="_blank" rel="noopener">${IC.wa}WhatsApp</a>`:''}</div>`:'';
