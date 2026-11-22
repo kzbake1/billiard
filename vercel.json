@@ -35,7 +35,11 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!.*\\.).+)",
+      "source": "/t/:id",
+      "destination": "/api/t?id=:id"
+    },
+    {
+      "source": "/((?!api/|.*\\.).+)",
       "destination": "/index.html"
     }
   ]
