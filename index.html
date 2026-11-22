@@ -1243,7 +1243,7 @@ async function boot(){
   const rs=()=>{if(document.visibilityState==='visible')resyncT()};document.addEventListener('visibilitychange',rs);window.addEventListener('focus',rs);window.addEventListener('online',rs);setInterval(rs,15000);
 }
 let RS_AT=0;async function resyncT(){if(!sb||Date.now()-RS_AT<4000)return;RS_AT=Date.now();
-  const ids=new Set(S.tournaments.filter(t=>(S.session&&t.clubId===S.session&&!t.closed&&t.status!=='done')||(CUR&&CUR.T&&CUR.T.id===t.id)).map(t=>t.id));if(!ids.size)return;
+  const ids=new Set(S.tournaments.filter(t=>(S.session&&t.clubId===S.session&&!t.deleted&&(t.status!=='done'||t.stopAt))||(CUR&&CUR.T&&CUR.T.id===t.id)).map(t=>t.id));if(!ids.size)return;
   try{const {data,error}=await sb.from('tournament').select('id,club_id,data,deleted_at').in('id',[...ids]);if(error||!data)return;data.forEach(r=>onRemote({new:r}))}catch(e){}}
 const NAMES=['Ержан Сагындыков','Данияр Омаров','Алексей Ким','Нурлан Жумабаев','Руслан Ахметов','Сергей Петренко','Тимур Касымов','Арман Нуртаев','Виктор Ли','Бауыржан Есенов','Олжас Абдрахманов','Дмитрий Соколов','Айдос Мухамеджанов','Максим Волков','Ильяс Тулегенов','Канат Бекмуратов','Асхат Иманов','Павел Никитин','Ербол Сейткали','Марат Исмаилов','Азамат Калиев','Евгений Морозов','Жандос Ахмедьяров','Андрей Цой'];
 const CITIES=['Алматы','Астана','Актобе','Шымкент','Караганда'];
@@ -1564,7 +1564,8 @@ function finHTML(T){const u=UI.fn;const q=finQuals(T);const gs=finGroups(T);cons
   <div class="sch-sum"><p>Игроки встанут в сетку случайно — новой жеребьёвкой. Фора видна в карточке матча.</p></div>
   <div class="pm-acts"><button class="btn blue" data-act="finApply">Собрать и начать</button><button class="btn ghost" data-act="close">Отмена</button></div></div>`}
 function stQuals(t){const b=build(t);if(!b.stop||!b.finished)return[];return(b.q||[...b.up,...b.low]).filter(s=>s.t==='p').map(s=>t.players.find(p=>p.id===s.id)).filter(Boolean)}
-function qSrc(T){return S.tournaments.filter(t=>t.id!==T.id&&t.clubId===T.clubId&&t.stopAt&&!t.parent&&!t.deleted&&stQuals(t).length).sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,6)}
+function qLeft(t){const b=build(t);if(!b.stop||b.finished)return[];return b.all.filter(m=>m.state!=='done'&&m.state!=='bye').map(m=>m.no)}
+function qSrc(T){return S.tournaments.filter(t=>t.id!==T.id&&t.clubId===T.clubId&&t.stopAt&&!t.parent&&!t.deleted&&t.status!=='reg'&&(stQuals(t).length||t.closed||qLeft(t).length<=4)).sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,6)}
 function finQuals(T){const ids=[];stKids(T).forEach(t=>{const b=build(t);if(b.stop)[...b.up,...b.low].forEach(s=>{if(s.t==='p')ids.push(s.id)})});return ids.map(id=>T.players.find(p=>p.id===id)).filter(Boolean)}
 const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 function kidT(T,x){return Object.assign({id:uid(),parent:T.id,clubId:T.clubId,city:T.city,discipline:T.discipline,date:T.date,time:T.time||'',dateEnd:T.dateEnd||'',category:T.category,status:'live',results:{},applications:[],seedMode:'list',groups:{count:4,advance:2},drawn:true,createdAt:Date.now()},x)}
@@ -1726,7 +1727,7 @@ function renderPeople(T,b){
    <div class="row2"><div class="field"><label>Уровень <small>необязательно</small></label><select id="np-lvl"><option value="">—</option>${LVLS.map(l=>`<option value="${l}" >${l} · ${LVL_T[l]}</option>`).join('')}</select></div><div></div></div>
    </details>
    <button class="btn blue" data-act="addP">+ Зарегистрировать</button><div class="err" id="np-err"></div></div>
-  ${T.status==='reg'&&!T.pair&&!T.match&&qSrc(T).length?`<div class="panel"><h3>Вышедшие из отбора</h3><div class="qs-l">${qSrc(T).map(t=>{const q=stQuals(t),inn=q.filter(p=>T.players.some(x=>x.id===p.id)).length;return`<div class="qs-r"><div><b>${esc(t.title)}</b><span>${fdates(t)} · вышли ${q.length}</span></div>${inn===q.length?'<em>Добавлены</em>':`<button class="btn sm" data-act="addQuals" data-id="${t.id}">+ Добавить ${q.length-inn}</button>`}</div>`}).join('')}</div></div>`:''}
+  ${T.status==='reg'&&!T.pair&&!T.match&&qSrc(T).length?`<div class="panel"><h3>Вышедшие из отбора</h3><div class="qs-l">${qSrc(T).map(t=>{const q=stQuals(t),inn=q.filter(p=>T.players.some(x=>x.id===p.id)).length;if(!q.length){const l=qLeft(t);return`<div class="qs-r"><div><b>${esc(t.title)}</b><span>${l.length?'Не доиграны: №'+l.slice(0,4).join(', №')+(l.length>4?'…':''):'Отбор ещё идёт'}</span></div><em>Ждём результат</em></div>`}return`<div class="qs-r"><div><b>${esc(t.title)}</b><span>${fdates(t)} · вышли ${q.length}</span></div>${inn===q.length?'<em>Добавлены</em>':`<button class="btn sm" data-act="addQuals" data-id="${t.id}">+ Добавить ${q.length-inn}</button>`}</div>`}).join('')}</div></div>`:''}
   <div class="panel"><h3>Из общей базы</h3><input id="rs-q" class="search" style="width:100%;min-width:0" placeholder="Фамилия или имя"><div id="rs-list" class="mlist"></div></div>`;
   return`<div class="two">${list}<div>${side}</div></div>`;
 }
