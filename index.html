@@ -1141,11 +1141,11 @@ function cleanData(v,k){
   if(k==='birth')return/^\d{4}$/.test(v)?v:'';
   return v.replace(/[<>`]/g,'').replace(/"/g,'”').replace(/'/g,'’')}
 const safeHref=u=>/^https?:\/\/[^\s"'<>`]+$/i.test(u||'')?u:'';
-function tFromRow(r){const t=Object.assign(cleanData(r.data||{}),{id:String(r.id).replace(/[^a-z0-9]/g,''),clubId:r.club_id});delete t._w;delete t._v;return t}
+function tFromRow(r){const t=Object.assign(cleanData(r.data||{}),{id:String(r.id).replace(/[^a-z0-9]/g,''),clubId:r.club_id});delete t._w;delete t._v;delete t._r;return t}
 const MYW={};function wTag(id){const w=uid()+Date.now().toString(36);(MYW[id]=MYW[id]||new Set()).add(w);if(MYW[id].size>200)MYW[id].delete(MYW[id].values().next().value);return w}
-function noW(d){if(d&&(d._w!==undefined||d._v!==undefined)){d=Object.assign({},d);delete d._w;delete d._v}return d}
+function noW(d){if(d&&(d._w!==undefined||d._v!==undefined||d._r!==undefined)){d=Object.assign({},d);delete d._w;delete d._v;delete d._r}return d}
 // версия записи: база не принимает изменения турниров от старых открытых вкладок (триггер tournament_version); при обновлении поднять и тут, и в триггере
-const APP_V=4;let RELOADING=false;function staleReload(){if(RELOADING)return;RELOADING=true;toast('Сайт обновился — перезагружаем страницу');setTimeout(()=>location.reload(),1500)}
+const APP_V=5;let RELOADING=false;function staleReload(){if(RELOADING)return;RELOADING=true;toast('Сайт обновился — перезагружаем страницу');setTimeout(()=>location.reload(),1500)}
 function save(){if(S.session)S.tournaments.forEach(t=>{if(t.clubId===S.session)tvSync(t);if(t.clubId===S.session&&t.draw&&!t.poPerm&&maybeDraw(t))setTimeout(()=>toast('Жеребьёвка олимпийки проведена'),50)});pending++;saveQ=saveQ.then(doSave).catch(()=>{}).then(()=>{pending--})}
 const jsq=x=>JSON.stringify(x,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.keys(v).sort().reduce((o,kk)=>(o[kk]=v[kk],o),{}):v);
 function merge3(b,l,s){b=b||{};l=l||{};s=s||{};const out={};const ks=o=>Object.keys(o||{});
@@ -1154,12 +1154,17 @@ function merge3(b,l,s){b=b||{};l=l||{};s=s||{};const out={};const ks=o=>Object.k
   for(const k of new Set([...ks(rb),...ks(rl),...ks(rs)])){const v=jsq(rl[k])!==jsq(rb[k])?rl[k]:rs[k];if(v!==undefined)R[k]=v}
   out.results=R;return out}
 function applyData(T,d){Object.keys(T).forEach(k=>{if(k!=='id'&&k!=='clubId')delete T[k]});Object.assign(T,JSON.parse(jsq(d)))}
-async function saveT1(T){const base=JSON.parse(SNAP.t[T.id]);const sent=tData(T);
-  const {data:row,error}=await sb.from('tournament').select('data').eq('id',T.id).maybeSingle();if(error)return{error};
-  const sv=row&&row.data?noW(cleanData(row.data)):null;const merged=merge3(base,sent,sv||base);
-  if(sv&&jsq(merged)===jsq(sv)){SNAP.t[T.id]=jsq(merged);const now=tData(T);const fin=merge3(sent,now,merged);if(jsq(fin)!==jsq(now)){applyData(T,fin);softRender()}return{}}
-  const r=await sb.from('tournament').update({data:Object.assign({},merged,{_w:wTag(T.id),_v:APP_V})}).eq('id',T.id);
-  if(!r.error){SNAP.t[T.id]=jsq(merged);OWN_TS[T.id]=Date.now();const now=tData(T);const fin=merge3(sent,now,merged);if(jsq(fin)!==jsq(now)){applyData(T,fin);softRender()}}
+async function saveT1(T){const base=JSON.parse(SNAP.t[T.id]);const sent=tData(T);let r={};
+  // запись с проверкой версии (_r): если сетку успел поменять другой телефон, база отклонит запись (conflict) — перечитываем и сливаем заново
+  for(let tryN=0;tryN<8;tryN++){
+    const {data:row,error}=await sb.from('tournament').select('data').eq('id',T.id).maybeSingle();if(error)return{error};
+    const rev=row&&row.data?(+row.data._r||0):0;
+    const sv=row&&row.data?noW(cleanData(row.data)):null;const merged=merge3(base,sent,sv||base);
+    if(sv&&jsq(merged)===jsq(sv)){SNAP.t[T.id]=jsq(merged);const now=tData(T);const fin=merge3(sent,now,merged);if(jsq(fin)!==jsq(now)){applyData(T,fin);softRender()}return{}}
+    r=await sb.from('tournament').update({data:Object.assign({},merged,{_w:wTag(T.id),_v:APP_V,_r:rev+1})}).eq('id',T.id);
+    if(r.error&&/conflict/.test(r.error.message||'')){await new Promise(z=>setTimeout(z,80+Math.random()*250));continue}
+    if(!r.error){SNAP.t[T.id]=jsq(merged);OWN_TS[T.id]=Date.now();const now=tData(T);const fin=merge3(sent,now,merged);if(jsq(fin)!==jsq(now)){applyData(T,fin);softRender()}}
+    return r}
   return r}
 async function doSave(){
   if(!S.session||!sb)return;const jobs=[];const me=S.clubs.find(c=>c.id===S.session);
