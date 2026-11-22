@@ -1225,7 +1225,12 @@ async function boot(){
   catch(e){console.error(e);app.innerHTML='<div class="empty"><b>Не удалось загрузить данные.</b><br>Проверьте интернет.<br><br><button class="btn dark" data-act="reload">Повторить</button></div>';return}
   render();
   sb.channel('t').on('postgres_changes',{event:'*',schema:'public',table:'tournament'},onRemote).subscribe();
+  // страховка от «застывших» вкладок: фоновая вкладка может потерять живое соединение — при возврате на вкладку и раз в 15 с подтягиваем свежие данные
+  const rs=()=>{if(document.visibilityState==='visible')resyncT()};document.addEventListener('visibilitychange',rs);window.addEventListener('focus',rs);window.addEventListener('online',rs);setInterval(rs,15000);
 }
+let RS_AT=0;async function resyncT(){if(!sb||Date.now()-RS_AT<4000)return;RS_AT=Date.now();
+  const ids=new Set(S.tournaments.filter(t=>(S.session&&t.clubId===S.session&&!t.closed&&t.status!=='done')||(CUR&&CUR.T&&CUR.T.id===t.id)).map(t=>t.id));if(!ids.size)return;
+  try{const {data,error}=await sb.from('tournament').select('id,club_id,data,deleted_at').in('id',[...ids]);if(error||!data)return;data.forEach(r=>onRemote({new:r}))}catch(e){}}
 const NAMES=['Ержан Сагындыков','Данияр Омаров','Алексей Ким','Нурлан Жумабаев','Руслан Ахметов','Сергей Петренко','Тимур Касымов','Арман Нуртаев','Виктор Ли','Бауыржан Есенов','Олжас Абдрахманов','Дмитрий Соколов','Айдос Мухамеджанов','Максим Волков','Ильяс Тулегенов','Канат Бекмуратов','Асхат Иманов','Павел Никитин','Ербол Сейткали','Марат Исмаилов','Азамат Калиев','Евгений Морозов','Жандос Ахмедьяров','Андрей Цой'];
 const CITIES=['Алматы','Астана','Актобе','Шымкент','Караганда'];
 function mkPlayer(first,last,birth,city,rank,x){return Object.assign({id:uid(),first,last,name:last+' '+first,birth,city,rank:rank||'б/р'},x||{})}
