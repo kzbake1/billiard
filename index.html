@@ -1166,7 +1166,7 @@ function cleanData(v,k){
   if(k==='birth')return/^\d{4}$/.test(v)?v:'';
   return v.replace(/[<>`]/g,'').replace(/"/g,'”').replace(/'/g,'’')}
 const safeHref=u=>/^https?:\/\/[^\s"'<>`]+$/i.test(u||'')?u:'';
-function tFromRow(r){const t=Object.assign(cleanData(r.data||{}),{id:String(r.id).replace(/[^a-z0-9]/g,''),clubId:r.club_id});delete t._w;delete t._v;delete t._r;return t}
+function tFromRow(r){if(r&&r.data&&+r.data._r){REV=REV||{};REV[r.id]=Math.max(REV[r.id]||0,+r.data._r)}const t=Object.assign(cleanData(r.data||{}),{id:String(r.id).replace(/[^a-z0-9]/g,''),clubId:r.club_id});delete t._w;delete t._v;delete t._r;return t}
 const MYW={};function wTag(id){const w=uid()+Date.now().toString(36);(MYW[id]=MYW[id]||new Set()).add(w);if(MYW[id].size>200)MYW[id].delete(MYW[id].values().next().value);return w}
 function noW(d){if(d&&(d._w!==undefined||d._v!==undefined||d._r!==undefined)){d=Object.assign({},d);delete d._w;delete d._v;delete d._r}return d}
 // версия записи: база не принимает изменения турниров от старых открытых вкладок (триггер tournament_version); при обновлении поднять и тут, и в триггере
@@ -1191,7 +1191,7 @@ async function saveT1(T){const base=JSON.parse(SNAP.t[T.id]);const sent=tData(T)
     if(sv&&jsq(merged)===jsq(sv)){SNAP.t[T.id]=jsq(merged);const now=tData(T);const fin=merge3(sent,now,merged);if(jsq(fin)!==jsq(now)){applyData(T,fin);softRender()}return{}}
     r=await sb.from('tournament').update({data:Object.assign({},merged,{_w:wTag(T.id),_v:APP_V,_r:rev+1})}).eq('id',T.id);
     if(r.error&&/conflict/.test(r.error.message||'')){await new Promise(z=>setTimeout(z,80+Math.random()*250));continue}
-    if(!r.error){SNAP.t[T.id]=jsq(merged);OWN_TS[T.id]=Date.now();const now=tData(T);const fin=merge3(sent,now,merged);if(jsq(fin)!==jsq(now)){applyData(T,fin);softRender()}}
+    if(!r.error){REV[T.id]=Math.max(REV[T.id]||0,rev+1);SNAP.t[T.id]=jsq(merged);OWN_TS[T.id]=Date.now();const now=tData(T);const fin=merge3(sent,now,merged);if(jsq(fin)!==jsq(now)){applyData(T,fin);softRender()}}
     return r}
   return r}
 async function doSave(){
@@ -1223,9 +1223,12 @@ async function load(){
   await loadSession();
 }
 function softRender(){const ae=document.activeElement;const typing=ae&&/^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName);if(typing||location.hash==='#create')return;if(document.getElementById('modal').classList.contains('open')){if(UI.pm){render();refreshPult()}return}render()}
+var REV=REV||{};
 function onRemote(p){
   const r=p.new;if(!r||!r.id)return;if(r.data&&+r.data._v>APP_V){staleReload();return}const i=S.tournaments.findIndex(t=>t.id===r.id);
   if(r.deleted_at){if(i>=0){S.tournaments.splice(i,1);delete SNAP.t[r.id];delete SNAP.own[r.id];softRender()}return}
+  // старые версии (запоздавший ответ или событие) не перезаписывают более новые
+  const rr=r.data?+r.data._r||0:0;if(rr){if(REV[r.id]&&rr<REV[r.id])return;REV[r.id]=Math.max(REV[r.id]||0,rr)}
   if(r.data&&r.data._w&&MYW[r.id]&&MYW[r.id].has(r.data._w))return;
   const T=tFromRow(r),j=jsq(tData(T));if(SNAP.t[r.id]===j&&i>=0)return;
   if(r.club_id===S.session&&i>=0&&SNAP.t[r.id]!==undefined){const cur=S.tournaments[i];const loc=tData(cur);const m=merge3(JSON.parse(SNAP.t[r.id]),loc,tData(T));SNAP.t[r.id]=j;
