@@ -1518,7 +1518,7 @@ function matchBody(T,b){const own=isOwner(T);const m=b.all[0];if(!m)return'';con
     d?`<button class="btn blue" data-act="shareRes">${IC.share||''}Поделиться</button>`:'',
     own&&d?`<button class="btn ghost" data-act="match" data-mid="${m.id}">Счёт и правки</button>`:'',
     own?`<a class="btn ghost" href="#s-${T.id}-${m.id}" target="_blank" rel="noopener">${IC.board||''}Табло</a>`:'',
-    own&&!d?(r.table?`<button class="btn ghost" data-act="obsCopy" data-t="${r.table}">Ссылка для OBS · стол ${r.table}</button>`:`<button class="btn ghost" data-act="obsLinks">Ссылки для OBS</button>`):'',
+    own?`<button class="btn ghost" data-act="obsMatch">Ссылка для OBS</button>`:'',
     own&&!rdy?`<button class="btn ghost" data-act="printM" data-mid="${m.id}">${IC.print||''}Протокол</button>`:''].filter(Boolean).join('');
   return`<div class="mx">${st}<div class="mx-g">${side('a')}<div class="mx-sc"><div><b>${sc('a')}</b><i>:</i><b>${sc('b')}</b></div><small>до ${raceW(T,R)}</small></div>${side('b')}</div>${frH}${acts?`<div class="mx-a">${acts}</div>`:''}</div>`}
 function renderT(T){
@@ -2594,11 +2594,13 @@ function obsName(T,s){if(s.t!=='p')return pname(T,s);const p=T.players.find(x=>x
 function renderObs(x){document.body.classList.add('gonly','obs');document.documentElement.classList.add('obs');
   const i=x.lastIndexOf('-');const cid=x.slice(0,i),k=+x.slice(i+1);const c=S.clubs.find(z=>z.id===cid);
   const logo='<img class="ob-lg" src="logo-video.svg" alt="kazbilliard">';
+  if(x.startsWith('m-')){const T=tById(x.slice(2));const m=T&&T.status!=='reg'&&build(T).all[0];if(!m||!m.res||m.state==='done'&&!m.res)return`<div class="ob">${logo}</div>`;return obsCard(T,m,club(T.clubId)||{},logo)}
   if(!c||!k)return`<div class="ob">${logo}</div>`;
   const L=clubLive(cid).filter(z=>z.m.res.table===k);const z=L.find(y=>y.m.state==='live')||L[0];
   if(!z)return`<div class="ob">${logo}</div>`;
-  const T=z.t,m=z.m,r=m.res,live=m.state==='live';const pa=T.players.find(p=>p.id===m.a.id),pb=T.players.find(p=>p.id===m.b.id);
-  const bl=live&&T.balls&&!isCont(T);const ball=v=>bl?`<span class="ob-b">${v||0}</span>`:'';
+  return obsCard(z.t,z.m,c,logo)}
+function obsCard(T,m,c,logo){const r=m.res||{},live=m.state==='live'||m.state==='done';const pa=T.players.find(p=>p.id===m.a.id),pb=T.players.find(p=>p.id===m.b.id);
+  const bl=m.state==='live'&&T.balls&&!isCont(T);const ball=v=>bl?`<span class="ob-b">${v||0}</span>`:'';
   const mid=live?`<b>${r.sa||0}</b><i>(${mrace(T,m)})</i><b>${r.sb||0}</b>`:'<span>Следующая встреча</span>';
   return`<div class="ob">${logo}<div class="ob-w"><div class="ob-c"><div class="ob-t"><div class="ob-p l"><span class="ob-n">${esc(obsName(T,m.a))}</span>${flagOf(pa)}${ball(r.ba)}</div><div class="ob-sp"></div><div class="ob-p">${ball(r.bb)}${flagOf(pb)}<span class="ob-n">${esc(obsName(T,m.b))}</span></div></div><div class="ob-m">${esc([T.title,c.name].filter(Boolean).join(' · '))}</div></div><div class="ob-s">${mid}</div></div></div>`}
 function fitObs(){const ns=[...document.querySelectorAll('.ob-n')];if(!ns.length)return;let f=1.5625;const over=()=>ns.some(n=>n.scrollWidth>n.clientWidth+1);while(over()&&f>1){f-=.0625;ns.forEach(n=>n.style.fontSize=f+'em')}}
@@ -2831,6 +2833,8 @@ const A={
   uniGo(el){const u=document.querySelector('.uni');if(!u)return;const v=el.dataset.v,ub=u.querySelector('.ub'),po=u.querySelector('.po-start');const X=e=>e.getBoundingClientRect().left-u.getBoundingClientRect().left+u.scrollLeft-20;u.scrollTo({left:v==='lb'?0:v==='wb'?X(ub):X(po),behavior:'smooth'})},
   deView(el){UI.de[el.dataset.id]=el.dataset.v;render()},
   match(el){if(el.classList.contains('hid'))return;openMatch(el.dataset.mid)},
+  obsMatch(){if(!CUR||!isOwner(CUR.T))return;const T=CUR.T;const u=location.origin+'/#tablo-m-'+T.id;const t=`Табло счёта для трансляции — ${T.title}\n${u}\n\nКак добавить в OBS Studio:\n1. Внизу, в окне «Источники», нажмите «+» и выберите «Браузер».\n2. Назовите, например «Табло встречи», нажмите ОК.\n3. В поле «URL» вставьте ссылку выше.\n4. Ширина — 1920, высота — 1080. Нажмите ОК.\n5. В списке источников перетащите табло выше камеры, чтобы оно было поверх видео.\n\nСчёт на табло меняется сам, когда судья вносит его на kazbilliard. Нажимать ничего не нужно.`;
+    const ok=()=>toast('Ссылка для OBS скопирована — с инструкцией');if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok,()=>prompt('Ссылка для OBS',u));else prompt('Ссылка для OBS',u)},
   obsLinks(){if(!CUR||!isOwner(CUR.T))return;openModal(obsLinksHTML(CUR.T))},
   obsCopy(el){if(!CUR)return;const c=club(CUR.T.clubId);const k=+el.dataset.t;const t=obsMsg(c,k);const ok=()=>toast(tlabel(c,k)+': ссылка скопирована');
     if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok,()=>prompt('Ссылка на табло',obsUrl(c.id,k)));else prompt('Ссылка на табло',obsUrl(c.id,k))},
