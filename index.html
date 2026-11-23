@@ -974,7 +974,7 @@ nav.main{gap:8px}nav.main>a{display:inline-flex;align-items:center;gap:8px;heigh
 <footer><span>kazbilliard — турнирная платформа</span></footer>
 <div id="modal"></div>
 <div id="toast"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js" integrity="sha384-A97u3Qnt9GZHURO9YJZRe7VQgGUeFzcv6I1oIGnUTxQrCxnpQMwR0/G8F2zt9abZ" crossorigin="anonymous"></script>
 <script>
 /* ============ constants ============ */
 const LS='kiy-proto-v3';
@@ -1829,7 +1829,7 @@ function listHTML(T){const c=club(T.clubId);const L=[...T.players].sort((a,b)=>(
   return`<div style="font-family:Inter,Arial,sans-serif;color:#111;padding:20px"><img src="logo.svg" alt="kazbilliard" style="height:34px;display:block;margin-bottom:22px"><div style="font-size:11px;color:#777;text-transform:uppercase;letter-spacing:.08em">Список участников</div><div style="font-size:20px;font-weight:700;margin:4px 0 2px">${esc(T.title)}</div><div style="font-size:13px;color:#444;margin-bottom:14px">${esc(c.name||'')} · ${esc(T.discipline)} · ${fdates(T)}</div>
   ${T.pair?`<table style="width:100%;border-collapse:collapse;font-size:13px"><tr>${['№','Пара','Город','Клуб'].map(h=>`<th style="text-align:left;border-bottom:2px solid #111;padding:6px 4px">${h}</th>`).join('')}</tr>${L.map((p,i)=>`<tr>${[T.drawn?(p.no||''):i+1,pairFull(p),p.city,p.club].map(v=>`<td style="border-bottom:1px solid #ccc;padding:6px 4px">${esc(String(v||''))}</td>`).join('')}</tr>`).join('')}</table></div>`:''}${T.pair?'':`<table style="width:100%;border-collapse:collapse;font-size:13px"><tr>${['№','Фамилия, имя','Пол','Г.р.','Страна','Город','Клуб','Звание'].map(h=>`<th style="text-align:left;border-bottom:2px solid #111;padding:6px 4px">${h}</th>`).join('')}</tr>
   ${L.map((p,i)=>`<tr>${[T.drawn?(p.no||''):i+1,p.name,p.sex,byear(p),p.country,p.city,p.club,p.rank].map(v=>`<td style="border-bottom:1px solid #ccc;padding:6px 4px">${esc(String(v||''))}</td>`).join('')}</tr>`).join('')}</table></div>`}`}
-function withExcel(cb){if(window.ExcelJS)return cb();toast('Готовлю файл…');const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';sc.onload=cb;sc.onerror=()=>toast('Не удалось загрузить модуль Excel');document.head.appendChild(sc)}
+function withExcel(cb){if(window.ExcelJS)return cb();toast('Готовлю файл…');const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';sc.integrity='sha384-Pqp51FUN2/qzfxZxBCtF0stpc9ONI6MYZpVqmo8m20SoaQCzf+arZvACkLkirlPz';sc.crossOrigin='anonymous';sc.onload=cb;sc.onerror=()=>toast('Не удалось загрузить модуль Excel');document.head.appendChild(sc)}
 function renderRoster(){
   const el=document.getElementById('rs-list');if(!el||!CUR)return;const T=CUR.T;const c=club(T.clubId);const q=(document.getElementById('rs-q').value||'').trim().toLowerCase();
   const inT=new Set(T.players.map(p=>p.id));
@@ -2784,7 +2784,7 @@ const A={
       const w3=wb.addWorksheet('Участники');w3.columns=[{header:'Посев',width:7},{header:'Игрок',width:28},{header:'Г.р.',width:7},{header:'Город',width:16},{header:'Звание',width:12}];T.players.forEach((p,i)=>w3.addRow([i+1,p.name,byear(p),p.city||'',p.rank||'']));w3.getRow(1).font={bold:true};
       if(b.finished&&b.places){const w4=wb.addWorksheet('Итоги');w4.columns=[{header:'Место',width:9},{header:'Игрок',width:28}];b.places.forEach(p=>p.ids.forEach(id=>w4.addRow([p.from===p.to?String(p.from):p.from+'–'+p.to,pname(T,P(id))])));w4.getRow(1).font={bold:true}}
       const buf=await wb.xlsx.writeBuffer();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));a.download=(T.title||'турнир').replace(/[\\/:*?"<>|]/g,'').slice(0,80)+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000)}catch(e){console.error(e);toast('Не удалось собрать файл')}};
-    if(window.ExcelJS)return go();toast('Готовлю файл…');const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';sc.onload=go;sc.onerror=()=>toast('Не удалось подготовить файл');document.head.appendChild(sc)},
+    if(window.ExcelJS)return go();toast('Готовлю файл…');const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';sc.integrity='sha384-Pqp51FUN2/qzfxZxBCtF0stpc9ONI6MYZpVqmo8m20SoaQCzf+arZvACkLkirlPz';sc.crossOrigin='anonymous';sc.onload=go;sc.onerror=()=>toast('Не удалось подготовить файл');document.head.appendChild(sc)},
   tmenu(el){const id=CUR&&CUR.T.id;UI.tmenu=UI.tmenu===id?null:id;render()},
   psort(el){const k=el.dataset.k,o=UI.psort||{k:'pos',d:1};UI.psort={k,d:o.k===k?-o.d:1};render()},
   zoom(el){const d=+el.dataset.d;setZoom(d?ZOOM+d*.1:1)},
