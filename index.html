@@ -1846,7 +1846,7 @@ function renderResult(T,b){
     return`<div class="empty">Итоговые места появятся после финала.<br>Сыграно матчей: ${done} из ${tot}</div>`;
   }
   const cbar=isOwner(T)?(T.closed?`<div class="cbar done">${IC.lock||''}<span><b>Турнир закрыт</b> — итоги окончательные, правки отключены.</span><button class="lnk" data-act="reopenT">Открыть для правок</button></div>`:`<div class="cbar"><span><b>Все матчи сыграны.</b> Проверьте итоги и закройте турнир — после этого результаты нельзя будет случайно изменить.</span><button class="btn blue sm" data-act="closeAsk">Закрыть турнир</button></div>`):'';
-  return`${cbar}<div class="panel" style="max-width:720px"><div class="ph"><h3>Итоговые места</h3><div class="ptools">${isOwner(T)?`<button data-act="shareRes">${IC.share||IC.print}Поделиться</button><button data-act="printPlaces">${IC.print}Печать</button><button data-act="xlsT">${IC.xls}Excel</button>`:''}</div></div><ul class="places">${b.places.map(p=>`<li><span class="pl">${p.from===p.to?p.from:p.from+'–'+p.to} место</span><span>${p.ids.map(id=>esc(pname(T,P(id)))).join(', ')}${p.label?` <span class="muted">· ${p.label}</span>`:''}</span></li>`).join('')}</ul></div>`;
+  return`${cbar}<div class="panel" style="max-width:720px"><div class="ph"><h3>Итоговые места</h3><div class="ptools"><button data-act="shareRes">${IC.share||IC.print}Поделиться</button>${isOwner(T)?`<button data-act="printPlaces">${IC.print}Печать</button><button data-act="xlsT">${IC.xls}Excel</button>`:''}</div></div><ul class="places">${b.places.map(p=>`<li><span class="pl">${p.from===p.to?p.from:p.from+'–'+p.to} место</span><span>${p.ids.map(id=>esc(pname(T,P(id)))).join(', ')}${p.label?` <span class="muted">· ${p.label}</span>`:''}</span></li>`).join('')}</ul></div>`;
 }
 
 /* ============ cabinet ============ */
@@ -1912,7 +1912,7 @@ const CT_ACTS=({
     const text=c.done<0?`Ничья ${big} · ${c.disc}`:`${c.p[w]} победил ${big} · ${c.disc}`;
     try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text});return}}catch(e){if(e&&e.name==='AbortError')return}
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();toast('Картинка сохранена')},
-  async shareRes(){if(!CUR||!CUR.T||!isOwner(CUR.T))return;const T=CUR.T,b=CUR.b;if(!b||!b.finished)return;toast('Готовлю картинку…');
+  async shareRes(){if(!CUR||!CUR.T)return;const T=CUR.T,b=CUR.b;if(!b||!b.finished)return;toast('Готовлю картинку…');
     const W=1080,H=1350;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
     try{await Promise.all([400,600,700].map(w=>document.fonts.load(w+' 40px Inter')))}catch(e){}
     const img=src=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src});
@@ -1925,7 +1925,7 @@ const CT_ACTS=({
     const wrap=(t,max)=>{const ws=t.split(' '),L=[];let cur='';ws.forEach(w=>{const n=cur?cur+' '+w:w;if(g.measureText(n).width>max&&cur){L.push(cur);cur=w}else cur=n});if(cur)L.push(cur);return L};
     g.fillStyle='#1667FF';g.fillRect(0,0,W,H);
     if(logo)g.drawImage(logo,80,72,64*567/136,64);
-    const c=club(T.clubId),pl=b.places,win=pl[0];const nm=id=>pname(T,P(id));
+    const c=club(T.clubId)||{},pl=b.places,win=pl[0];const nm=id=>pname(T,P(id));
     // winner card
     let y=232;const cx=80,cw=920,ch=427;g.fillStyle='#fff';rr(cx,y,cw,ch,16);g.fill();
     g.fillStyle='#FFF4D6';rr(W/2-56,y+56,112,112,16);g.fill();
