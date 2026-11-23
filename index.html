@@ -961,6 +961,7 @@ nav.main{gap:8px}nav.main>a{display:inline-flex;align-items:center;gap:8px;heigh
 @media(max-width:560px){.pm-bg{grid-template-columns:1fr}}
 .pm-balls{margin:6px -14px 0;padding:12px 14px 6px;border-radius:12px;background:var(--bg)}.pm-balls .pm-row.bl{padding:6px 0}.pm-balls .pm-row.bl+.pm-row.bl{border-top:1px solid var(--line)}.pm-balls .pm-row.bl .pm-n{font-size:14.5px;color:var(--sub)}
 .pm-bn{text-align:center;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}.pm-bh{margin-bottom:2px}.pm-bh b{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.pm-fo{display:flex;align-items:center;gap:8px;margin:8px 0 2px;font-size:13px;color:var(--muted)}.pm-fo>span{white-space:nowrap}.pm-fo select{flex:1;min-width:0;height:36px}.pm-fo input{width:56px;height:36px;text-align:center}.pm-fo select,.pm-fo input{border:1px solid var(--line);border-radius:10px;background-color:#fff;padding:0 10px;font:inherit;color:var(--ink)}
 .pm-bf{display:flex;align-items:center;gap:10px;padding:8px 0 6px;border-top:1px solid var(--line)}.pm-bf>span{font-size:12.5px;color:var(--muted)}.pm-bf .pm-frl{margin:0}.pm-balls .pm-frl span{background:#fff}
 </style>
 </head>
@@ -1120,7 +1121,9 @@ function stFinal(T){return T.stages&&T.stages.final?tById(T.stages.final):null}
 function stagesBuild(T){const F=stFinal(T);const out={all:[],stage:true,finished:false};
   if(F){const fb=build(F);out.finished=fb.finished;out.places=fb.places;out.champ=fb.champ}
   out.liveN=[...stKids(T),...(F?[F]:[])].reduce((a,t)=>a+build(t).all.filter(m=>m.state==='live').length,0);return out}
-function foraOf(T,m){if(!(T.fora||T.foraG)||m.a.t!=='p'||m.b.t!=='p')return null;const pa=T.players.find(p=>p.id===m.a.id),pb=T.players.find(p=>p.id===m.b.id);if(!pa||!pb)return null;
+const foN=(r,k)=>r&&r.fo&&r.fo.s===k?(+r.fo.n||0):0;
+function foraOf(T,m){const rf=m.res&&m.res.fo;if(rf&&rf.n>0&&(rf.s==='a'||rf.s==='b')&&m[rf.s]&&m[rf.s].t==='p'){const p=T.players.find(x=>x.id===m[rf.s].id);if(p)return{n:rf.n,id:p.id,p}}
+  if(!(T.fora||T.foraG)||m.a.t!=='p'||m.b.t!=='p')return null;const pa=T.players.find(p=>p.id===m.a.id),pb=T.players.find(p=>p.id===m.b.id);if(!pa||!pb)return null;
   if(T.foraG){if(!pa.grp||!pb.grp||pa.grp===pb.grp)return null;const v=T.foraG[pa.grp+'|'+pb.grp]||T.foraG[pb.grp+'|'+pa.grp];if(!v||!v.n)return null;const r=v.to===pa.grp?pa:v.to===pb.grp?pb:null;return r?{n:v.n,id:r.id,p:r}:null}
   const ia=LVLS.indexOf(pa.lvl),ib=LVLS.indexOf(pb.lvl);if(ia<0||ib<0||ia===ib)return null;const n=T.fora[LVLS[Math.min(ia,ib)]+'|'+LVLS[Math.max(ia,ib)]];
   return n?{n,id:ia<ib?pa.id:pb.id,p:ia<ib?pa:pb}:null}
@@ -2486,6 +2489,8 @@ function pmFrames(T,m,off,rdy){const r=m.res||{};const fr=frOf(r);
   const chips=fr.some(frBalls)?`<div class="pm-frl"><span class="pm-frh">Партии</span>${fr.map((f,i)=>`<span class="${f.w}" title="Партия ${i+1}">${frBalls(f)?`${f.a}:${f.b}`:'—'}</span>`).join('')}</div>`:'';
   if(!T.balls)return`<div class="pm-bon">${sw(false)}<span class="mut2 pm-bh2">для официальных турниров</span></div>${chips}`;
   return`<div class="pm-bon bm">${sw(true)}<span class="pm-cap">партии</span><span class="pm-cap b">шары · партия ${fr.length+1} до ${FB}</span></div>${chips}`}
+function pmFoHTML(T,m,r,off){const f=r.fo||{};const n=+f.n||2;
+  return`<div class="pm-fo"><span>Фора, шаров</span><select id="pm-fos" data-act="pmFo" data-mid="${m.id}" ${off?'disabled':''}><option value="" ${f.s?'':'selected'}>без форы</option><option value="a" ${f.s==='a'?'selected':''}>${esc(sname(pname(T,m.a)))}</option><option value="b" ${f.s==='b'?'selected':''}>${esc(sname(pname(T,m.b)))}</option></select><input id="pm-fon" type="number" inputmode="numeric" min="1" max="${FB-1}" value="${n}" aria-label="Шаров форы" data-act="pmFo" data-mid="${m.id}" ${off?'disabled':''}></div>`}
 function pultHTML(T,m){const r=m.res||{};const c=club(T.clubId);const n=c.tables||6;const busy=busyTables(T.clubId,m.id);
   const stg=CUR&&CUR.b?stageMap(CUR.b)[m.id]:'';
   const fo=foraOf(T,m);const stg2=(stg||'')+(fo?(stg?' · ':'')+'фора '+fo.n+' — '+sname(fo.p.name):'');
@@ -2498,7 +2503,7 @@ function pultHTML(T,m){const r=m.res||{};const c=club(T.clubId);const n=c.tables
   const opts=rdy?free:free.concat(r.table?[r.table]:[]).sort((x,y)=>x-y);
   const tbl=opts.length?`<select id="pm-t" ${rdy?'':`data-act="pmTable" data-mid="${m.id}"`}>${opts.map(k=>`<option value="${k}" ${k===r.table?'selected':''}>№${k}${tvOf(T,k)?' · ТВ':''}</option>`).join('')}</select>`:'<b class="pm-v">все заняты</b>';
   const chip=rdy?'<span class="pm-chip ok">на очереди</span>':r.paused?'<span class="pm-chip">пауза</span>':'<span class="pm-chip live">● играют</span>';
-  return`<div class="pm">${head(chip)}${row('a')}${row('b')}${isCont(T)?'':pmFrames(T,m,off,rdy)}
+  return`<div class="pm">${head(chip)}${row('a')}${row('b')}${isCont(T)?'':pmFrames(T,m,off,rdy)}${BM&&!rdy?pmFoHTML(T,m,r,off):''}
   <div class="pm-grid"><label><span>Стол</span>${tbl}</label><label><span>${raceL(T)}</span><input id="pm-r" type="number" inputmode="numeric" min="1" max="${isCont(T)?999:25}" value="${R}" data-act="pmRace" data-mid="${m.id}"></label>
   ${rdy?`<label style="grid-column:1/-1"><span>Трансляция встречи</span><input id="pm-vid" type="url" inputmode="url" placeholder="https://youtube.com/…"></label>`:`<label><span>Начало</span><input type="time" value="${hhmm(mstart(r))}" data-act="pmStart" data-mid="${m.id}"></label><label><span>Длительность</span><b class="pm-v">${mdur(r)}</b></label><label style="grid-column:1/-1"><span>Трансляция встречи</span><input type="url" inputmode="url" placeholder="https://youtube.com/…" value="${esc(r.video||'')}" data-act="pmVideo" data-mid="${m.id}"></label>`}</div>
   ${rdy?`<label class="chk sm pm-ap"><input type="checkbox" data-act="autoPr" ${T.autoPrint?'checked':''}><span>Печатать протокол при начале</span></label>`:''}
@@ -2517,7 +2522,7 @@ function protoFrames(T,m,r,d){const fr=frOf(r);const R=mrace(T,m);const max=2*R-
   return`<table style="width:100%;border-collapse:collapse;margin-top:22px;table-layout:fixed"><tr><td style="${th};text-align:left;width:34%">Партии · до ${FB} шаров</td>${cols.map(i=>`<td style="${th}">${i+1}</td>`).join('')}</tr>
   <tr><td style="font-size:13px;padding:4px 8px 4px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(sname(pname(T,m.a)))}</td>${cols.map(i=>cell(fr[i],'a')).join('')}</tr>
   <tr><td style="font-size:13px;padding:4px 8px 4px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(sname(pname(T,m.b)))}</td>${cols.map(i=>cell(fr[i],'b')).join('')}</tr></table>`}
-function protoHTML(T,m){const r=m.res||{};const c=club(T.clubId);const stg=CUR&&CUR.b?stageMap(CUR.b)[m.id]:'';const d=m.state==='done';
+function protoHTML(T,m){const r=m.res||{};const c=club(T.clubId);const fo0=foraOf(T,m);let stg=CUR&&CUR.b?stageMap(CUR.b)[m.id]:'';stg=(stg||'')+(fo0?(stg?' · ':'')+'фора '+fo0.n+' — '+sname(fo0.p.name):'');const d=m.state==='done';
   const lab='font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6E6E6E';
   const winId=d&&m.winner&&m.winner.t==='p'&&!(r.tp==='both')?m.winner.id:null;
   const stamp='<span style="display:inline-block;transform:rotate(-8deg);border:2.5px solid #1667FF;border-radius:8px;padding:3px;color:#1667FF"><span style="display:block;border:1px solid #1667FF;border-radius:5px;padding:5px 12px;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;line-height:1">Победитель</span></span>';
@@ -2608,7 +2613,7 @@ function prPromo(){if(!S.session)return'';const x=S.sub||{};
 /* ============ modal ============ */
 function openModal(html){const m=document.getElementById('modal');m.innerHTML=`<div class="dlg">${html}</div>`;m.classList.add('open');setTimeout(addEyes,0)}
 function closeModal(){UI.pm=null;UI.pmRace=null;UI.pmConfirm=null;UI.tpM=null;UI.tpSel=null;const m=document.getElementById('modal');m.classList.remove('open');m.innerHTML=''}
-function viewMatchHTML(T,b,m){const r=m.res||{};const c=club(T.clubId);const sm=stageMap(b);const stg=sm[m.id]||'';const d=m.state==='done',lv=m.state==='live';
+function viewMatchHTML(T,b,m){const r=m.res||{};const c=club(T.clubId);const sm=stageMap(b);const fo0=foraOf(T,m);let stg=sm[m.id]||'';stg+=(fo0?(stg?' · ':'')+'фора '+fo0.n+' — '+sname(fo0.p.name):'');const d=m.state==='done',lv=m.state==='live';
   const pl=id=>T.players.find(p=>p.id===id)||{};const win=d&&m.winner&&m.winner.t==='p'&&r.tp!=='both'?m.winner.id:null;
   const chip=lv?'<span class="mv-chip live">● идёт</span>':d?'<span class="mv-chip">завершён</span>':m.state==='ready'?'<span class="mv-chip ok">на очереди</span>':'';
   const ic=d2=>`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d2}</svg>`;
@@ -2670,6 +2675,10 @@ const A={
   callT(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m)return;const k=+el.dataset.t;if(busyTables(T.clubId).has(k)){toast('Стол уже занят');return}
     T.results[m.id]={a:m.a.id,b:m.b.id,sa:0,sb:0,live:true,done:false,table:k,ts:Date.now(),start:Date.now()};save();render();refreshPult();toast(`Матч начат за столом ${k}`);if(T.autoPrint)printProtos(T,[m.id])},
   startM(el){const t=document.getElementById('pm-t');if(!t)return;const {T}=CUR;const vi=document.getElementById('pm-vid');const vv=vi?normUrl(vi.value):'';if(vv&&!okUrl(vv)){toast('Проверьте ссылку');return}const pr=UI.pmRace&&UI.pmRace.mid===el.dataset.mid?UI.pmRace.v:0;UI.pmRace=null;A.callT({dataset:{mid:el.dataset.mid,t:t.value}});const r=T.results[el.dataset.mid];if(r&&vv){r.video=vv.slice(0,300)}if(r&&(vv||(pr&&pr!==T.raceTo))){if(pr&&pr!==T.raceTo)r.race=pr;save();render();refreshPult()}},
+  pmFo(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res||!isOwner(T))return;const r=T.results[m.id];if(r.done)return;
+    const s=(document.getElementById('pm-fos')||{}).value||'';let n=Math.floor(+((document.getElementById('pm-fon')||{}).value)||0);n=Math.max(0,Math.min(FB-1,n));
+    const oa=foN(r,'a'),ob=foN(r,'b');if(s&&n)r.fo={s,n};else delete r.fo;const da=foN(r,'a')-oa,db=foN(r,'b')-ob;
+    r.ba=Math.max(0,Math.min(FB-1,(r.ba||0)+da));r.bb=Math.max(0,Math.min(FB-1,(r.bb||0)+db));save();render();refreshPult();toast(r.fo?'Фора: '+n+' — '+sname(pname(T,m[s])):'Фора убрана')},
   pmTable(el){const {T}=CUR;const r=T.results[el.dataset.mid];const k=+el.value;if(!r||!k)return;if(busyTables(T.clubId,el.dataset.mid).has(k)){toast('Стол уже занят');refreshPult();return}r.table=k;save();render();refreshPult();toast('Матч перенесён на стол '+k)},
   pmRace(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m)return;const v=Math.max(1,Math.min(isCont(T)?999:25,Math.floor(+el.value||0)));const r=T.results[m.id];
     if(!r){UI.pmRace={mid:m.id,v};el.value=v;return}
@@ -2680,13 +2689,13 @@ const A={
     r.done=true;r.live=false;r.end=r.ts=Date.now();if(!r.start)r.start=prev.ts;if(Math.max(r.sa,r.sb)<R)r.forced=true;else delete r.forced;const w=r.sa>r.sb?m.a:m.b;
     UI.undo={tid:T.id,mid:m.id,prev,text:`Матч №${m.no} завершён · ${sname(pname(T,w))} ${Math.max(r.sa,r.sb)}:${Math.min(r.sa,r.sb)}`};clearTimeout(A._u);A._u=setTimeout(()=>{UI.undo=null;if(UI.pm===m.id)refreshPult()},30000)},
   sc(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.paused||r.done)return;const k='s'+el.dataset.side;const R=r.race||T.raceTo;const prev=Object.assign({},r);if(r.call){r.call=false;r.live=true}
-    r[k]=Math.max(0,Math.min(R,r[k]+(+el.dataset.d)));if(!isCont(T)){syncFr(r);if(+el.dataset.d>0){r.ba=0;r.bb=0}}
+    r[k]=Math.max(0,Math.min(R,r[k]+(+el.dataset.d)));if(!isCont(T)){syncFr(r);if(+el.dataset.d>0){r.ba=foN(r,'a');r.bb=foN(r,'b')}}
     if(r[k]===R&&r.sa!==r.sb)A._fin(T,m,r,prev);
     save();render();refreshPult()},
   pmScore(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.paused||r.done)return;const R=r.race||T.raceTo;const prev=Object.assign({},r);r['s'+el.dataset.side]=Math.max(0,Math.min(R,Math.floor(+el.value||0)));if(!isCont(T))syncFr(r);if((r.sa===R||r.sb===R)&&r.sa!==r.sb)A._fin(T,m,r,prev);save();render();refreshPult()},
   bl(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.paused||r.done)return;const sd=el.dataset.side,k='b'+sd;const prev=JSON.parse(JSON.stringify(r));if(r.call){r.call=false;r.live=true}
-    r.ba=r.ba||0;r.bb=r.bb||0;r[k]=Math.max(0,Math.min(FB,r[k]+(+el.dataset.d)));
-    if(r[k]===FB){r.fr=r.fr||[];r.fr.push({w:sd,a:r.ba,b:r.bb});r['s'+sd]=Math.min(mrace(T,m),(r['s'+sd]||0)+1);r.ba=0;r.bb=0;toast(`Партия ${r.fr.length}: ${r.fr[r.fr.length-1].a} : ${r.fr[r.fr.length-1].b}`);
+    r.ba=r.ba||0;r.bb=r.bb||0;r[k]=Math.max(foN(r,sd),Math.min(FB,r[k]+(+el.dataset.d)));
+    if(r[k]===FB){r.fr=r.fr||[];r.fr.push({w:sd,a:r.ba,b:r.bb});r['s'+sd]=Math.min(mrace(T,m),(r['s'+sd]||0)+1);r.ba=foN(r,'a');r.bb=foN(r,'b');toast(`Партия ${r.fr.length}: ${r.fr[r.fr.length-1].a} : ${r.fr[r.fr.length-1].b}`);
       const R=r.race||T.raceTo;if(r['s'+sd]===R&&r.sa!==r.sb)A._fin(T,m,r,prev)}
     save();render();refreshPult()},
   ballsOn(){const T=CUR.T;if(!isOwner(T))return;T.balls=!T.balls;if(T.balls&&!isCont(T))Object.values(T.results||{}).forEach(r=>{if(r&&!r.done&&(r.live||r.call))syncFr(r)});save();render();refreshPult()},
@@ -2989,7 +2998,7 @@ Object.assign(A,AA);
 document.addEventListener('click',e=>{if(UI.tmenu&&!(e.target.closest&&e.target.closest('.tmenu'))){UI.tmenu=null;render()}if(UI.acc&&!(e.target.closest&&e.target.closest('.acc-w'))){UI.acc=false;render()}
   if(e.target.id==='modal'){closeModal();return}
   const el=e.target.closest('[data-act]');if(!el)return;const a=el.dataset.act;if(a==='openT'&&e.target.closest('a'))return;
-  if(a==='fmt'||a==='seedMode'||a==='callSel'||a==='pmTable'||a==='pmRace'||a==='pmScore'||a==='pmStart'||a==='pmVideo'||a==='autoPr')return;
+  if(a==='fmt'||a==='seedMode'||a==='callSel'||a==='pmFo'||a==='pmTable'||a==='pmRace'||a==='pmScore'||a==='pmStart'||a==='pmVideo'||a==='autoPr')return;
   if(A[a]){e.preventDefault();A[a](el)}
 });
 document.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.logo){logoFile(t);return}if(t.id==='ad-month'){AD.month=t.value;render();return}setTimeout(()=>{const w1=document.getElementById('w-ov');if(w1&&UI.wiz)w1.innerHTML=ovHTML(UI.wiz.date,UI.wiz.dateEnd,'');const e1=document.getElementById('e-ov');if(e1&&CUR&&CUR.T){const g=i=>{const x=document.getElementById(i);return x?x.value:''};e1.innerHTML=ovHTML(g('e-date'),g('e-end'),CUR.T.id)}},0);const wz=t.dataset&&t.dataset.w==='date';if(t.id==='e-date'||wz){const en=document.querySelector(wz?'[data-w=dateEnd]':'#e-end');if(en){en.min=t.value;if(en.value&&t.value&&en.value<t.value){en.value=t.value;if(wz&&UI.wiz)UI.wiz.dateEnd=t.value}}if(wz&&UI.wiz)UI.wiz.date=t.value}
@@ -2998,7 +3007,7 @@ document.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.
   const a=e.target.dataset&&e.target.dataset.act;
   if(a==='fmt')A.fmt();
   if(a==='seedMode'){CUR.T.seedMode=e.target.value;save()}
-  if(a==='pmTable'||a==='pmRace'||a==='pmScore'||a==='pmStart'||a==='pmVideo')A[a](e.target);
+  if(a==='pmFo'||a==='pmTable'||a==='pmRace'||a==='pmScore'||a==='pmStart'||a==='pmVideo')A[a](e.target);
   if(a==='callSel'&&e.target.value){A.callT({dataset:{mid:e.target.dataset.mid,t:e.target.value}})}
 });
 document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.ct==='disc')A.ctDisc(e.target);if(e.target.dataset&&e.target.dataset.act==='autoPr')A.autoPr(e.target);if(e.target.dataset&&e.target.dataset.dr&&UI.dr)A.drawIn(e.target);if(e.target.dataset&&e.target.dataset.tpr&&UI.tpSel)UI.tpSel.reason=e.target.value;if(e.target.dataset&&e.target.dataset.sch&&UI.sch)A.schIn(e.target);if(e.target.dataset&&e.target.dataset.dn!=null&&UI.dm){UI.dm.nums[e.target.dataset.dn]=e.target.value;drawCheck();return}if(e.target.dataset&&e.target.dataset.spov!=null&&UI.sp){UI.sp.ov[e.target.dataset.spov]=e.target.value;openModal(splitHTML(CUR.T));return}if(e.target.dataset&&e.target.dataset.fnto!=null&&UI.fn){A.fnTo(e.target);return}if(e.target.dataset&&e.target.dataset.spn!=null&&UI.sp){UI.sp.names[+e.target.dataset.spn]=e.target.value;setTimeout(()=>{if(UI.sp)openModal(splitHTML(CUR.T))});return}if(e.target.dataset&&e.target.dataset.sp&&UI.sp){UI.sp.k=+e.target.value;openModal(splitHTML(CUR.T))}if(e.target.dataset&&e.target.dataset.fn&&UI.fn){UI.fn.third=e.target.checked}});
