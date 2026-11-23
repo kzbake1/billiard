@@ -1066,7 +1066,7 @@ function buildDE(ctx,ids){
 }
 function maybeDraw(T){
   if(T.format!=='de'||!T.draw||T.poPerm||T.status==='reg')return false;
-  const b=build(T);if(!b.K||![...b.up,...b.low].every(s=>s.t==='p'))return false;
+  const b=build(T);if(!b.K||![...b.up,...b.low].every(s=>s.t==='p'||s.t==='bye'))return false;
   const met=new Set();b.all.forEach(m=>{if(m.state==='done')met.add(m.a.id+'|'+m.b.id).add(m.b.id+'|'+m.a.id)});
   const h=b.K/2;let best=null,bs=1e9;
   for(let k=0;k<200&&bs>0;k++){const p=[...Array(h).keys()];for(let i=h-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[p[i],p[j]]=[p[j],p[i]]}
@@ -1110,6 +1110,7 @@ function build(T){
   else if(T.format==='de'){Object.assign(out,buildDE(ctx,ids));out.finished=out.stop?(out.q||[...out.up,...out.low]).every(s=>s.t==='p'):out.K?out.champ.t==='p':out.final.winner.t==='p'}
   else if(T.format==='rr'){const g=buildRR(ctx,ids,'r');out.groups=[Object.assign({name:'Таблица'},g)];out.finished=g.complete}
   else{Object.assign(out,buildGP(ctx,T,ids));out.finished=out.champ.t==='p'}
+  if(!out.finished&&T.format!=='rr'&&ctx.all.length&&!ctx.all.some(m=>m.state==='ready'||m.state==='wait'||m.state==='live'))out.finished=true;
   if(out.finished&&out.third&&out.third.state!=='done'&&out.third.state!=='bye')out.finished=false;
   if(out.finished)out.places=computePlaces(T,out);
   return out;
@@ -1125,11 +1126,11 @@ function foraOf(T,m){if(!(T.fora||T.foraG)||m.a.t!=='p'||m.b.t!=='p')return null
   return n?{n,id:ia<ib?pa.id:pb.id,p:ia<ib?pa:pb}:null}
 function computePlaces(T,b){
   const res=[];let place=1;
-  const add=(ids,label)=>{if(!ids.length)return;res.push({from:place,to:place+ids.length-1,ids,label});place+=ids.length};
+  const add=(ids,label)=>{ids=ids.filter(Boolean);if(!ids.length)return;res.push({from:place,to:place+ids.length-1,ids,label});place+=ids.length};
   const losersOf=rd=>rd.matches.map(m=>m.loser).filter(s=>s.t==='p').map(s=>s.id);
   const po=()=>{const rs=b.rounds;for(let i=rs.length-1;i>=0;i--){if(b.third&&i===rs.length-2)[b.third.winner,b.third.loser].filter(x=>x.t==='p').forEach(x=>add([x.id]));else add(losersOf(rs[i]))}};
   if(T.format==='rr'){b.groups[0].standings.forEach(r=>add([r.id]));return res}
-  if(T.format==='de'){if(b.stop){add((b.q||[...b.up,...b.low]).map(s=>s.id),'вышли в финал');if(b.q)[...b.rounds].reverse().forEach(rd=>add(losersOf(rd)))}else if(b.K){add([b.champ.id]);po()}else{add([b.final.winner.id]);add(losersOf({matches:[b.final]}))}[...b.lb].reverse().forEach(rd=>add(losersOf(rd)));return res}
+  if(T.format==='de'){if(b.stop){add((b.q||[...b.up,...b.low]).filter(s=>s.t==='p').map(s=>s.id),'вышли в финал');if(b.q)[...b.rounds].reverse().forEach(rd=>add(losersOf(rd)))}else if(b.K){add([b.champ.id]);po()}else{add([b.final.winner.id]);add(losersOf({matches:[b.final]}))}[...b.lb].reverse().forEach(rd=>add(losersOf(rd)));return res}
   add([b.champ.id]);po();
   if(T.format==='gp'){const maxP=Math.max(...b.groups.map(g=>g.standings.length));
     for(let p=b.K+1;p<=maxP;p++)add(b.groups.map(g=>g.standings[p-1]).filter(Boolean).map(r=>r.id),'не вышли из группы')}
@@ -2888,7 +2889,7 @@ const A={
     const gc=Math.max(2,Math.floor(+g('f-gc')||2)),ga=Math.max(1,Math.floor(+g('f-ga')||1));
     const T={id:uid(),title,clubId:S.session,city:g('f-city'),discipline:g('f-disc'),format,raceTo,date:g('f-date'),status:'reg',players:[],applications:[],results:{},seedMode:'list',groups:{count:gc,advance:ga},createdAt:Date.now()};
     S.tournaments.unshift(T);save();UI.tab[T.id]='people';go('t-'+T.id);toast('Турнир создан — добавьте игроков')},
-  addP(){const T=CUR.T,c=club(T.clubId);const v=id=>document.getElementById(id).value.trim();const e=document.getElementById('np-err');
+  addP(){const T=CUR.T,c=club(T.clubId);if(T.status!=='reg'){toast('Турнир уже идёт — состав менять нельзя');return}const v=id=>document.getElementById(id).value.trim();const e=document.getElementById('np-err');
     const last=v('np-last'),first=v('np-first'),birth=v('np-birth'),y=+birth;
     if(!last||!first){e.textContent='Введите фамилию и имя';return}if(birth&&!(y>=1920&&y<=new Date().getFullYear())){e.textContent='Проверьте год рождения';return}
     const x={sex:v('np-sex'),country:v('np-country'),club:v('np-club'),lvl:v('np-lvl')};
@@ -2900,8 +2901,8 @@ const A={
   drawOpen(){UI.dm=null;openModal(drawHTML(CUR.T))},
   drawMan(){const T=CUR.T;UI.dm={nums:{}};if(T.drawn)T.players.forEach(p=>{if(p.no)UI.dm.nums[p.id]=p.no});openModal(drawHTML(T));drawCheck()},
   drawBack(){UI.dm=null;openModal(drawHTML(CUR.T))},
-  drawManSave(){const T=CUR.T;if(!isOwner(T)||!drawCheck())return;T.players.forEach(p=>{p.no=+UI.dm.nums[p.id];p.seed=false});T.players.sort((a,b)=>a.no-b.no);T.drawn=true;T.seeds=0;UI.psort={k:'pos',d:1};UI.dm=null;save();closeModal();render();toast('Жеребьёвка сохранена')},
-  drawApply(){const T=CUR.T;UI.dm=null;const a=T.players.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  drawManSave(){const T=CUR.T;if(!isOwner(T)||T.status!=='reg'||!drawCheck())return;T.players.forEach(p=>{p.no=+UI.dm.nums[p.id];p.seed=false});T.players.sort((a,b)=>a.no-b.no);T.drawn=true;T.seeds=0;UI.psort={k:'pos',d:1};UI.dm=null;save();closeModal();render();toast('Жеребьёвка сохранена')},
+  drawApply(){const T=CUR.T;if(T.status!=='reg')return;UI.dm=null;const a=T.players.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
     a.forEach((p,i)=>{p.no=i+1;p.seed=false});T.players=a;T.drawn=true;T.seeds=0;UI.psort={k:'pos',d:1};save();closeModal();render();toast('Жеребьёвка проведена')},
   addQuals(el){const T=CUR.T;if(!isOwner(T)||T.status!=='reg')return;const t=tById(el.dataset.id);if(!t)return;let n=0;stQuals(t).forEach(p=>{if(T.players.some(x=>x.id===p.id))return;const c=Object.assign({},p);delete c.no;delete c.seed;delete c.grp;T.players.push(pub(c));n++});save();render();toast('Добавлено: '+n)},
   splitOpen(){const T=CUR.T;UI.tmenu=null;const hasL=new Set(T.players.map(p=>p.lvl).filter(Boolean)).size>1;UI.sp={by:hasL?'lvl':'man',k:4,race:T.raceTo||4,age:21,names:['Группа 1','Группа 2'],ov:{}};openModal(splitHTML(T))},
@@ -2927,7 +2928,7 @@ const A={
     const last=v('ep-last'),first=v('ep-first'),y=+v('ep-birth');const yb=v('ep-birth');if(!last||!first){e.textContent='Введите фамилию и имя';return}if(yb&&!(y>=1920&&y<=new Date().getFullYear())){e.textContent='Проверьте год рождения';return}
     const upd={last,first,name:last+' '+first,sex:v('ep-sex'),birth:yb?String(y):'',country:v('ep-country'),city:v('ep-city'),club:v('ep-club'),rank:v('ep-rank'),lvl:v('ep-lvl')};Object.assign(p,upd);
     const r=(c.roster||[]).find(x=>x.id===p.id);if(r)Object.assign(r,upd);save();closeModal();render();toast('Сохранено')},
-  drawT(){const T=CUR.T;const a=T.players.map((p,i)=>i+1);for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  drawT(){const T=CUR.T;if(T.status!=='reg')return;const a=T.players.map((p,i)=>i+1);for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
     T.players.forEach((p,i)=>p.no=a[i]);T.players.sort((x,y)=>x.no-y.no);T.drawn=true;UI.psort={k:'pos',d:1};save();render();toast('Жеребьёвка проведена')},
   schOpen(){const T=CUR.T;UI.tmenu=null;UI.sch={stop:!!T.stopAt&&!T.parent,stopN:+T.stopAt||0,third:!!T.third,format:T.format||'de',playoff:T.playoff===undefined?'auto':T.playoff,gc:(T.groups&&T.groups.count)||4,ga:(T.groups&&T.groups.advance)||2,race:isCont(T)&&(T.raceTo||0)<10?50:(T.raceTo||4)};if(UI.sch.format==='de'&&!playoffK({playoff:UI.sch.playoff},T.players.length)){UI.sch.format='de';UI.sch.playoff='auto';if(!playoffK({playoff:'auto'},T.players.length))UI.sch.format='se'}if(document.querySelector('.pop'))render();openModal(schHTML(T))},
   schIn(el){const u=UI.sch,k=el.dataset.sch;if(k==='grid'){const [f,p]=el.value.split(':');u.format=f;if(f==='de')u.playoff=+p;openModal(schHTML(CUR.T));return}u[k]=k==='third'||k==='stop'?el.checked:k==='playoff'?(el.value==='auto'?'auto':+el.value):el.value;openModal(schHTML(CUR.T))},
@@ -2950,7 +2951,7 @@ const A={
     ws.columns=[['№',6],['Фамилия',18],['Имя',14],['Пол',6],['Год',8],['Страна',14],['Город',14],['Клуб',18],['Звание',10]].map(([header,width])=>({header,width}));ws.getRow(1).font={bold:true};
     [...T.players].sort((a,b)=>(a.no||1e9)-(b.no||1e9)).forEach((p,i)=>ws.addRow([T.drawn?(p.no||''):i+1,p.last,p.first,p.sex||'',byear(p),p.country||'',p.city||'',p.club||'',p.rank||'']));
     const buf=await wb.xlsx.writeBuffer();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));a.download=('Участники '+T.title).replace(/[\\/:*?"<>|]/g,'')+'.xlsx';a.click()}catch(err){toast('Не удалось сохранить файл')}})},
-  impList(){const f=document.getElementById('imp-file');if(!f)return;f.value='';f.onchange=()=>{const file=f.files[0];if(!file)return;withExcel(async()=>{try{const T=CUR.T,c=club(T.clubId);const wb=new ExcelJS.Workbook();await wb.xlsx.load(await file.arrayBuffer());const ws=wb.worksheets[0];
+  impList(){const f=document.getElementById('imp-file');if(!f)return;f.value='';f.onchange=()=>{const file=f.files[0];if(!file)return;withExcel(async()=>{try{const T=CUR.T,c=club(T.clubId);if(T.status!=='reg'){toast('Турнир уже идёт — состав менять нельзя');return}const wb=new ExcelJS.Workbook();await wb.xlsx.load(await file.arrayBuffer());const ws=wb.worksheets[0];
       const hdr={};ws.getRow(1).eachCell((cell,i)=>{const h=String(cell.text||'').toLowerCase();[['last','фамил'],['first','имя'],['sex','пол'],['birth','год'],['birth','рожд'],['country','стран'],['city','город'],['club','клуб'],['rank','звани']].forEach(([k,w])=>{if(h.includes(w)&&!hdr[k])hdr[k]=i})});
       if(!hdr.last||!hdr.first){toast('В первой строке нужны колонки «Фамилия» и «Имя»');return}let ok=0,skip=0;
       ws.eachRow((row,ri)=>{if(ri===1)return;const g=k=>hdr[k]?String(row.getCell(hdr[k]).text||'').trim():'';const last=g('last'),first=g('first');if(!last||!first)return;
