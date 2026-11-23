@@ -2594,7 +2594,7 @@ function obsName(T,s){if(s.t!=='p')return pname(T,s);const p=T.players.find(x=>x
 function renderObs(x){document.body.classList.add('gonly','obs');document.documentElement.classList.add('obs');
   const i=x.lastIndexOf('-');const cid=x.slice(0,i),k=+x.slice(i+1);const c=S.clubs.find(z=>z.id===cid);
   const logo='<img class="ob-lg" src="logo-video.svg" alt="kazbilliard">';
-  if(x.startsWith('m-')){const T=tById(x.slice(2));const m=T&&T.status!=='reg'&&build(T).all[0];if(!m||!m.res||m.state==='done'&&!m.res)return`<div class="ob">${logo}</div>`;return obsCard(T,m,club(T.clubId)||{},logo)}
+  if(x.startsWith('m-')){const T=tById(x.slice(2));const m=T&&T.status!=='reg'&&build(T).all[0];if(!m||m.a.t!=='p'||m.b.t!=='p')return`<div class="ob">${logo}</div>`;return obsCard(T,m,club(T.clubId)||{},logo)}
   if(!c||!k)return`<div class="ob">${logo}</div>`;
   const L=clubLive(cid).filter(z=>z.m.res.table===k);const z=L.find(y=>y.m.state==='live')||L[0];
   if(!z)return`<div class="ob">${logo}</div>`;
