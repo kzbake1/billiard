@@ -1518,6 +1518,7 @@ function matchBody(T,b){const own=isOwner(T);const m=b.all[0];if(!m)return'';con
     d?`<button class="btn blue" data-act="shareRes">${IC.share||''}Поделиться</button>`:'',
     own&&d?`<button class="btn ghost" data-act="match" data-mid="${m.id}">Счёт и правки</button>`:'',
     own?`<a class="btn ghost" href="#s-${T.id}-${m.id}" target="_blank" rel="noopener">${IC.board||''}Табло</a>`:'',
+    own&&!d?(r.table?`<button class="btn ghost" data-act="obsCopy" data-t="${r.table}">Ссылка для OBS · стол ${r.table}</button>`:`<button class="btn ghost" data-act="obsLinks">Ссылки для OBS</button>`):'',
     own&&!rdy?`<button class="btn ghost" data-act="printM" data-mid="${m.id}">${IC.print||''}Протокол</button>`:''].filter(Boolean).join('');
   return`<div class="mx">${st}<div class="mx-g">${side('a')}<div class="mx-sc"><div><b>${sc('a')}</b><i>:</i><b>${sc('b')}</b></div><small>до ${raceW(T,R)}</small></div>${side('b')}</div>${frH}${acts?`<div class="mx-a">${acts}</div>`:''}</div>`}
 function renderT(T){
