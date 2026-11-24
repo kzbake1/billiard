@@ -1318,7 +1318,7 @@ const tById=id=>S.tournaments.find(t=>t.id===id);
 const club=id=>S.clubs.find(c=>c.id===id)||{name:'—',city:''};
 const isOwner=T=>S.session&&S.session===T.clubId;
 function tStatus(T,b){if(T.status==='reg')return'reg';return(b||build(T)).finished?'done':'live'}
-const ST_LABEL={reg:'Скоро',live:'Идёт',done:'Завершён'};const mNo=(T,m)=>T&&T.match?'Встреча':mNo(T,m);
+const ST_LABEL={reg:'Скоро',live:'Идёт',done:'Завершён'};const mNo=(T,m)=>T&&T.match?'Встреча':'Матч №'+m.no;
 function pname(T,slot){if(slot.t==='p'){const p=T.players.find(p=>p.id===slot.id);return p?p.name:'?'}if(slot.t==='bye')return'—';return slot.label||'…'}
 function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('on'),2000)}
 function go(h){if(location.hash==='#'+h)render();else location.hash=h}
@@ -1681,7 +1681,7 @@ function hlPlayer(pid){if(pid===HL)return;HL=pid;
       const prev=round.previousElementSibling;if(prev&&round.classList.contains('instub')&&prev.querySelector('.win'+sel))slot.classList.add('hli')})})}
 (function(){const hov=()=>!window.matchMedia||window.matchMedia('(hover:hover)').matches;const rowOf=e=>e.target&&e.target.closest&&e.target.closest('.zm .m .row[data-pid]');
   document.addEventListener('mouseover',e=>{if(!hov())return;const r=rowOf(e);hlPlayer(r?r.dataset.pid:null)});
-  document.addEventListener('click',e=>{if(hov())return;const n=e.target.closest&&e.target.closest('.zm .m .row[data-pid] .n');if(n){e.stopPropagation();e.preventDefault();const p=n.parentElement.dataset.pid;hlPlayer(HL===p?null:p)}else if(HL&&!(e.target.closest&&e.target.closest('.zoomer')))hlPlayer(null)},true);
+  document.addEventListener('click',e=>{if(hov())return;if(CUR&&CUR.T&&isOwner(CUR.T)){if(HL)hlPlayer(null);return}const n=e.target.closest&&e.target.closest('.zm .m .row[data-pid] .n');if(n){e.stopPropagation();e.preventDefault();const p=n.parentElement.dataset.pid;hlPlayer(HL===p?null:p)}else if(HL&&!(e.target.closest&&e.target.closest('.zoomer')))hlPlayer(null)},true);
 })();
 const FLOW={};
 function flow(T){const key=T.id+'|'+T.players.map(p=>p.id).join(',')+'|'+T.playoff+'|'+(T.poPerm||'');if(FLOW[T.id]&&FLOW[T.id].key===key)return FLOW[T.id];
