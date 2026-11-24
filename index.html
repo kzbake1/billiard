@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>kazbilliard — бильярдные турниры</title>
 <meta name="description" content="Первая казахстанская платформа бильярдных турниров: сетка, счёт и столы онлайн.">
 <meta property="og:title" content="kazbilliard — бильярдные турниры">
@@ -975,6 +975,7 @@ nav.main{gap:8px}nav.main>a{display:inline-flex;align-items:center;gap:8px;heigh
 @media(max-width:600px){.mx{padding:18px 18px;gap:14px}.mx-g{grid-template-columns:1fr;gap:0}.mx-sc{display:none}.mx-p,.mx-p.a{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;text-align:left;column-gap:14px;row-gap:4px;padding:14px 0}.mx-p.b{border-top:1px solid var(--line)}.mx-p>*{grid-column:1;justify-self:start}.mx-p b{font-size:19px}.mx-p span{font-size:13px}.mx-p .mx-n{display:block;grid-column:2;grid-row:1/span 4;justify-self:end;font-size:44px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}.mx-p.lose .mx-n{color:var(--muted);font-weight:600}.mx-a .btn{flex:1 1 calc(50% - 10px);justify-content:center}}
 .hl-sc{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .tcard.guest{background:var(--bg);border-style:dashed}.tcard.guest .tc-e{color:var(--muted)}.tc-g{margin-top:8px;font-size:12.5px;color:var(--muted)}.tc-g button{background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}@media (pointer:coarse){input,select,textarea{font-size:16px!important}}
 .pm-bf{display:flex;align-items:center;gap:10px;padding:8px 0 6px;border-top:1px solid var(--line)}.pm-bf>span{font-size:12.5px;color:var(--muted)}.pm-bf .pm-frl{margin:0}.pm-balls .pm-frl span{background:#fff}
 </style>
 </head>
@@ -1667,8 +1668,9 @@ function setZoom(z,cx,cy){z=Math.round(Math.min(1.5,Math.max(.4,z))*100)/100;if(
       const t=e.touches,cx=(t[0].clientX+t[1].clientX)/2,cy=(t[0].clientY+t[1].clientY)/2,r=el.getBoundingClientRect();
       P={el,d0:dist(t),z0:ZOOM,k:1,cx,cy,ox:cx-r.left,oy:cy-r.top};if(el.classList.contains('zt'))el.parentElement.style.overflow='visible';{const u=el.closest('.uni,.bracket')||b;if(u){const ur=u.getBoundingClientRect();P.u=u;u.style.minHeight=Math.max(ur.height,innerHeight-Math.max(ur.top,0))+'px'}}if(!el.classList.contains('zt'))el.style.transformOrigin=((cx-r.left)/r.width*100)+'% '+((cy-r.top)/r.height*100)+'%';if(el.classList.contains('zt'))el.style.willChange='transform'}else end()},{passive:true});
   document.addEventListener('touchmove',e=>{if(P&&e.touches.length===2){e.preventDefault();P.k=Math.min(1.5,Math.max(.4,P.z0*dist(e.touches)/P.d0))/P.z0;P.el.style.transform=P.el.classList.contains('zt')?'translate('+(P.ox*(1-P.k))+'px,'+(P.oy*(1-P.k))+'px) scale('+(P.z0*P.k)+')':'scale('+P.k+')'}},{passive:false});
+  document.addEventListener('touchmove',e=>{if(e.touches.length>1&&!inB(e))e.preventDefault()},{passive:false});document.addEventListener('gestureend',e=>{if(!inB(e))e.preventDefault()});
   document.addEventListener('touchend',end,{passive:true});document.addEventListener('touchcancel',end,{passive:true});
-  let g0=1;document.addEventListener('gesturestart',e=>{if(touch){if(inB(e))e.preventDefault();return}if(inB(e)){e.preventDefault();g0=ZOOM}});document.addEventListener('gesturechange',e=>{if(touch){if(inB(e))e.preventDefault();return}if(inB(e)){e.preventDefault();setZoom(g0*e.scale,e.clientX,e.clientY)}});
+  let g0=1;document.addEventListener('gesturestart',e=>{if(!inB(e)){e.preventDefault();return}if(touch){if(inB(e))e.preventDefault();return}if(inB(e)){e.preventDefault();g0=ZOOM}});document.addEventListener('gesturechange',e=>{if(!inB(e)){e.preventDefault();return}if(touch){if(inB(e))e.preventDefault();return}if(inB(e)){e.preventDefault();setZoom(g0*e.scale,e.clientX,e.clientY)}});
 })();
 let HL=null;
 function hlPlayer(pid){if(pid===HL)return;HL=pid;
