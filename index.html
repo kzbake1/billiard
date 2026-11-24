@@ -812,7 +812,7 @@ body.admv nav.main{flex:1;margin-left:0;gap:16px;align-self:stretch}body.admv .a
 .uni .mir .round.conn .pair.join.hlb::after{border-width:0 0 2px 2px}
 .uni-sz{margin:0 auto;overflow:hidden;position:relative}
 .uni .bracket{width:max-content;flex:0 0 auto}.uni .round{flex-shrink:0}
-.uni .uni-in.zt{transform-origin:0 0;margin:0}
+.uni .uni-in.zt{transform-origin:0 0;margin:0}.bk-in.zt{transform-origin:0 0;margin:0;width:max-content}.bracket>.uni-sz{margin:0}
 .dr-ch{display:grid;gap:10px;margin:4px 0 8px}.dr-ch button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:16px 18px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;font:inherit}.dr-ch button:hover{border-color:var(--accent)}.dr-ch b{font-size:16px}.dr-ch span{font-size:13px;color:var(--muted)}
 .dr-t{margin:0 0 10px;font-size:14px}.dr-l{display:flex;flex-direction:column;gap:6px;max-height:min(52vh,460px);overflow:auto;padding-right:4px}.dr-r{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 6px 6px 12px;border:1px solid var(--line);border-radius:10px}.dr-r span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dr-r input{width:76px;height:40px;text-align:center;flex:none;-moz-appearance:textfield}.dr-r input::-webkit-inner-spin-button,.dr-r input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}.dr-r.bad{border-color:#C8462E;background:#FDF1EE}
 .dr-st{min-height:20px;margin:10px 0 0;font-size:13px;color:#C8462E}.dr-st .ok{color:#1E7B46}
@@ -1637,7 +1637,7 @@ function bracketHTML(T,rounds,opt){opt=opt||{};
     const hid=m=>false;
     return`<div class="round${nx?' conn':''}${i>0?' instub':''}${opt.po===i?' po-start':''}"><div class="round-title">${rd.title}<small>${rd.sub||'&nbsp;'}</small></div><div class="round-body">${groups.map(g=>`<div class="pair${join&&!g.some(hid)?' join':''}">${g.map(m=>`<div class="slot${hid(m)?' hid':''}"><div class="sw">${mCard(T,m,opt.mk&&opt.mk[m.no])}${opt.cap&&opt.cap(m,i)?`<div class="cap">${opt.cap(m,i)}</div>`:''}</div></div>`).join('')}</div>`).join('')}${opt.extra&&i===rounds.length-1?`<div class="p3abs">${opt.extra}</div>`:''}</div></div>`}).join('');
   const inU=opt.cls==='mir'||opt.cls==='ub';
-  return inU?`<div class="bracket ${opt.cls}">${rs}</div>`:`<div class="bracket${opt.cls?' '+opt.cls:''}"><div class="bk-in zm" style="zoom:${ZOOM}${opt.extra&&rounds.length<=2?';padding-bottom:170px':''}">${rs}</div></div>`;
+  return inU?`<div class="bracket ${opt.cls}">${rs}</div>`:(ztQ(),`<div class="bracket${opt.cls?' '+opt.cls:''}"><div class="uni-sz"><div class="bk-in zm zt" style="transform:scale(${ZOOM})${opt.extra&&rounds.length<=2?';padding-bottom:170px':''}">${rs}</div></div></div>`);
 }
 function sidePanels(T,b){
   const live=b.all.filter(m=>m.state==='live'),ready=b.all.filter(m=>m.state==='ready').slice(0,5);
@@ -1655,7 +1655,7 @@ function standingsHTML(T,g,K){
 let ZOOM=1;try{ZOOM=Math.min(1.5,Math.max(.4,+localStorage.getItem('kb-zoom')||1))}catch(e){}
 function zoomCtl(){return`<div class="zoomer"><button data-act="zoom" data-d="-1" aria-label="Уменьшить">−</button><button class="zv" data-act="zoom" data-d="0" title="Сбросить масштаб">${Math.round(ZOOM*100)}%</button><button data-act="zoom" data-d="1" aria-label="Увеличить">+</button></div>`}
 function setZoom(z,cx,cy){z=Math.round(Math.min(1.5,Math.max(.4,z))*100)/100;if(z===ZOOM)return;const r=z/ZOOM;ZOOM=z;
-  document.querySelectorAll('.zm').forEach(e=>{const p=e.classList.contains('zt')?e.closest('.uni'):e.parentElement,pr=p.getBoundingClientRect(),er=e.getBoundingClientRect();
+  document.querySelectorAll('.zm').forEach(e=>{const p=e.classList.contains('zt')?e.closest('.uni,.bracket'):e.parentElement,pr=p.getBoundingClientRect(),er=e.getBoundingClientRect();
     const zt=e.classList.contains('zt'),vs=zt&&p.scrollHeight>p.clientHeight+2,fx=cx==null?pr.left+p.clientWidth/2:cx,fy=cy==null&&vs?Math.max(pr.top,0)+Math.min(p.clientHeight,innerHeight)/2:cy,dx=fx-er.left,dy=fy==null?0:fy-er.top;
     if(e.classList.contains('zt')){e.style.transform='scale('+z+')';ztFit(e)}else e.style.zoom=z;const e2=e.getBoundingClientRect();p.scrollLeft+=e2.left+dx*r-fx;if(fy!=null){if(vs)p.scrollTop+=e2.top+dy*r-fy;else window.scrollBy(0,e2.top+dy*r-fy)}});
   document.querySelectorAll('.zoomer .zv').forEach(e=>e.textContent=Math.round(z*100)+'%');try{localStorage.setItem('kb-zoom',z)}catch(e){}}
@@ -1689,6 +1689,7 @@ function flow(T){const key=T.id+'|'+T.players.map(p=>p.id).join(',')+'|'+T.playo
   b.all.forEach(m=>[m.a,m.b].forEach(x=>{if(x.t!=='tbd')return;const k=/^(Поб|Пр)\. №(\d+)$/.exec(x.label||'');if(k)(k[1]==='Поб'?w:l)[k[2]]=m.no}));
   return FLOW[T.id]={key,w,l,full:!b.all.some(m=>m.state==='bye')}}
 const UNI_X={};
+let ZTQ=0;function ztQ(){if(ZTQ)return;ZTQ=requestAnimationFrame(()=>{ZTQ=0;document.querySelectorAll('.zt').forEach(ztFit)})}
 function ztFit(e){const w=e.parentElement;if(!w||!w.classList.contains('uni-sz'))return;const z=+(String(e.style.transform).match(/scale\(([\d.]+)\)/)||[0,1])[1];w.style.width=e.offsetWidth*z+'px';w.style.height=e.offsetHeight*z+'px'}
 function uniInit(){const el=document.querySelector('.uni');if(!el)return;el.querySelectorAll('.uni .bracket').forEach(bk=>{const rs=[...bk.children].filter(c=>c.classList.contains('round'));if(rs.length)bk.style.width=(rs.reduce((x,c)=>x+c.offsetWidth,0)+28*(rs.length-1))+'px'});el.querySelectorAll('.zt').forEach(ztFit);const k=el.dataset.id;if(UNI_X[k]==null){const ub=el.querySelector('.ub');UNI_X[k]=Math.max(0,ub.getBoundingClientRect().left-el.getBoundingClientRect().left+el.scrollLeft-130*ZOOM)}el.scrollLeft=UNI_X[k];el.onscroll=()=>{UNI_X[k]=el.scrollLeft}}
 function uniHTML(T,b){const f=flow(T);const L=b.lb.length;const pl=[];let p=b.K+1;for(let i=L-1;i>=0;i--){const n=b.lb[i].matches.length;pl[i]=n>1?p+'–'+(p+n-1):''+p;p+=n}
