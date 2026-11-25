@@ -996,7 +996,7 @@ html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:10
 .tp-pr span{font-size:32px;font-weight:500;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
 .tp-f{list-style:none;margin:0;padding:12px 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}.tp-f li{display:flex;justify-content:space-between;gap:10px;font-size:14px}.tp-f span{color:var(--muted)}.tp-f b{font-weight:500;font-variant-numeric:tabular-nums}
 .tp-c .btn{margin-top:auto;width:100%;justify-content:center}
-.adm-tabs,body.admv .adm-tabs{gap:4px;align-items:center}.adm-tabs a,body.admv .adm-tabs a{align-self:center;height:36px;padding:0 12px;margin:0;border-bottom:0;border-radius:10px;display:flex;align-items:center;font-size:15px;font-weight:500;color:var(--sub)}.adm-tabs a:hover,body.admv .adm-tabs a:hover{color:var(--ink)}.adm-tabs a.on,body.admv .adm-tabs a.on{background:var(--accent-soft);color:var(--accent-ink);font-weight:600}
+.adm-tabs a.rk,body.admv .adm-tabs a.rk{align-self:center;height:36px;padding:0 12px;margin:0 0 0 4px;border-bottom:0;border-radius:10px;background:var(--accent-soft);color:var(--accent-ink);font-weight:600}
 </style>
 </head>
 <body>
@@ -2170,7 +2170,7 @@ function remindLink(c,s){const r=AD.sub[c.id]||{};if(!r.contact_phone)return'';c
    :`${hi} Подписка kazbilliard для клуба «${c.name}» заканчивается ${fds(s.end)}. Чтобы не прерываться, продлите её — просто ответьте на это сообщение.`;
   return waLink(r.contact_phone)+'?text='+encodeURIComponent(t)}
 function adTop(cur){const T=[['','Обзор'],['clubs','Клубы'],['pays','Оплаты'],['money','Деньги'],['plans','Тарифы'],['promo','Промокоды'],['tours','Турниры'],['players','Игроки'],['ads','Реклама']];
-  AD.nav=`<nav class="adm-tabs">${T.map(([k,l])=>`<a href="#admin${k?'/'+k:''}" class="${cur===k?'on':''}">${l}</a>`).join('')}</nav><div class="adm-me"><span>${esc(S.email)}</span><button class="btn sm ghost" data-act="logout">Выйти</button></div>`;return''}
+  AD.nav=`<nav class="adm-tabs">${T.map(([k,l])=>`<a href="#admin${k?'/'+k:''}" class="${cur===k?'on':''}${k==='ads'?' rk':''}">${l}</a>`).join('')}</nav><div class="adm-me"><span>${esc(S.email)}</span><button class="btn sm ghost" data-act="logout">Выйти</button></div>`;return''}
 function renderAdmin(){
   if(!S.admin){
     if(!S.adminExists)return`<div style="max-width:520px"><h1>Первый запуск</h1><p class="muted lead">Создайте администратора платформы. Код установки вам передали вместе со ссылкой на сайт.</p>
