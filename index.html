@@ -1014,7 +1014,9 @@ const normUrl=u=>{u=(u||'').trim();if(u&&!/^https?:\/\//i.test(u))u='https://'+u
 function fdates(T){const a=T.date,b=T.dateEnd;if(!b||b===a)return fdate(a);const [y1,m1,d1]=a.split('-'),[y2,m2,d2]=b.split('-');
   if(y1===y2&&m1===m2)return +d1+'–'+(+d2)+' '+MONTHS[+m1-1]+' '+y1;if(y1===y2)return +d1+' '+MONTHS[+m1-1]+' – '+(+d2)+' '+MONTHS[+m2-1]+' '+y1;return fdate(a)+' – '+fdate(b)}
 
-const isPub=T=>T.parent?isPub(tById(T.parent)||{}):T.pub!==false;
+// тестовый клуб (для test.kazbilliard.com) и его турниры видны только ему самому
+let TESTC=new Set();const testHidden=id=>TESTC.has(id)&&id!==S.session;
+const isPub=T=>T.parent?isPub(tById(T.parent)||{}):T.pub!==false&&!testHidden(T.clubId);
 const inList=T=>isPub(T)&&!T.parent;
 const fdate=d=>{if(!d)return'';const [y,m,dd]=d.split('-');return +dd+' '+MONTHS[+m-1]+' '+y};
 
@@ -1260,14 +1262,14 @@ async function loadSession(){
   const [mc,ad]=await Promise.all([sb.rpc('my_club'),sb.rpc('is_admin')]);
   S.admin=!!ad.data;if(S.admin&&PUB_KB&&!mc.data){S.admin=false;S.adminOff=true;await sb.auth.signOut({scope:'local'});S.email='';return}
   S.sub=null;if(mc.data){sb.rpc('my_subscription').then(r=>{S.sub=r.data?cleanData(r.data):null;if(location.hash==='#cabinet'||location.hash==='#price')render()});}
-  if(mc.data){let c=S.clubs.find(x=>x.id===mc.data);if(!c){const q=await sb.from('club').select('id,name,city,tables,floors,address,phone,instagram,tiktok,logo').eq('id',mc.data).maybeSingle();if(q.data){c=Object.assign({roster:[]},cleanData(q.data));S.clubs.push(c)}}if(c){S.session=c.id;const pl=await loadPlayers();PL_T=Date.now();c.roster=pl||[];SNAP.players=pl?Object.fromEntries(pl.map(p=>[p.id,JSON.stringify(pub(p))])):null;
+  if(mc.data){let c=S.clubs.find(x=>x.id===mc.data);if(!c){const q=await sb.from('club').select('id,name,city,tables,floors,address,phone,instagram,tiktok,logo,is_test').eq('id',mc.data).maybeSingle();if(q.data){c=Object.assign({roster:[]},cleanData(q.data));S.clubs.push(c)}}if(c){S.session=c.id;const pl=await loadPlayers();PL_T=Date.now();c.roster=pl||[];SNAP.players=pl?Object.fromEntries(pl.map(p=>[p.id,JSON.stringify(pub(p))])):null;
     SNAP.club=JSON.stringify([c.name,c.city,c.tables,c.address,c.phone,c.instagram,c.tiktok,c.logo,c.floors||[]]);}}
   SNAP.own={};S.tournaments.forEach(T=>{if(T.clubId===S.session)SNAP.own[T.id]=1});
 }
 async function load(){
-  const [c,t,ae]=await Promise.all([sb.from('club').select('id,name,city,tables,floors,address,phone,instagram,tiktok,logo').is('deleted_at',null).order('created_at'),sb.from('tournament').select('id,club_id,data').is('deleted_at',null).order('created_at',{ascending:false}).limit(300),sb.rpc('admin_exists')]);
+  const [c,t,ae]=await Promise.all([sb.from('club').select('id,name,city,tables,floors,address,phone,instagram,tiktok,logo,is_test').is('deleted_at',null).order('created_at'),sb.from('tournament').select('id,club_id,data').is('deleted_at',null).order('created_at',{ascending:false}).limit(300),sb.rpc('admin_exists')]);
   if(c.error||t.error)throw (c.error||t.error);
-  S.clubs=c.data.map(x=>Object.assign({roster:[]},cleanData(x)));S.tournaments=t.data.map(tFromRow);S.adminExists=ae.data!==false;
+  TESTC=new Set(c.data.filter(x=>x.is_test===true).map(x=>x.id));S.clubs=c.data.map(x=>Object.assign({roster:[]},cleanData(x)));S.tournaments=t.data.map(tFromRow);S.adminExists=ae.data!==false;
   SNAP.t={};S.tournaments.forEach(T=>SNAP.t[T.id]=jsq(tData(T)));
   await loadSession();pendRestore();
 }
@@ -1497,7 +1499,7 @@ function renderClub(c){
   (live.length?sec('Сейчас идут',live.length,`<div class="hlist">${hHead('Статус',1)}${live.map(x=>hLiveRow(x.T,x.b)).join('')}</div>`):'')+
   (cols.length?`<div class="hcols${cols.length===1?' one':''}">${cols.join('')}</div>`:'')+
   (all.length?'':`<div class="empty">Клуб пока не проводил турниров на kazbilliard.</div>`)}
-function homeClubs(){const cs=S.clubs.filter(c=>c.name);if(!cs.length)return'';
+function homeClubs(){const cs=S.clubs.filter(c=>c.name&&!testHidden(c.id));if(!cs.length)return'';
   return`<section class="hs"><div class="hs-h"><h2>Клубы</h2><span>${cs.length}</span></div><div class="hlist">${cs.map(c=>{
     const nx=S.tournaments.filter(t=>inList(t)&&t.clubId===c.id&&(t.status==='reg'||(t.status==='live'&&!build(t).finished))).sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0];
     return`<div class="hclub"><div class="hcl-m"><b>${cLink(c)}</b><span>${esc([c.city,c.address].filter(Boolean).join(', '))}${c.tables?` · ${c.tables} стол${plural(c.tables)}`:''}</span>${nx?`<a class="hc-nx" href="#t-${nx.id}">${nx.status==='live'?'Идёт':'Скоро'}: ${esc(nx.title)} · ${esc(fdate(nx.date))}</a>`:''}</div>
@@ -1523,7 +1525,7 @@ function renderFind(){const el=document.getElementById('find-res');if(!el)return
   out.sort((x,y)=>x.rank-y.rank||(y.T.date||'').localeCompare(x.T.date||''));
   const hit=t=>{t=(t||'').toLowerCase();return t.includes(q)};const SR={live:0,reg:1,done:2};
   const ts=S.tournaments.filter(isPub).filter(T=>!T.parent&&(hit(T.title)||hit(club(T.clubId).name)||hit(T.city))).sort((a,b)=>SR[tStatus(a)]-SR[tStatus(b)]||(b.date||'').localeCompare(a.date||'')).slice(0,6);
-  const cs=S.clubs.filter(c=>c.name&&(hit(c.name)||hit(c.city)||hit(c.address))).slice(0,4);
+  const cs=S.clubs.filter(c=>c.name&&!testHidden(c.id)&&(hit(c.name)||hit(c.city)||hit(c.address))).slice(0,4);
   const cHtml=cs.length?`<div class="fr-h">Клубы</div>${cs.map(c=>{const n=S.tournaments.filter(t=>inList(t)&&t.clubId===c.id).length;return`<a class="fr-i sh" href="#c-${c.id}"><div><b>${esc(c.name)}</b><span>${esc([c.city,c.address].filter(Boolean).join(', '))}</span></div><em>${n?n+' турнир'+plural(n):'клуб'}</em></a>`}).join('')}`:'';
   const tl={live:['live','Идёт'],reg:['ok','Скоро'],done:['','Завершён']};
   const tHtml=ts.length?`<div class="fr-h">Турниры</div>${ts.map(T=>{const st=tStatus(T);return`<a class="fr-i sh" href="#t-${T.id}"><div><b>${esc(T.title)}</b><span>${esc(club(T.clubId).name)} · ${esc(T.city||'')} · ${esc(fdates(T))}</span></div><em class="${tl[st][0]}">${tl[st][1]}</em></a>`}).join('')}`:'';
