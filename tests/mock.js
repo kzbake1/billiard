@@ -21,7 +21,7 @@ function RPC(n,a){const isA=!!user&&user.id==='u-admin';
  if(n==='set_club_sub'){let r=DB.club_admin.find(x=>x.club_id===a.p_club);if(!r){r={club_id:a.p_club,status:'ok',contact_name:'',contact_phone:'',admin_note:''};DB.club_admin.push(r)}r[a.p_field]=a.p_value===''&&/until/.test(a.p_field)?null:a.p_value;return{data:{ok:true}}}
  return{data:null}}
 let user=null;const USERS={'club@x.kz':{id:'u-club',pass:'12345678'},'admin@x.kz':{id:'u-admin',pass:'12345678'}};
-function q(t){const st={t,f:[],op:'select',single:false};const api={select(){return api},is(k,v){st.f.push(r=>r[k]===v);return api},eq(k,v){st.f.push(r=>r[k]===v);return api},order(){return api},maybeSingle(){st.single=true;return api},
+function q(t){const st={t,f:[],op:'select',single:false};const api={select(){return api},is(k,v){st.f.push(r=>r[k]===v);return api},eq(k,v){st.f.push(r=>r[k]===v);return api},order(){return api},limit(){return api},maybeSingle(){st.single=true;return api},
  insert(v){st.op='insert';st.v=v;return api},range(){return api},upsert(v){st.op='upsert';st.v=v;return api},update(v){st.op='update';st.v=v;return api},
  then(res){let out;const rows=DB[t].filter(r=>st.f.every(f=>f(r)));
   if(st.op==='insert'){if(t==='promo'&&st.v.used==null)st.v.used=0;if(JSON.stringify(st.v).match(/"birth":"\d{4}-/)){out={error:{message:'check'}}}else{DB[t].push(Object.assign({deleted_at:null},st.v));out={error:null}}}

@@ -1265,7 +1265,7 @@ async function loadSession(){
   SNAP.own={};S.tournaments.forEach(T=>{if(T.clubId===S.session)SNAP.own[T.id]=1});
 }
 async function load(){
-  const [c,t,ae]=await Promise.all([sb.from('club').select('id,name,city,tables,floors,address,phone,instagram,tiktok,logo').is('deleted_at',null).order('created_at'),sb.from('tournament').select('id,club_id,data').is('deleted_at',null),sb.rpc('admin_exists')]);
+  const [c,t,ae]=await Promise.all([sb.from('club').select('id,name,city,tables,floors,address,phone,instagram,tiktok,logo').is('deleted_at',null).order('created_at'),sb.from('tournament').select('id,club_id,data').is('deleted_at',null).order('created_at',{ascending:false}).limit(300),sb.rpc('admin_exists')]);
   if(c.error||t.error)throw (c.error||t.error);
   S.clubs=c.data.map(x=>Object.assign({roster:[]},cleanData(x)));S.tournaments=t.data.map(tFromRow);S.adminExists=ae.data!==false;
   SNAP.t={};S.tournaments.forEach(T=>SNAP.t[T.id]=jsq(tData(T)));
@@ -1344,7 +1344,10 @@ function demo(){
 /* ============ helpers ============ */
 const UI={de:{},tab:{},filter:{status:'all',disc:'all',q:''},confirm:null,showApp:false};
 let CUR=null; // {T,b}
-const tById=id=>S.tournaments.find(t=>t.id===id);
+// грузим только последние 300 турниров; старый турнир по ссылке догружаем отдельно
+const NEEDT={};function needT(id){if(!sb||NEEDT[id]||!/^[a-z0-9]{6,16}$/.test(String(id)))return;NEEDT[id]=1;
+  sb.from('tournament').select('id,club_id,data,deleted_at').eq('id',id).is('deleted_at',null).maybeSingle().then(({data})=>{if(data)onRemote({new:data})}).catch(()=>{})}
+const tById=id=>S.tournaments.find(t=>t.id===id)||(needT(id),undefined);
 const club=id=>S.clubs.find(c=>c.id===id)||{name:'—',city:''};
 const isOwner=T=>S.session&&S.session===T.clubId;
 function tStatus(T,b){if(T.status==='reg')return'reg';return(b||build(T)).finished?'done':'live'}

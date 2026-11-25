@@ -19,7 +19,7 @@ module.exports=async(req,res)=>{
         desc=parts.join(' · ')||desc}}
   }catch(e){}
   const host=/^([a-z0-9-]+\.)?kazbilliard\.com$/.test(String(req.headers&&req.headers.host||''))?req.headers.host:'kazbilliard.com';
-  const url='https://'+host+'/t/'+id,img='https://'+host+'/p/'+id+'-'+(sk||'x').replace(/[^a-z]/g,'')+'.png';
+  const url='https://'+host+'/t/'+id,img='https://'+host+'/p/'+id+'-'+((sk||'').replace(/[^a-z]/g,'')||'x')+'.png';
   // мессенджеры ждут картинку недолго: для их роботов заранее собираем её, чтобы она уже лежала в кэше
   if(/WhatsApp|facebookexternalhit|TelegramBot|Twitterbot|vkShare|Slackbot|Viber/i.test(String(req.headers&&req.headers['user-agent']||''))){try{await Promise.race([fetch(img),new Promise(z=>setTimeout(z,6000))])}catch(e){}}
   const fs=require('fs'),path=require('path');let page=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
