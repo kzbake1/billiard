@@ -8,13 +8,15 @@ async function get(path){try{const r=await fetch(SB+'/rest/v1/'+path,{headers:{a
 const b64=s=>{let b='';const u=new TextEncoder().encode(s);for(let i=0;i<u.length;i++)b+=String.fromCharCode(u[i]);return btoa(b)};
 export async function GET(req){
   const u=new URL(req.url),base=u.origin;
-  const id=String(u.searchParams.get('id')||String(u.searchParams.get('n')||'').split('-')[0]).replace(/[^a-z0-9]/g,'').slice(0,40);
+  const nm=u.searchParams.get('n')||(u.pathname.startsWith('/p/')?decodeURIComponent(u.pathname.slice(3)):'');
+  const id=String(u.searchParams.get('id')||nm.split('-')[0]).replace(/[^a-z0-9]/g,'').slice(0,40);
   let title='Бильярдные турниры',top='kazbilliard.com',info='',st='',stc='#1667FF';
   // рисуем только существующий турнир и только по одному «правильному» адресу — лишние хвостики в адресе не заставят сервер рисовать заново
   const [t]=id?await get('tournament?select=data,club_id&deleted_at=is.null&id=eq.'+id):[];
   if(!t||!t.data)return new Response(null,{status:302,headers:{Location:base+'/og.png','Cache-Control':'public, s-maxage=300'}});
   const want=id+'-'+(String(t.data.status||'').replace(/[^a-z]/g,'')||'x')+'.png',keys=[...u.searchParams.keys()];
-  if(!(keys.length===1&&keys[0]==='n'&&u.searchParams.get('n')===want))return new Response(null,{status:302,headers:{Location:base+'/p/'+want,'Cache-Control':'public, s-maxage=60'}});
+  const extra=keys.filter(k=>!(k==='n'||(k==='name'&&u.searchParams.get('name')===nm)));
+  if(nm!==want||extra.length)return new Response(null,{status:302,headers:{Location:base+'/p/'+want,'Cache-Control':'public, s-maxage=60'}});
   {
     {const d=t.data;const [c]=await get('club?select=name,city&id=eq.'+encodeURIComponent(t.club_id));
       title=d.title||title;const tp=[];
