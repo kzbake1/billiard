@@ -8,7 +8,7 @@ async function get(path){try{const r=await fetch(SB+'/rest/v1/'+path,{headers:{a
 const b64=s=>{let b='';const u=new TextEncoder().encode(s);for(let i=0;i<u.length;i++)b+=String.fromCharCode(u[i]);return btoa(b)};
 export async function GET(req){
   const u=new URL(req.url),base=u.origin;
-  const id=String(u.searchParams.get('id')||'').replace(/[^a-z0-9]/g,'').slice(0,40);
+  const id=String(u.searchParams.get('id')||String(u.searchParams.get('n')||'').split('-')[0]).replace(/[^a-z0-9]/g,'').slice(0,40);
   let title='Бильярдные турниры',top='kazbilliard.com',info='',st='',stc='#1667FF';
   if(id){const [t]=await get('tournament?select=data,club_id&deleted_at=is.null&id=eq.'+id);
     if(t&&t.data){const d=t.data;const [c]=await get('club?select=name,city&id=eq.'+encodeURIComponent(t.club_id));
