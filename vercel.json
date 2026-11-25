@@ -35,6 +35,10 @@
   ],
   "rewrites": [
     {
+      "source": "/p/:name",
+      "destination": "/api/og?n=:name"
+    },
+    {
       "source": "/t/:id",
       "destination": "/api/t?id=:id"
     },
