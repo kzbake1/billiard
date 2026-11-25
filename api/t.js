@@ -20,15 +20,14 @@ module.exports=async(req,res)=>{
   }catch(e){}
   const host=/^([a-z0-9-]+\.)?kazbilliard\.com$/.test(String(req.headers&&req.headers.host||''))?req.headers.host:'kazbilliard.com';
   const url='https://'+host+'/t/'+id,img='https://'+host+'/api/og?id='+id+'&s='+encodeURIComponent(sk);
+  const fs=require('fs'),path=require('path');let page=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
+  const T=esc(title),D=esc(desc);
+  page=page.replace(/<title>[^<]*<\/title>/,'<title>'+T+' — kazbilliard</title>')
+    .replace(/<meta name="description" content="[^"]*">/g,'<meta name="description" content="'+D+'">')
+    .replace(/<meta property="og:title" content="[^"]*">/g,'<meta property="og:title" content="'+T+'">')
+    .replace(/<meta property="og:description" content="[^"]*">/g,'<meta property="og:description" content="'+D+'">')
+    .replace(/<meta property="og:image" content="[^"]*">/g,'<meta property="og:image" content="'+img+'">')
+    .replace('<meta property="og:type" content="website">','<meta property="og:type" content="website"><meta property="og:url" content="'+url+'"><meta property="og:image:type" content="image/png">');
   res.setHeader('Content-Type','text/html; charset=utf-8');
-  res.setHeader('Cache-Control','public, s-maxage=60, stale-while-revalidate=300');
-  res.status(200).send(`<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><title>${esc(title)}</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="${esc(desc)}">
-<meta property="og:site_name" content="kazbilliard"><meta property="og:type" content="website">
-<meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
-<meta property="og:url" content="${url}"><meta property="og:image" content="${img}"><meta property="og:image:type" content="image/png">
-<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="/favicon.svg"><meta http-equiv="refresh" content="0;url=${to}">
-<script>location.replace(${JSON.stringify(to)})</script></head><body><a href="${to}">${esc(title)}</a></body></html>`)};
+  res.setHeader('Cache-Control','public, s-maxage=30, stale-while-revalidate=30');
+  res.status(200).send(page)};

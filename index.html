@@ -1393,7 +1393,11 @@ let RENDER_N=0;
 const EYE='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg>',EYEOFF='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c4.7 0 8.71 2.93 10.04 7a10.75 10.75 0 0 1-1.44 2.65"/><path d="M14.08 14.16a3 3 0 1 1-4.24-4.24"/><path d="M17.48 17.5A10.75 10.75 0 0 1 2 12a10.75 10.75 0 0 1 4.52-5.5"/><path d="m2 2 20 20"/></svg>';
 function addEyes(){document.querySelectorAll('input[type=password]:not([data-eye])').forEach(i=>{i.dataset.eye='1';const w=document.createElement('span');w.className='pw-w';i.parentNode.insertBefore(w,i);w.appendChild(i);const b=document.createElement('button');b.type='button';b.className='pw-eye';b.setAttribute('aria-label','Показать пароль');b.innerHTML=EYE;b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const sh=i.type==='password';i.type=sh?'text':'password';b.innerHTML=sh?EYEOFF:EYE;b.setAttribute('aria-label',sh?'Скрыть пароль':'Показать пароль')});w.appendChild(b)})}
 function tabsIntoView(){const t=document.querySelector('.tabs .on');if(t&&t.parentElement.scrollWidth>t.parentElement.clientWidth){const p=t.parentElement;p.scrollLeft=Math.max(0,t.offsetLeft-p.clientWidth/2+t.offsetWidth/2)}}
-function render(){RENDER_N++;setTimeout(()=>{tabsIntoView();addEyes()},0);
+// адрес страницы турнира — kazbilliard.com/t/<id>: его можно скопировать из адресной строки, WhatsApp покажет карточку турнира
+function syncPath(){try{const h=location.hash.slice(1),pth=location.pathname;if(pth!=='/'&&!pth.startsWith('/t/'))return;
+  const m=/^t-([a-z0-9]+)$/.exec(h),want=m?'/t/'+m[1]:'/';if(pth!==want)history.replaceState(history.state,'',want+location.search+location.hash)}catch(e){}}
+(function(){try{const m=/^\/t\/([a-z0-9]+)\/?$/.exec(location.pathname);if(m&&!location.hash)history.replaceState(null,'','/t/'+m[1]+'#t-'+m[1]);syncPath()}catch(e){}})();
+function render(){RENDER_N++;syncPath();setTimeout(()=>{tabsIntoView();addEyes()},0);
   const h=location.hash.slice(1)||'home';
   const nav=document.getElementById('nav');
   const me=S.session?club(S.session):null;
@@ -1989,7 +1993,7 @@ const CT_ACTS=({
     const W=1080,H=1350;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
     try{await Promise.all([400,600,700].map(w=>document.fonts.load(w+' 40px Inter')))}catch(e){}
     const img=src=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src});
-    const [pat,logo]=await Promise.all([img('pattern-blue.svg'),img('logo-white.svg')]);
+    const [pat,logo]=await Promise.all([img('/pattern-blue.svg'),img('/logo-white.svg')]);
     const f=(w,sz)=>`${w} ${sz}px Inter, system-ui, sans-serif`;
     const rr=(x,y,w,h,r)=>{g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()};
     const sp=(t,x,y,ls)=>{let cx=x;for(const ch of t){g.fillText(ch,cx,y);cx+=g.measureText(ch).width+ls}};
@@ -2629,7 +2633,7 @@ function renderBoard(T,mid){const b=build(T);CUR={T,b};document.body.classList.a
 const CTRY={'казахстан':'kz','россия':'ru','узбекистан':'uz','кыргызстан':'kg','киргизия':'kg','беларусь':'by','белоруссия':'by','украина':'ua','таджикистан':'tj','туркменистан':'tm','азербайджан':'az','армения':'am','грузия':'ge','монголия':'mn','китай':'cn','турция':'tr','молдова':'md','латвия':'lv','литва':'lt','эстония':'ee'};
 const CTRY_LIST=['Казахстан','Россия','Узбекистан','Кыргызстан','Беларусь','Украина','Таджикистан','Туркменистан','Азербайджан','Армения','Грузия','Монголия','Китай','Турция','Молдова','Латвия','Литва','Эстония'];
 const ctryList=()=>`<datalist id="ctry-l">${CTRY_LIST.map(x=>`<option value="${x}">`).join('')}</datalist>`;
-const flagOf=p=>{const k=CTRY[String(p&&p.country||'').trim().toLowerCase()];return k?`<img class="ob-f" src="flags/${k}.svg" alt="${esc(p.country)}">`:''};
+const flagOf=p=>{const k=CTRY[String(p&&p.country||'').trim().toLowerCase()];return k?`<img class="ob-f" src="/flags/${k}.svg" alt="${esc(p.country)}">`:''};
 const obsUrl=(cid,k)=>location.origin+'/#tablo-'+cid+'-'+k;
 function obsName(T,s){if(s.t!=='p')return pname(T,s);const p=T.players.find(x=>x.id===s.id);if(!p)return'?';return p.last&&p.first?p.last+' '+p.first[0]+'.':p.name}
 function renderObs(x){document.body.classList.add('gonly','obs');document.documentElement.classList.add('obs');
