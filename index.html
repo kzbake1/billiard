@@ -2827,7 +2827,7 @@ const A={
   homeMore(){UI.homeMore=!UI.homeMore;render()},
   tab(el){UI.tab[el.dataset.id]=el.dataset.tab;render()},
   print(){window.print()},
-  shareT(){const T=CUR&&CUR.T;if(!T)return;if(UI.tmenu){UI.tmenu=null;render()}const url=location.origin+'/t/'+T.id;
+  shareT(){const T=CUR&&CUR.T;if(!T)return;if(UI.tmenu){UI.tmenu=null;render()}const url=location.origin+'/t/'+T.id+'?s='+({reg:'r',live:'l',paused:'l',done:'d',archived:'d'}[T.status]||'x');
     if(navigator.share){navigator.share({title:T.title,url}).catch(()=>{});return}
     (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>toast('Ссылка скопирована')).catch(()=>prompt('Ссылка на турнир',url))},
   xlsT(){if(!CUR||!CUR.T||!isOwner(CUR.T))return;const T=CUR&&CUR.T;if(!T)return;if(UI.tmenu){UI.tmenu=null;render()}const go=async()=>{try{const b=build(T),st=stageMap(b),f=flow(T),wb=new ExcelJS.Workbook();
