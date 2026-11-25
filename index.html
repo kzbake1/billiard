@@ -1022,7 +1022,7 @@ let TESTC=new Set();let VF=new Set(),RATED=new Set();
 const VFI='<svg class="vf" viewBox="0 0 24 24" role="img" aria-label="Проверенный игрок"><title>Проверенный игрок</title><path fill="#1667FF" d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const vfP=p=>p&&VF.has(p.id)?VFI:'';const vfS=(T,sl)=>sl&&sl.t==='p'&&VF.has(sl.id)?VFI:'';
 const RTAG='<span class="rtag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/><circle cx="12" cy="8" r="6"/></svg>Рейтинговый ФБС РК</span>';
-const rTag=T=>T&&RATED.has(T.parent||T.id)?RTAG:'';const testHidden=id=>TESTC.has(id)&&id!==S.session;
+const rTag=T=>T&&RATED.has(T.parent||T.id)?RTAG:'';const testHidden=id=>TESTC.has(id)&&id!==S.session&&!S.admin;
 const isPub=T=>T.parent?isPub(tById(T.parent)||{}):T.pub!==false&&!testHidden(T.clubId);
 const inList=T=>isPub(T)&&!T.parent;
 const fdate=d=>{if(!d)return'';const [y,m,dd]=d.split('-');return +dd+' '+MONTHS[+m-1]+' '+y};
