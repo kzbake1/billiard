@@ -11,6 +11,7 @@ module.exports=async(req,res)=>{
     if(id){const [t]=await get('tournament?select=data,club_id&deleted_at=is.null&id=eq.'+id);
       if(t&&t.data){const d=t.data;const [c]=await get('club?select=name&id=eq.'+encodeURIComponent(t.club_id));
         title=d.title||title;const parts=[];
+        const st=d.status==='reg'?'Идёт регистрация':d.status==='live'||d.status==='paused'?'Идёт игра':d.status==='done'||d.status==='archived'?'Завершён':'';if(st)parts.push(st);
         if(c&&c.name)parts.push(c.name);
         if(d.date){const [y,m,dd]=d.date.split('-');if(m)parts.push((+dd)+' '+MON[+m-1]+' '+y)}
         const n=(d.players||[]).length;if(n)parts.push(d.pair?n+' '+pl(n,'пара','пары','пар'):n+' '+pl(n,'участник','участника','участников'));
