@@ -1,3 +1,4 @@
+import { readFile } from 'fs/promises';
 import { ImageResponse } from '@vercel/og';
 const SB='https://dhsrklircobualygdacz.supabase.co',KEY='sb_publishable_CoPq83PXPQWtfTzMECB7jg_VI-tjPyM';
 const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
@@ -18,7 +19,7 @@ export async function GET(req){
       if(n)ip.push(d.pair?n+' '+pl(n,'пара','пары','пар'):n+' '+pl(n,'участник','участника','участников'));
       if(d.discipline)ip.push(d.discipline);info=ip.join(' · ');
       if(d.status==='reg'){st='Идёт регистрация';stc='#1667FF'}else if(d.status==='live'||d.status==='paused'){st='Идёт игра';stc='#D93A26'}else if(d.status==='done'||d.status==='archived'){st='Завершён';stc='#0B7A47'}}}
-  const [f1,f3,logo,pat]=await Promise.all(['inter-500.ttf','inter-600.ttf'].map(f=>fetch(base+'/og/'+f).then(r=>r.arrayBuffer())).concat([fetch(base+'/logo-white.svg').then(r=>r.text()),fetch(base+'/pattern-blue.svg').then(r=>r.text())]));
+  const [f1,f3,logo,pat]=await Promise.all([readFile(new URL('../og/inter-500.ttf',import.meta.url)),readFile(new URL('../og/inter-600.ttf',import.meta.url)),readFile(new URL('../logo-white.svg',import.meta.url),'utf8'),readFile(new URL('../pattern-blue.svg',import.meta.url),'utf8')]);
   const patU='data:image/svg+xml;base64,'+b64(pat),logoU='data:image/svg+xml;base64,'+b64(logo);
   const fs=title.length>48?56:title.length>32?64:72;
   const tiles=[];for(const x of [0,640])for(const y of [0,320])tiles.push(h('img',{position:'absolute',left:x,top:y,width:640,height:320},undefined,{src:patU,width:640,height:320}));
