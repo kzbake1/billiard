@@ -987,6 +987,13 @@ html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:10
 .rtag,.hl-m span.rtag{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;line-height:1;color:var(--blue-deep,#0F4FD9);background:var(--blue-soft,#E6EEFF);border-radius:6px;padding:5px 8px;white-space:nowrap;vertical-align:middle}.hl-tt{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px}.hl-m span.rtag{margin:0}.th-rt{margin:10px 0 0}.th-rt .rtag{background:#fff}
 .apl-tb td{vertical-align:middle;padding:10px 8px;white-space:nowrap}.apl-tb td:nth-child(2){white-space:normal}.apl-tb .btn.sm{height:32px;padding:0 12px;display:inline-flex;align-items:center}.apl-act{display:inline-flex;gap:8px;justify-content:flex-end}.apl-ok{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--blue-deep,#0F4FD9);background:var(--blue-soft,#E6EEFF);border-radius:999px;padding:4px 10px 4px 8px}.apl-ok .vf{margin:0}.apl-no{font-size:13px;color:var(--muted)}
 .atr-t{color:inherit;text-decoration:none;margin-right:6px}.atr-t:hover{color:var(--blue)}
+.tp-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.tp-c{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px}.tp-c.off{opacity:.6}
+.tp-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.tp-top b{font-size:16px;font-weight:600;line-height:1.3}
+.tp-st{display:inline-flex;align-items:center;font-size:12px;font-weight:600;border-radius:999px;padding:4px 10px;white-space:nowrap}.tp-st.blue{background:var(--blue-soft,#E6EEFF);color:var(--blue-deep,#0F4FD9)}
+.tp-pr span{font-size:32px;font-weight:500;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tp-f{list-style:none;margin:0;padding:12px 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}.tp-f li{display:flex;justify-content:space-between;gap:10px;font-size:14px}.tp-f span{color:var(--muted)}.tp-f b{font-weight:500;font-variant-numeric:tabular-nums}
+.tp-c .btn{margin-top:auto;width:100%;justify-content:center}
 </style>
 </head>
 <body>
@@ -2362,11 +2369,16 @@ function adExpHTML(){const t=almatyToday();return`<div class="dlg-h"><h3>Нов�
   <div class="row2"><div class="field"><label>Повторяется</label><select id="ex-r"><option value="none">Разово</option><option value="month">Каждый месяц</option><option value="year">Каждый год</option></select></div><div class="field"><label>До <small>необязательно</small></label><input id="ex-u" type="date"></div></div>
   <div class="field"><label>Комментарий <small>необязательно</small></label><input id="ex-c" maxlength="500"></div>
   <button class="btn blue big" style="width:100%" data-act="adExpSave">Добавить расход</button><div class="err" id="ex-err"></div>`}
-function adPlansPage(){const L=[...AD.plans].sort((a,b)=>a.sort-b.sort);
+function adPlansPage(){const L=[...AD.plans].sort((a,b)=>a.sort-b.sort);const base=(L.find(p=>p.price>0&&p.months===1)||{}).price||0;
+  const card=p=>{const trial=p.price===0,pm=p.price&&p.months?p.price/p.months:0,save=base&&p.months>1&&p.price?base*p.months-p.price:0;
+    const st=trial?'<span class="tp-st blue">При создании клуба</span>':p.active?'<span class="sbadge ok"><i></i>Показан</span>':'<span class="sbadge grey"><i></i>Скрыт</span>';
+    return`<div class="tp-c${!trial&&!p.active?' off':''}"><div class="tp-top"><b>${esc(p.title)}</b>${st}</div>
+    <div class="tp-pr"><span>${trial?'Бесплатно':money(p.price)}</span></div>
+    <ul class="tp-f"><li><span>Срок</span><b>${p.months} мес.</b></li><li><span>В месяц</span><b>${pm?money(pm):'—'}</b></li><li><span>Выгода</span><b>${save>0?money(save)+' · '+Math.round(save/(base*p.months)*100)+'%':'—'}</b></li></ul>
+    <button class="btn ghost" data-act="adPlanEdit" data-id="${p.id}">${IC.edit||''}Изменить</button></div>`};
   return`<div class="adm-h"><h1>Тарифы</h1><button class="btn blue" data-act="adPlanEdit" data-id="">${IC.plus}Тариф</button></div>
-  <p class="muted adm-per">Изменение цены не меняет прошлые оплаты. Цены на kazbilliard.com меняются отдельно.</p>
-  <div class="panel adm-tw"><table class="tb adm-tb"><thead><tr><th>Название</th><th class="r">Срок</th><th class="r">Цена</th><th class="r">В месяц</th><th>В окне «Продлить»</th><th></th></tr></thead><tbody>
-  ${L.map(p=>`<tr><td><b>${esc(p.title)}</b>${p.price===0?'<div class="mut2">выдаётся при создании клуба</div>':''}</td><td class="r nw">${p.months} мес.</td><td class="r nw"><b>${money(p.price)}</b></td><td class="r nw mut2">${p.price?money(p.price/p.months):'—'}</td><td>${p.price===0?'<span class="mut2">—</span>':p.active?'<span class="sbadge ok"><i></i>Показан</span>':'<span class="sbadge grey"><i></i>Скрыт</span>'}</td><td class="r"><button class="lnk" data-act="adPlanEdit" data-id="${p.id}">Изменить</button></td></tr>`).join('')}</tbody></table></div>`}
+  <p class="muted adm-per">Изменение цены не меняет прошлые оплаты. Показанные тарифы клуб видит в окне «Продлить» и на странице «Подписка».</p>
+  <div class="tp-g">${L.map(card).join('')}</div>`}
 function adPlanHTML(id){const p=AD.plans.find(x=>x.id===id)||{title:'',months:1,price:0,active:true,sort:AD.plans.length};
   return`<div class="dlg-h"><h3>${id?'Тариф':'Новый тариф'}</h3><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
   <div class="field"><label>Название</label><input id="pl-t" maxlength="60" value="${esc(p.title)}"></div>
