@@ -1225,14 +1225,21 @@ async function doSave(){
   for(const id of Object.keys(SNAP.own)){if(!S.tournaments.some(t=>t.id===id))jobs.push(sb.from('tournament').update({deleted_at:new Date().toISOString()}).eq('id',id).then(r=>{if(!r.error){delete SNAP.own[id];delete SNAP.t[id]}return r}))}
   if(me){const cj=JSON.stringify([me.name,me.city,me.tables,me.address,me.phone,me.instagram,me.tiktok,me.logo,me.floors||[]]);if(SNAP.club!==cj)jobs.push(sb.from('club').update({name:me.name,city:me.city,tables:me.tables,floors:me.floors||[],address:me.address||'',phone:me.phone||'',instagram:me.instagram||'',tiktok:me.tiktok||'',logo:me.logo||''}).eq('id',me.id).then(r=>{if(!r.error)SNAP.club=cj;return r}));
     if(SNAP.players){const ch=(me.roster||[]).filter(p=>p&&p.id&&p.last&&p.first).map(p=>({id:p.id,data:pub(p)})).filter(x=>SNAP.players[x.id]!==JSON.stringify(x.data));if(ch.length)jobs.push(sb.from('player').upsert(ch,{onConflict:'id'}).then(r=>{if(!r.error)ch.forEach(x=>SNAP.players[x.id]=JSON.stringify(x.data));return r}))}}
-  const res=await Promise.all(jobs);if(res.some(r=>r&&r.error&&/old_client/.test(r.error.message||''))){staleReload();return}if(res.some(r=>r&&r.error)){console.error(res.filter(r=>r&&r.error).map(r=>r.error));toast('Не сохранилось — проверьте интернет и повторите')}
+  const res=await Promise.all(jobs);if(res.some(r=>r&&r.error&&/old_client/.test(r.error.message||''))){staleReload();return}const authErr=res.some(r=>r&&r.error&&(r.status===401||r.status===403&&/jwt/i.test(r.error.message||'')||/jwt|token/i.test(r.error.message||'')));
+  if(authErr){authLost();return}
+  if(res.some(r=>r&&r.error)){console.error(res.filter(r=>r&&r.error).map(r=>r.error));toast('Не сохранилось — проверьте интернет и повторите')}else if(UI.relog){UI.relog=false;render()}
 }
+let AUTHL=0;async function authLost(){if(AUTHL)return;AUTHL=1;try{const {data,error}=await sb.auth.refreshSession();if(!error&&data&&data.session){AUTHL=0;setTimeout(()=>doSave(),50);return}}catch(e){}AUTHL=0;UI.relog=true;if(!document.getElementById('rl-pass'))openModal(relogHTML())}
+function relogHTML(){return`<div class="mh"><div><h3>Войдите снова</h3><div class="sub">Вход на этом устройстве закончился — например, на другом устройстве нажали «Выйти». Результаты, которые вы вносили, <b>не потеряны</b>: войдите, и они сохранятся. Страницу не обновляйте.</div></div></div>
+  <label class="field"><span>Почта</span><input id="rl-email" type="email" value="${esc(S.email||'')}" autocomplete="username"></label>
+  <label class="field"><span>Пароль</span><input id="rl-pass" type="password" autocomplete="current-password"></label><div class="err" id="rl-err"></div>
+  <div class="bar"><button class="btn blue" data-act="relogin">Войти и сохранить</button></div>`}
 async function loadSession(){
   S.session=null;S.admin=false;S.email='';SNAP.club=null;SNAP.players=null;
   const {data}=await sb.auth.getSession();const u=data&&data.session&&data.session.user;
   if(!u)return;S.email=u.email||'';S.pwOk=!!(u.user_metadata&&u.user_metadata.pw_changed);
   const [mc,ad]=await Promise.all([sb.rpc('my_club'),sb.rpc('is_admin')]);
-  S.admin=!!ad.data;if(S.admin&&PUB_KB&&!mc.data){S.admin=false;S.adminOff=true;await sb.auth.signOut();S.email='';return}
+  S.admin=!!ad.data;if(S.admin&&PUB_KB&&!mc.data){S.admin=false;S.adminOff=true;await sb.auth.signOut({scope:'local'});S.email='';return}
   S.sub=null;if(mc.data){sb.rpc('my_subscription').then(r=>{S.sub=r.data?cleanData(r.data):null;if(location.hash==='#cabinet'||location.hash==='#price')render()});}
   if(mc.data){let c=S.clubs.find(x=>x.id===mc.data);if(!c){const q=await sb.from('club').select('id,name,city,tables,floors,address,phone,instagram,tiktok,logo').eq('id',mc.data).maybeSingle();if(q.data){c=Object.assign({roster:[]},cleanData(q.data));S.clubs.push(c)}}if(c){S.session=c.id;const pl=await loadPlayers();PL_T=Date.now();c.roster=pl||[];SNAP.players=pl?Object.fromEntries(pl.map(p=>[p.id,JSON.stringify(pub(p))])):null;
     SNAP.club=JSON.stringify([c.name,c.city,c.tables,c.address,c.phone,c.instagram,c.tiktok,c.logo,c.floors||[]]);}}
@@ -2923,8 +2930,12 @@ const A={
   delT(el){closeModal();S.tournaments=S.tournaments.filter(t=>t.id!==el.dataset.id);UI.confirm=null;save();go('cabinet');toast('Турнир удалён')},
   async login(el){const e=document.getElementById('lg-err');const email=document.getElementById('lg-email').value.trim(),password=document.getElementById('lg-pass').value;if(!email||!password){e.textContent='Введите почту и пароль';return}
     el.disabled=true;const r=await sb.auth.signInWithPassword({email,password});if(r.error){el.disabled=false;e.textContent='Неверная почта или пароль';return}
-    await loadSession();if(S.session)go('cabinet');else if(S.admin)go('admin');else if(S.adminOff){S.adminOff=false;el.disabled=false;e.innerHTML='Это вход для клубов. Админка — <a href="https://admin.kazbilliard.com">admin.kazbilliard.com</a>';return}else{e.textContent='К этой почте не привязан клуб — обратитесь к администратору';await sb.auth.signOut();await loadSession();el.disabled=false}},
-  async logout(){await sb.auth.signOut();await loadSession();go(ADM?'admin':'home')},
+    await loadSession();if(S.session)go('cabinet');else if(S.admin)go('admin');else if(S.adminOff){S.adminOff=false;el.disabled=false;e.innerHTML='Это вход для клубов. Админка — <a href="https://admin.kazbilliard.com">admin.kazbilliard.com</a>';return}else{e.textContent='К этой почте не привязан клуб — обратитесь к администратору';await sb.auth.signOut({scope:'local'});await loadSession();el.disabled=false}},
+  async relogin(el){const e=document.getElementById('rl-err');const email=(document.getElementById('rl-email').value||'').trim(),password=document.getElementById('rl-pass').value;if(!email||!password){e.textContent='Введите почту и пароль';return}
+    el.disabled=true;const r=await sb.auth.signInWithPassword({email,password});if(r.error){el.disabled=false;e.textContent='Неверная почта или пароль';return}
+    const mc=await sb.rpc('my_club');if(mc.data!==S.session){el.disabled=false;e.textContent='Это вход другого клуба — войдите почтой этого клуба';await sb.auth.signOut({scope:'local'});return}
+    UI.relog=false;closeModal();await doSave();toast('Вход выполнен — результаты сохранены')},
+  async logout(){await sb.auth.signOut({scope:'local'});await loadSession();go(ADM?'admin':'home')},
   reload(){location.reload()},
   tvAdd(){const w=document.getElementById('e-tv');const T=CUR&&CUR.T;if(!w||!T||w.children.length>=30)return;const used=[...w.querySelectorAll('.tv-k')].map(x=>+x.value);const n=club(T.clubId).tables||6;let k=1;while(used.includes(k)&&k<n)k++;w.insertAdjacentHTML('beforeend',tvRow(T,{table:k,video:''}))},
   tvDel(el){el.closest('.tvrow').remove()},
