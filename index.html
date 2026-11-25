@@ -2582,7 +2582,7 @@ function pultHTML(T,m){const r=m.res||{};const c=club(T.clubId);const n=c.tables
   <div class="pm-grid"><label><span>Стол</span>${tbl}</label><label><span>${raceL(T)}</span><input id="pm-r" type="number" inputmode="numeric" min="1" max="${isCont(T)?999:25}" value="${R}" data-act="pmRace" data-mid="${m.id}"></label>
   ${rdy?`<label style="grid-column:1/-1"><span>Трансляция встречи</span><input id="pm-vid" type="url" inputmode="url" placeholder="https://youtube.com/…"></label>`:`<label><span>Начало</span><input type="time" value="${hhmm(mstart(r))}" data-act="pmStart" data-mid="${m.id}"></label><label><span>Длительность</span><b class="pm-v">${mdur(r)}</b></label><label style="grid-column:1/-1"><span>Трансляция встречи</span><input type="url" inputmode="url" placeholder="https://youtube.com/…" value="${esc(r.video||'')}" data-act="pmVideo" data-mid="${m.id}"></label>`}</div>
   ${rdy?`<label class="chk sm pm-ap"><input type="checkbox" data-act="autoPr" ${T.autoPrint?'checked':''}><span>Печатать протокол при начале</span></label>`:''}
-  <div class="pm-acts">${rdy?`<button class="btn blue" data-act="startM" data-mid="${m.id}" ${free.length?'':'disabled'}>Начать встречу</button>`:`<button class="btn ghost" data-act="pauseM" data-mid="${m.id}" style="flex:1">${r.paused?'Продолжить':'Пауза'}</button>`}</div>
+  <div class="pm-acts">${rdy?`<button class="btn blue" data-act="startM" data-mid="${m.id}" ${free.length?'':'disabled'}>Начать встречу</button>`:`<button class="btn ghost" data-act="pauseM" data-mid="${m.id}">${r.paused?'Продолжить':'Пауза'}</button><button class="btn blue" data-act="finishM" data-mid="${m.id}">Завершить встречу</button>`}</div>
   ${pmTools(T,m,!rdy)}</div>`}
 function printProtos(T,mids){const b=build(T);CUR={T,b};const ms=mids.map(id=>b.all.find(x=>x.id===id)).filter(Boolean);if(!ms.length)return;
   let box=document.getElementById('printbox');if(!box){box=document.createElement('div');box.id='printbox';document.body.appendChild(box)}
@@ -2755,7 +2755,7 @@ const A={
     save();render();toast(`Вызвано матчей: ${c}`);if(T.autoPrint&&c)printProtos(T,q.slice(0,c).map(m=>m.id))},
   callT(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m)return;const k=+el.dataset.t;if(guestOff(T).has(k)){toast('Стол отдан гостям');return}if(busyTables(T.clubId).has(k)){toast('Стол уже занят');return}
     T.results[m.id]={a:m.a.id,b:m.b.id,sa:0,sb:0,live:true,done:false,table:k,ts:Date.now(),start:Date.now()};save();render();refreshPult();toast(`Матч начат за столом ${k}`);if(T.autoPrint)printProtos(T,[m.id])},
-  startM(el){const t=document.getElementById('pm-t');if(!t)return;const {T}=CUR;const vi=document.getElementById('pm-vid');const vv=vi?normUrl(vi.value):'';if(vv&&!okUrl(vv)){toast('Проверьте ссылку');return}const pr=UI.pmRace&&UI.pmRace.mid===el.dataset.mid?UI.pmRace.v:0;UI.pmRace=null;A.callT({dataset:{mid:el.dataset.mid,t:t.value}});const r=T.results[el.dataset.mid];if(r&&vv){r.video=vv.slice(0,300)}if(r&&(vv||(pr&&pr!==T.raceTo))){if(pr&&pr!==T.raceTo)r.race=pr;save();render();refreshPult()}},
+  startM(el){const t=document.getElementById('pm-t');if(!t)return;const {T}=CUR;const vi=document.getElementById('pm-vid');const vv=vi?normUrl(vi.value):'';if(vv&&!okUrl(vv)){toast('Проверьте ссылку');return}const pr=UI.pmRace&&UI.pmRace.mid===el.dataset.mid?UI.pmRace.v:0;UI.pmRace=null;A.callT({dataset:{mid:el.dataset.mid,t:t.value}});const r=T.results[el.dataset.mid];if(!r||!r.live)return;if(vv)r.video=vv.slice(0,300);if(pr&&pr!==T.raceTo)r.race=pr;save();render();closeModal()},
   pmFo(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res||!isOwner(T))return;const r=T.results[m.id];if(r.done)return;
     const g=k=>foOk((document.getElementById('pm-fo'+k)||{}).value)||FBX;const a=g('a'),bb=g('b');if(a===FBX&&bb===FBX)r.fo={a:FBX,b:FBX};else r.fo={a,b:bb};
     r.ba=Math.min(r.ba||0,a-1);r.bb=Math.min(r.bb||0,bb-1);save();render();refreshPult();toast(a===FBX&&bb===FBX?'Без форы · 8:8':'Фора '+a+':'+bb)},
@@ -2770,13 +2770,12 @@ const A={
     UI.undo={tid:T.id,mid:m.id,prev,text:`${T.match?'Встреча завершена':'Матч №'+m.no+' завершён'} · ${sname(pname(T,w))} ${Math.max(r.sa,r.sb)}:${Math.min(r.sa,r.sb)}`};clearTimeout(A._u);A._u=setTimeout(()=>{UI.undo=null;if(UI.pm===m.id)refreshPult()},30000)},
   sc(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.paused||r.done)return;const k='s'+el.dataset.side;const R=r.race||T.raceTo;const prev=Object.assign({},r);if(r.call){r.call=false;r.live=true}
     r[k]=Math.max(0,Math.min(R,r[k]+(+el.dataset.d)));r.et=Date.now();if(!isCont(T)){syncFr(r);if(+el.dataset.d>0){r.ba=0;r.bb=0}}
-    if(r[k]===R&&r.sa!==r.sb)A._fin(T,m,r,prev);
     save();render();refreshPult()},
-  pmScore(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.paused||r.done)return;const R=r.race||T.raceTo;const prev=Object.assign({},r);r['s'+el.dataset.side]=Math.max(0,Math.min(R,Math.floor(+el.value||0)));r.et=Date.now();if(!isCont(T))syncFr(r);if((r.sa===R||r.sb===R)&&r.sa!==r.sb)A._fin(T,m,r,prev);save();render();refreshPult()},
+  pmScore(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.paused||r.done)return;const R=r.race||T.raceTo;const prev=Object.assign({},r);r['s'+el.dataset.side]=Math.max(0,Math.min(R,Math.floor(+el.value||0)));r.et=Date.now();if(!isCont(T))syncFr(r);save();render();refreshPult()},
   bl(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.paused||r.done)return;const sd=el.dataset.side,k='b'+sd;const prev=JSON.parse(JSON.stringify(r));if(r.call){r.call=false;r.live=true}
     const TG=tgt(T,m,sd);r.ba=r.ba||0;r.bb=r.bb||0;r[k]=Math.max(0,Math.min(TG,r[k]+(+el.dataset.d)));r.et=Date.now();
     if(r[k]>=TG){r.fr=r.fr||[];r.fr.push({w:sd,a:r.ba,b:r.bb});r['s'+sd]=Math.min(mrace(T,m),(r['s'+sd]||0)+1);r.ba=0;r.bb=0;toast(`Партия ${r.fr.length}: ${r.fr[r.fr.length-1].a} : ${r.fr[r.fr.length-1].b}`);
-      const R=r.race||T.raceTo;if(r['s'+sd]===R&&r.sa!==r.sb)A._fin(T,m,r,prev)}
+      }
     save();render();refreshPult()},
   ballsOn(){const T=CUR.T;if(!isOwner(T))return;T.balls=!T.balls;if(T.balls&&!isCont(T))Object.values(T.results||{}).forEach(r=>{if(r&&!r.done&&(r.live||r.call))syncFr(r)});save();render();refreshPult()},
   finishM(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.sa===r.sb){toast('При равном счёте завершить нельзя');return}const prev=Object.assign({},r);A._fin(T,m,r,prev);save();render();refreshPult()},
