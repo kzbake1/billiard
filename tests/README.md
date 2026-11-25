@@ -9,3 +9,4 @@
 - python3 tests/guest.py — столы «гостям» (ожидается «guest ok» и [])
 - python3 tests/pult_open.py — нажатие на пару открывает пульт (ожидается «pult ok» дважды)
 - python3 tests/relogin.py — вход истёк: окно «Войдите снова», результаты не теряются (ожидается «relogin ok»)
+- python3 tests/offline.py — нет связи: плашка «Не сохранено», копия в браузере переживает перезагрузку (ожидается «offline ok»)
