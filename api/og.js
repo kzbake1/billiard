@@ -1,12 +1,11 @@
 import { ImageResponse } from '@vercel/og';
-export const config = { runtime: 'edge' };
 const SB='https://dhsrklircobualygdacz.supabase.co',KEY='sb_publishable_CoPq83PXPQWtfTzMECB7jg_VI-tjPyM';
 const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const pl=(n,a,b,c)=>{const m=n%10,h=n%100;return m===1&&h!==11?a:m>=2&&m<=4&&(h<10||h>=20)?b:c};
 const h=(type,style,children,extra)=>({type,props:Object.assign({style},extra||{},children===undefined?{}:{children})});
 async function get(path){try{const r=await fetch(SB+'/rest/v1/'+path,{headers:{apikey:KEY,Authorization:'Bearer '+KEY}});return r.ok?await r.json():[]}catch(e){return[]}}
 const b64=s=>{let b='';const u=new TextEncoder().encode(s);for(let i=0;i<u.length;i++)b+=String.fromCharCode(u[i]);return btoa(b)};
-export default async function handler(req){
+export async function GET(req){
   const u=new URL(req.url),base=u.origin;
   const id=String(u.searchParams.get('id')||'').replace(/[^a-z0-9]/g,'').slice(0,40);
   let title='Бильярдные турниры',top='kazbilliard.com',info='',st='',stc='#1667FF';
