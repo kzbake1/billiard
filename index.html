@@ -1216,7 +1216,9 @@ function merge3(b,l,s){b=b||{};l=l||{};s=s||{};const out={};const ks=o=>Object.k
   const rb=b.results||{},rl=l.results||{},rs=s.results||{},R={};
   for(const k of new Set([...ks(rb),...ks(rl),...ks(rs)])){const lc=jsq(rl[k])!==jsq(rb[k]),sc=jsq(rs[k])!==jsq(rb[k]);let v=lc?rl[k]:rs[k];
     // оба устройства меняли один матч: завершённый результат на сервере не затирается незавершённым (вызов к столу, старая вкладка)
-    if(lc&&sc&&rl[k]&&rs[k]){if(rs[k].done&&!rl[k].done)v=rs[k];else if(rs[k].done&&rl[k].done&&(+rs[k].ts||0)>(+rl[k].ts||0))v=rs[k]}
+    if(lc&&sc&&rl[k]&&rs[k]){if(rs[k].done&&!rl[k].done)v=rs[k];else if(rs[k].done&&rl[k].done&&(+rs[k].ts||0)>(+rl[k].ts||0))v=rs[k];
+      // оба меняли идущий матч: побеждает более поздняя правка счёта (et); без отметок — больший счёт (старая вкладка не откатывает счёт назад)
+      else if(!rs[k].done&&!rl[k].done){const el=+rl[k].et||0,es=+rs[k].et||0,pr=x=>(+x.sa||0)+(+x.sb||0)+((x.fr||[]).length)/100+((+x.ba||0)+(+x.bb||0))/1e4;if(es>el||(!es&&!el&&pr(rs[k])>pr(rl[k])))v=rs[k]}}
     if(v!==undefined)R[k]=v}
   out.results=R;return out}
 function applyData(T,d){Object.keys(T).forEach(k=>{if(k!=='id'&&k!=='clubId')delete T[k]});Object.assign(T,JSON.parse(jsq(d)))}
@@ -2763,12 +2765,12 @@ const A={
     r.done=true;r.live=false;r.end=r.ts=Date.now();if(!r.start)r.start=prev.ts;if(Math.max(r.sa,r.sb)<R)r.forced=true;else delete r.forced;const w=r.sa>r.sb?m.a:m.b;
     UI.undo={tid:T.id,mid:m.id,prev,text:`${T.match?'Встреча завершена':'Матч №'+m.no+' завершён'} · ${sname(pname(T,w))} ${Math.max(r.sa,r.sb)}:${Math.min(r.sa,r.sb)}`};clearTimeout(A._u);A._u=setTimeout(()=>{UI.undo=null;if(UI.pm===m.id)refreshPult()},30000)},
   sc(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.paused||r.done)return;const k='s'+el.dataset.side;const R=r.race||T.raceTo;const prev=Object.assign({},r);if(r.call){r.call=false;r.live=true}
-    r[k]=Math.max(0,Math.min(R,r[k]+(+el.dataset.d)));if(!isCont(T)){syncFr(r);if(+el.dataset.d>0){r.ba=0;r.bb=0}}
+    r[k]=Math.max(0,Math.min(R,r[k]+(+el.dataset.d)));r.et=Date.now();if(!isCont(T)){syncFr(r);if(+el.dataset.d>0){r.ba=0;r.bb=0}}
     if(r[k]===R&&r.sa!==r.sb)A._fin(T,m,r,prev);
     save();render();refreshPult()},
-  pmScore(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.paused||r.done)return;const R=r.race||T.raceTo;const prev=Object.assign({},r);r['s'+el.dataset.side]=Math.max(0,Math.min(R,Math.floor(+el.value||0)));if(!isCont(T))syncFr(r);if((r.sa===R||r.sb===R)&&r.sa!==r.sb)A._fin(T,m,r,prev);save();render();refreshPult()},
+  pmScore(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.paused||r.done)return;const R=r.race||T.raceTo;const prev=Object.assign({},r);r['s'+el.dataset.side]=Math.max(0,Math.min(R,Math.floor(+el.value||0)));r.et=Date.now();if(!isCont(T))syncFr(r);if((r.sa===R||r.sb===R)&&r.sa!==r.sb)A._fin(T,m,r,prev);save();render();refreshPult()},
   bl(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.paused||r.done)return;const sd=el.dataset.side,k='b'+sd;const prev=JSON.parse(JSON.stringify(r));if(r.call){r.call=false;r.live=true}
-    const TG=tgt(T,m,sd);r.ba=r.ba||0;r.bb=r.bb||0;r[k]=Math.max(0,Math.min(TG,r[k]+(+el.dataset.d)));
+    const TG=tgt(T,m,sd);r.ba=r.ba||0;r.bb=r.bb||0;r[k]=Math.max(0,Math.min(TG,r[k]+(+el.dataset.d)));r.et=Date.now();
     if(r[k]>=TG){r.fr=r.fr||[];r.fr.push({w:sd,a:r.ba,b:r.bb});r['s'+sd]=Math.min(mrace(T,m),(r['s'+sd]||0)+1);r.ba=0;r.bb=0;toast(`Партия ${r.fr.length}: ${r.fr[r.fr.length-1].a} : ${r.fr[r.fr.length-1].b}`);
       const R=r.race||T.raceTo;if(r['s'+sd]===R&&r.sa!==r.sb)A._fin(T,m,r,prev)}
     save();render();refreshPult()},
