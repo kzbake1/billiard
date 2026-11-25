@@ -32,5 +32,7 @@ export async function GET(req){
         top?h('div',{color:'#C9DAFF',fontSize:24,fontWeight:600,letterSpacing:1.5,textTransform:'uppercase'},top):null,
         h('div',{color:'#fff',fontSize:fs,fontWeight:500,lineHeight:1.08,margin:'14px 0 26px',lineClamp:2,display:'block',maxWidth:1056},title),
         info?h('div',{display:'flex',background:'#fff',borderRadius:12,padding:'14px 22px',fontSize:26,fontWeight:500,color:'#111111'},info):null].filter(Boolean))])]);
-  return new ImageResponse(el,{width:1200,height:630,fonts:[{name:'Inter',data:f1,weight:500},{name:'Inter',data:f3,weight:600}],headers:{'Cache-Control':'public, max-age=300, s-maxage=300, stale-while-revalidate=600'}});
+  try{const ir=new ImageResponse(el,{width:1200,height:630,fonts:[{name:'Inter',data:f1,weight:500},{name:'Inter',data:f3,weight:600}],});const buf=await ir.arrayBuffer();if(!buf.byteLength)throw new Error('empty png');
+    return new Response(buf,{headers:{'Content-Type':'image/png','Cache-Control':'public, max-age=300, s-maxage=300, stale-while-revalidate=600'}})}
+  catch(e){console.error('og fail',e&&e.stack||e);return Response.redirect(base+'/og.png',302)}
 }
