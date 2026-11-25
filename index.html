@@ -979,6 +979,7 @@ html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:10
 @media(min-width:900px){.hlist.cbl .hrow{padding:16px 20px!important;gap:0 16px!important}.hlist.cbl .hl-m b{white-space:normal}.hlist.cbl>.hrow{padding-right:160px!important}.hlist.cbl .hrow-o{display:grid!important;grid-template-columns:minmax(0,1fr) 140px!important;align-items:center}.hlist.cbl .hrow-o .hrow{display:grid!important;padding-right:20px!important}.hlist.cbl .hrow-o .hl-bt{padding:0 20px 0 0!important;flex:none}}
 @media(min-width:900px) and (max-width:1279px){.hlist.cbl .hrow{grid-template-columns:minmax(0,1fr) 140px 56px 120px!important}.hlist.cbl>.hrow{padding-right:150px!important}.hlist.cbl .hrow-o{grid-template-columns:minmax(0,1fr) 130px!important}}
 @media(min-width:1280px){.hlist.cbl .hrow{grid-template-columns:minmax(0,1fr) 170px 80px minmax(150px,220px)!important;padding:16px 20px!important;gap:0 16px!important}.hlist.cbl .hl-m b{white-space:normal}.hlist.cbl>.hrow{padding-right:160px!important}.hlist.cbl .hrow-o{display:grid!important;grid-template-columns:minmax(0,1fr) 140px!important;align-items:center}.hlist.cbl .hrow-o .hrow{display:grid!important;padding-right:20px!important}.hlist.cbl .hrow-o .hl-bt{padding:0 20px 0 0!important;flex:none}}
+.svst{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));z-index:3000;border:0;border-radius:999px;padding:10px 18px;font:inherit;font-size:14px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.12);cursor:pointer;white-space:nowrap}.svst.fail,.svst.auth{background:#FFF4D6;color:#8A6100}.svst.saving{background:#fff;color:var(--muted)}.svst.ok{background:var(--accent-soft);color:var(--accent)}
 .pm-bf{display:flex;align-items:center;gap:10px;padding:8px 0 6px;border-top:1px solid var(--line)}.pm-bf>span{font-size:12.5px;color:var(--muted)}.pm-bf .pm-frl{margin:0}.pm-balls .pm-frl span{background:#fff}
 </style>
 </head>
@@ -1194,7 +1195,21 @@ const MYW={};function wTag(id){const w=uid()+Date.now().toString(36);(MYW[id]=MY
 function noW(d){if(d&&(d._w!==undefined||d._v!==undefined||d._r!==undefined)){d=Object.assign({},d);delete d._w;delete d._v;delete d._r}return d}
 // версия записи: база не принимает изменения турниров от старых открытых вкладок (триггер tournament_version); при обновлении поднять и тут, и в триггере
 const APP_V=5;let RELOADING=false;function staleReload(){if(RELOADING)return;RELOADING=true;toast('Сайт обновился — перезагружаем страницу');setTimeout(()=>location.reload(),1500)}
-function save(){if(S.session)S.tournaments.forEach(t=>{if(t.clubId===S.session)tvSync(t);if(t.clubId===S.session&&t.draw&&!t.poPerm&&maybeDraw(t))setTimeout(()=>toast('Жеребьёвка олимпийки проведена'),50)});pending++;saveQ=saveQ.then(doSave).catch(()=>{}).then(()=>{pending--})}
+function save(){if(S.session)S.tournaments.forEach(t=>{if(t.clubId===S.session)tvSync(t);if(t.clubId===S.session&&t.draw&&!t.poPerm&&maybeDraw(t))setTimeout(()=>toast('Жеребьёвка олимпийки проведена'),50)});pendSet();pending++;svSet('saving');saveQ=saveQ.then(doSave).catch(()=>{svSet('fail')}).then(()=>{pending--;pendSet()})}
+const PEND_K='kb-pend';
+function pendSet(){try{if(!S.session)return;const o={};S.tournaments.forEach(T=>{if(T.clubId!==S.session||SNAP.t[T.id]===undefined)return;const d=tData(T);if(SNAP.t[T.id]!==jsq(d))o[T.id]={d,b:SNAP.t[T.id],c:S.session,ts:Date.now()}});if(Object.keys(o).length)localStorage.setItem(PEND_K,JSON.stringify(o));else localStorage.removeItem(PEND_K)}catch(e){}}
+function pendRestore(){let o=null;try{o=JSON.parse(localStorage.getItem(PEND_K)||'null')}catch(e){}if(!o||!S.session)return;let n=0;
+  for(const id in o){const p=o[id];if(!p||p.c!==S.session||Date.now()-(+p.ts||0)>3*864e5)continue;const T=S.tournaments.find(t=>t.id===id&&t.clubId===S.session);if(!T)continue;
+    try{const m=merge3(JSON.parse(p.b),cleanData(p.d),tData(T));if(jsq(m)!==jsq(tData(T))){applyData(T,m);n++}}catch(e){}}
+  if(n){save();setTimeout(()=>toast('Восстановлены несохранённые результаты — отправляем в базу'),300)}}
+let SVST='ok',SVT=0,SVR=0;
+function svSet(st){if(st==='saving'){if(SVST==='ok'){clearTimeout(SVT);SVT=setTimeout(()=>{if(pending>0&&SVST==='ok')svShow('saving')},1500)}return}
+  clearTimeout(SVT);const was=SVST;SVST=st;if(st==='ok'){clearTimeout(SVR);if(was!=='ok'&&was!=='saving'){svShow('ok');SVT=setTimeout(()=>svShow(null),2500)}else svShow(null);return}
+  if(st==='fail'){svShow('fail');clearTimeout(SVR);SVR=setTimeout(()=>{if(SVST==='fail')save()},6000)}else svShow(st)}
+function svShow(st){let el=document.getElementById('svst');if(!st){if(el)el.remove();return}if(!el){el=document.createElement('button');el.id='svst';el.type='button';document.body.appendChild(el)}
+  el.className='svst '+st;el.innerHTML=st==='ok'?'Сохранено ✓':st==='saving'?'Сохраняем…':st==='auth'?'Не сохранено — войдите снова':'Не сохранено — нет связи. Повторим сами';
+  el.onclick=()=>{if(st==='auth'){if(!document.getElementById('rl-pass'))openModal(relogHTML())}else if(st==='fail')save()}}
+if(typeof window!=='undefined'&&window.addEventListener)window.addEventListener('online',()=>{if(SVST==='fail'||SVST==='saving')save()});
 const jsq=x=>JSON.stringify(x,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.keys(v).sort().reduce((o,kk)=>(o[kk]=v[kk],o),{}):v);
 function merge3(b,l,s){b=b||{};l=l||{};s=s||{};const out={};const ks=o=>Object.keys(o||{});
   for(const k of new Set([...ks(b),...ks(l),...ks(s)])){if(k==='results')continue;const v=jsq(l[k])!==jsq(b[k])?l[k]:s[k];if(v!==undefined)out[k]=v}
@@ -1226,8 +1241,8 @@ async function doSave(){
   if(me){const cj=JSON.stringify([me.name,me.city,me.tables,me.address,me.phone,me.instagram,me.tiktok,me.logo,me.floors||[]]);if(SNAP.club!==cj)jobs.push(sb.from('club').update({name:me.name,city:me.city,tables:me.tables,floors:me.floors||[],address:me.address||'',phone:me.phone||'',instagram:me.instagram||'',tiktok:me.tiktok||'',logo:me.logo||''}).eq('id',me.id).then(r=>{if(!r.error)SNAP.club=cj;return r}));
     if(SNAP.players){const ch=(me.roster||[]).filter(p=>p&&p.id&&p.last&&p.first).map(p=>({id:p.id,data:pub(p)})).filter(x=>SNAP.players[x.id]!==JSON.stringify(x.data));if(ch.length)jobs.push(sb.from('player').upsert(ch,{onConflict:'id'}).then(r=>{if(!r.error)ch.forEach(x=>SNAP.players[x.id]=JSON.stringify(x.data));return r}))}}
   const res=await Promise.all(jobs);if(res.some(r=>r&&r.error&&/old_client/.test(r.error.message||''))){staleReload();return}const authErr=res.some(r=>r&&r.error&&(r.status===401||r.status===403&&/jwt/i.test(r.error.message||'')||/jwt|token/i.test(r.error.message||'')));
-  if(authErr){authLost();return}
-  if(res.some(r=>r&&r.error)){console.error(res.filter(r=>r&&r.error).map(r=>r.error));toast('Не сохранилось — проверьте интернет и повторите')}else if(UI.relog){UI.relog=false;render()}
+  if(authErr){svSet('auth');authLost();return}
+  if(res.some(r=>r&&r.error)){console.error(res.filter(r=>r&&r.error).map(r=>r.error));svSet('fail')}else{svSet('ok');if(UI.relog){UI.relog=false;render()}}
 }
 let AUTHL=0;async function authLost(){if(AUTHL)return;AUTHL=1;try{const {data,error}=await sb.auth.refreshSession();if(!error&&data&&data.session){AUTHL=0;setTimeout(()=>doSave(),50);return}}catch(e){}AUTHL=0;UI.relog=true;if(!document.getElementById('rl-pass'))openModal(relogHTML())}
 function relogHTML(){return`<div class="mh"><div><h3>Войдите снова</h3><div class="sub">Вход на этом устройстве закончился — например, на другом устройстве нажали «Выйти». Результаты, которые вы вносили, <b>не потеряны</b>: войдите, и они сохранятся. Страницу не обновляйте.</div></div></div>
@@ -1250,7 +1265,7 @@ async function load(){
   if(c.error||t.error)throw (c.error||t.error);
   S.clubs=c.data.map(x=>Object.assign({roster:[]},cleanData(x)));S.tournaments=t.data.map(tFromRow);S.adminExists=ae.data!==false;
   SNAP.t={};S.tournaments.forEach(T=>SNAP.t[T.id]=jsq(tData(T)));
-  await loadSession();
+  await loadSession();pendRestore();
 }
 function softRender(){const ae=document.activeElement;const typing=ae&&/^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName);if(typing||location.hash==='#create')return;if(document.getElementById('modal').classList.contains('open')){if(UI.pm){render();refreshPult()}return}render()}
 var REV=REV||{};
@@ -2930,7 +2945,7 @@ const A={
   delT(el){closeModal();S.tournaments=S.tournaments.filter(t=>t.id!==el.dataset.id);UI.confirm=null;save();go('cabinet');toast('Турнир удалён')},
   async login(el){const e=document.getElementById('lg-err');const email=document.getElementById('lg-email').value.trim(),password=document.getElementById('lg-pass').value;if(!email||!password){e.textContent='Введите почту и пароль';return}
     el.disabled=true;const r=await sb.auth.signInWithPassword({email,password});if(r.error){el.disabled=false;e.textContent='Неверная почта или пароль';return}
-    await loadSession();if(S.session)go('cabinet');else if(S.admin)go('admin');else if(S.adminOff){S.adminOff=false;el.disabled=false;e.innerHTML='Это вход для клубов. Админка — <a href="https://admin.kazbilliard.com">admin.kazbilliard.com</a>';return}else{e.textContent='К этой почте не привязан клуб — обратитесь к администратору';await sb.auth.signOut({scope:'local'});await loadSession();el.disabled=false}},
+    await loadSession();pendRestore();if(S.session)go('cabinet');else if(S.admin)go('admin');else if(S.adminOff){S.adminOff=false;el.disabled=false;e.innerHTML='Это вход для клубов. Админка — <a href="https://admin.kazbilliard.com">admin.kazbilliard.com</a>';return}else{e.textContent='К этой почте не привязан клуб — обратитесь к администратору';await sb.auth.signOut({scope:'local'});await loadSession();el.disabled=false}},
   async relogin(el){const e=document.getElementById('rl-err');const email=(document.getElementById('rl-email').value||'').trim(),password=document.getElementById('rl-pass').value;if(!email||!password){e.textContent='Введите почту и пароль';return}
     el.disabled=true;const r=await sb.auth.signInWithPassword({email,password});if(r.error){el.disabled=false;e.textContent='Неверная почта или пароль';return}
     const mc=await sb.rpc('my_club');if(mc.data!==S.session){el.disabled=false;e.textContent='Это вход другого клуба — войдите почтой этого клуба';await sb.auth.signOut({scope:'local'});return}
