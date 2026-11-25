@@ -31,13 +31,20 @@ with sync_playwright() as p:
         pg.evaluate("document.querySelector('a.hads').addEventListener('click',e=>e.preventDefault())");a.click();pg.wait_for_timeout(200)
         if 'click' not in pg.evaluate("window.__hits||[]"):bad.append('click count')
     pg.close()
-    # 2. нет рекламы — блока нет
+    # 2. нет рекламы — жёлтая полоса «Здесь может быть ваша реклама» с WhatsApp, на телефоне тоже
     pg=page('null');pg.goto('file:///home/claude/site_t/index.html');pg.wait_for_timeout(900)
     if pg.query_selector('.hads'):bad.append('banner without ad')
+    f=pg.query_selector('a.hfree')
+    if not f or 'Здесь может быть ваша реклама' not in f.inner_text() or not f.get_attribute('href').startswith('https://wa.me/77764308322'):bad.append('free banner')
+    elif not pg.evaluate("document.querySelector('.hhero').nextElementSibling.classList.contains('hfree')"):bad.append('free not after hero')
+    pg.close()
+    pg=page('null',390);pg.goto('file:///home/claude/site_t/index.html');pg.wait_for_timeout(900)
+    bx=pg.query_selector('a.hfree').bounding_box()
+    if bx['height']>100:bad.append('free phone height %r'%bx['height'])
     pg.close()
     # 3. чужая картинка или ссылка javascript: — не показываем
     pg=page(AD.replace("https://example.kz/kiy","javascript:alert(1)"));pg.goto('file:///home/claude/site_t/index.html');pg.wait_for_timeout(900)
-    if pg.query_selector('.hads'):bad.append('bad link shown')
+    if pg.query_selector('.hads') or not pg.query_selector('.hfree'):bad.append('bad link shown')
     pg.close()
     pg=page(AD.replace("title:'Наклейки <b>и</b> ремонт'","title:''"));pg.goto('file:///home/claude/site_t/index.html');pg.wait_for_timeout(900)
     if pg.query_selector('.hads'):bad.append('empty title shown')
