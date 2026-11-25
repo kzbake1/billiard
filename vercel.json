@@ -46,6 +46,9 @@
   "functions": {
     "api/og.mjs": {
       "includeFiles": "{og/**,logo-white.svg,pattern-blue.svg}"
+    },
+    "api/t.js": {
+      "includeFiles": "index.html"
     }
   }
 }
