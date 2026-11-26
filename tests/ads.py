@@ -3,9 +3,9 @@ import os;os.system("/home/claude/test/mkcopy.sh")
 from playwright.sync_api import sync_playwright
 U='https://dhsrklircobualygdacz.supabase.co/storage/v1/object/public/ad-image/11111111-1111-1111-1111-111111111111/'
 mock=open('/home/claude/test/mock.js').read()
-mock=mock.replace("promo_use:[]};","promo_use:[],ad:[],ad_stat:[{ad_id:'11111111-1111-1111-1111-111111111111',day:'2026-11-20',views:100,clicks:3}]};",1)
+mock=mock.replace("promo_use:[]};","promo_use:[],site_day:[{day:'2026-11-20',visits:40,mobile:30}],ad:[],ad_stat:[{ad_id:'11111111-1111-1111-1111-111111111111',day:'2026-11-20',views:100,clicks:3}]};",1)
 mock=mock.replace(" if(!isA)return{data:null,error:{message:'Только для администратора'}};",
- " if(n==='current_ad_v2'){window.__hits=window.__hits||[];return{data:window.__AD?[window.__AD]:[]}}if(n==='ad_hit'){(window.__hits=window.__hits||[]).push(a.p_kind);return{data:null}}\n if(!isA)return{data:null,error:{message:'Только для администратора'}};",1)
+ " if(n==='current_ad_v2'){window.__hits=window.__hits||[];return{data:window.__AD?[window.__AD]:[]}}if(n==='ad_hit'){(window.__hits=window.__hits||[]).push(a.p_kind);return{data:null}}if(n==='site_hit'){(window.__sv=window.__sv||[]).push(a.p_mobile);return{data:null}}\n if(!isA)return{data:null,error:{message:'Только для администратора'}};",1)
 assert 'current_ad' in mock
 AD="{id:'11111111-1111-1111-1111-111111111111',advertiser:'Кий-Мастер',link:'https://example.kz/kiy',eyebrow:'КИЙ-МАСТЕР · АЛМАТЫ',title:'Наклейки <b>и</b> ремонт',subtitle:'За один день',button:'Подробнее'}"
 bad=[]
@@ -30,6 +30,15 @@ with sync_playwright() as p:
         if pg.evaluate("(window.__hits||[]).filter(x=>x==='view').length")!=1:bad.append('view count')
         pg.evaluate("document.querySelector('a.hads').addEventListener('click',e=>e.preventDefault())");a.click();pg.wait_for_timeout(200)
         if 'click' not in pg.evaluate("window.__hits||[]"):bad.append('click count')
+    pg.close()
+    # 1б. посещаемость: один заход в день с браузера, не больше
+    pg=page('null');pg.goto('file:///home/claude/site_t/index.html');pg.wait_for_timeout(900);pg.reload();pg.wait_for_timeout(900)
+    if pg.evaluate("(window.__sv||[]).length")!=0 and pg.evaluate("localStorage.length")==0:bad.append('sv storage')
+    pg.close()
+    pg=page('null');pg.goto('file:///home/claude/site_t/index.html');pg.wait_for_timeout(900)
+    if pg.evaluate("(window.__sv||[]).length")!=1:bad.append('sv hit %r'%pg.evaluate("window.__sv"))
+    pg.reload();pg.wait_for_timeout(900)
+    if pg.evaluate("(window.__sv||[]).length")!=0:bad.append('sv twice')
     pg.close()
     # 2. нет рекламы — жёлтая полоса «Здесь может быть ваша реклама» с WhatsApp, на телефоне тоже
     pg=page('null');pg.goto('file:///home/claude/site_t/index.html');pg.wait_for_timeout(900)
@@ -75,6 +84,9 @@ with sync_playwright() as p:
     pg.goto('file:///home/claude/site_t/index.html#admin/ads');pg.wait_for_timeout(900)
     if 'Реклама' not in pg.inner_text('.adm-tabs'):bad.append('no tab')
     if 'Баннеров пока нет' not in pg.inner_text('body'):bad.append('empty state')
+    pg.goto('file:///home/claude/site_t/index.html#admin');pg.wait_for_timeout(900)
+    if 'Посещаемость сайта' not in pg.inner_text('body') or 'С телефона' not in pg.inner_text('body'):bad.append('sv admin block')
+    pg.goto('file:///home/claude/site_t/index.html#admin/ads');pg.wait_for_timeout(900)
     pg.click('[data-act=rkNew]');pg.wait_for_timeout(200)
     pg.fill('#rk-n','Кий-Мастер');pg.fill('#rk-l','https://example.kz');pg.fill('#rk-e','2099-12-31')
     pg.click('[data-act=rkSave]');pg.wait_for_timeout(200)
