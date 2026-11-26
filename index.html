@@ -1440,7 +1440,7 @@ function tabsIntoView(){const t=document.querySelector('.tabs .on');if(t&&t.pare
 function syncPath(){try{const h=location.hash.slice(1),pth=location.pathname;if(pth!=='/'&&!pth.startsWith('/t/'))return;
   const m=/^t-([a-z0-9]+)$/.exec(h),want=m?'/t/'+m[1]:'/';if(pth!==want)history.replaceState(history.state,'',want+location.search+location.hash)}catch(e){}}
 (function(){try{const m=/^\/t\/([a-z0-9]+)\/?$/.exec(location.pathname);if(m&&!location.hash)history.replaceState(null,'','/t/'+m[1]+'#t-'+m[1]);syncPath()}catch(e){}})();
-function render(){RENDER_N++;syncPath();setTimeout(()=>{tabsIntoView();addEyes()},0);
+function render(){RENDER_N++;syncPath();setTimeout(()=>{tabsIntoView();addEyes();undoBar()},0);
   const h=location.hash.slice(1)||'home';
   const nav=document.getElementById('nav');
   const me=S.session?club(S.session):null;
@@ -2667,7 +2667,7 @@ function renderPult(T){
   <aside class="pult-side"><h2 style="margin-bottom:4px">Очередь</h2><p class="muted" style="margin:0 0 12px;font-size:14px">${!ready.length?'':free.length?'Одно нажатие — матч начинается за свободным столом.':'Все столы заняты — дождитесь окончания матча.'}</p>
   ${ready.length?ready.map(m=>`<div class="pq"><div style="font-weight:600;font-size:16px;margin-bottom:10px">${esc(pname(T,m.a))}${vfS(T,m.a)} — ${esc(pname(T,m.b))}${vfS(T,m.b)}</div><div class="pq-t">${free.length?`<button class="btn dark" data-act="callT" data-mid="${m.id}" data-t="${free[0]}">К столу ${free[0]}</button>${free.length>1?`<select class="tsel" aria-label="Другой стол" data-act="callSel" data-mid="${m.id}"><option value="">другой стол</option>${free.slice(1).map(k=>`<option value="${k}">Стол ${k}</option>`).join('')}</select>`:''}`:'<span class="muted" style="font-size:13px">нет свободных столов</span>'}</div></div>`).join(''):`<div class="empty" style="padding:24px">${b.finished?'Все матчи сыграны':'Следующие матчи появятся, когда закончатся идущие'}</div>`}
   </aside></div>
-  ${UI.undo&&UI.undo.tid===T.id?`<div class="undo" role="status"><span>${esc(UI.undo.text)}</span><button class="btn light" data-act="undo">Отменить</button></div>`:''}`;
+  `;
 }
 
 const isCont=T=>/продолжением/i.test((T&&T.discipline)||'');const FB=8;
@@ -2791,7 +2791,14 @@ function obsLinksHTML(T){const c=club(T.clubId);const n=c.tables||6;const map={}
   <div class="obs-h">Отправьте ссылку стола оператору трансляции. Он один раз добавляет её в OBS — дальше счёт и игроки меняются сами, и в следующих турнирах тоже.<ol class="obs-ol"><li>Источники → + → «Браузер»</li><li>Вставить ссылку, ширина 1920, высота 1080</li><li>Поставить источник выше камеры</li></ol></div>
   <div class="obs-l">${Array.from({length:n},(_,i)=>i+1).sort((p,q)=>(map[p]?0:1)-(map[q]?0:1)||p-q).map(k=>{const x=map[k];const live=x&&x.m.state==='live';const pl=(sd,sc)=>`<div class="obs-p"><span>${esc(sname(pname(x.t,sd)))}${vfS(x.t,sd)}</span>${live?`<b>${sc}</b>`:''}</div>`;
     return`<div class="obs-r${live?' live':x?' on':''}"><div class="obs-hd"><b>${esc(tlabel(c,k))}</b>${x?`<span class="tpill ${live?'live':'call'}"><i></i>${live?'Идёт':'Вызваны'}</span>`:'<span class="tpill">Свободен</span>'}${x&&x.t.id!==T.id?`<span class="obs-o">${esc(x.t.title)}</span>`:''}</div>${x?`<div class="obs-ps">${pl(x.m.a,x.m.res.sa)}${pl(x.m.b,x.m.res.sb)}</div>`:''}<div class="obs-ac"><button class="btn sm obs-cp" data-act="obsCopy" data-t="${k}">${AIC.copy}Скопировать ссылку</button><a class="btn sm ghost" data-act="ext" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(obsMsg(c,k))}">${IC.wa}Отправить в WhatsApp</a></div></div>`}).join('')}</div></div>`}
-function refreshPult(){if(!UI.pm||!CUR||!document.getElementById('modal').classList.contains('open'))return;const m=CUR.b.all.find(x=>x.id===UI.pm);if(!m||m.state==='wait'){closeModal();return}const d0=document.querySelector('#modal .dlg');const y=d0?d0.scrollTop:0;openModal(pultHTML(CUR.T,m));const d1=document.querySelector('#modal .dlg');if(d1&&y)d1.scrollTop=y}
+// «Матч завершён · Отменить» — 15 секунд после завершения, на любой вкладке турнира
+function undoBar(){let e=document.getElementById('ubar');if(!e){e=document.createElement('div');e.id='ubar';document.body.appendChild(e)}
+  const u=UI.undo,left=15000-(Date.now()-(UI.undoAt||0));const on=u&&left>0&&CUR&&CUR.T&&u.tid===CUR.T.id&&isOwner(CUR.T)&&location.hash.startsWith('#t-');
+  e.innerHTML=on?`<div class="undo" role="status"><span>${esc(u.text)}</span><button class="btn light" data-act="undo">Отменить</button></div>`:'';
+  clearTimeout(undoBar._t);if(on)undoBar._t=setTimeout(undoBar,left+50)}
+function refreshPult(){if(!UI.pm||!CUR||!document.getElementById('modal').classList.contains('open'))return;const m=CUR.b.all.find(x=>x.id===UI.pm);if(!m||m.state==='wait'){closeModal();return}
+  // встречу только что завершили — окно закрываем, внизу страницы остаётся «Матч завершён · Отменить»
+  if(m.state==='done'&&UI.justDone===m.id){UI.justDone=null;closeModal();return}const d0=document.querySelector('#modal .dlg');const y=d0?d0.scrollTop:0;openModal(pultHTML(CUR.T,m));const d1=document.querySelector('#modal .dlg');if(d1&&y)d1.scrollTop=y}
 /* ============ цены ============ */
 let PLANS=[{id:'m1',title:'1 месяц',months:1,price:6000},{id:'m6',title:'6 месяцев',months:6,price:30000},{id:'m12',title:'12 месяцев',months:12,price:49000}],PLANS_OK=false;
 async function loadPlans(){if(PLANS_OK||!sb)return;const r=await sb.from('plan').select('id,title,months,price,sort,active').order('sort');const d=r.data&&r.data.filter(x=>x.price>0&&x.active!==false);if(!r.error&&d&&d.length){PLANS=d.map(x=>cleanData(x));PLANS_OK=true;if((location.hash.slice(1))==='price')document.getElementById('app').innerHTML=renderPrice()}}
@@ -2903,7 +2910,7 @@ const A={
   uncall(el){const {T}=CUR;delete T.results[el.dataset.mid];save();render();refreshPult()},
   _fin(T,m,r,prev){const R=r.race||T.raceTo;if(r.paused){r.pausedMs=(r.pausedMs||0)+Date.now()-r.pauseAt;r.paused=false;delete r.pauseAt}
     r.done=true;r.live=false;r.end=r.ts=Date.now();if(!r.start)r.start=prev.ts;if(Math.max(r.sa,r.sb)<R)r.forced=true;else delete r.forced;const w=r.sa>r.sb?m.a:m.b;
-    UI.undo={tid:T.id,mid:m.id,prev,text:`${T.match?'Встреча завершена':'Матч №'+m.no+' завершён'} · ${sname(pname(T,w))} ${Math.max(r.sa,r.sb)}:${Math.min(r.sa,r.sb)}`};clearTimeout(A._u);A._u=setTimeout(()=>{UI.undo=null;if(UI.pm===m.id)refreshPult()},30000)},
+    UI.justDone=m.id;UI.undoAt=Date.now();UI.undo={tid:T.id,mid:m.id,prev,text:`${T.match?'Встреча завершена':'Матч №'+m.no+' завершён'} · ${sname(pname(T,w))} ${Math.max(r.sa,r.sb)}:${Math.min(r.sa,r.sb)}`};clearTimeout(A._u);A._u=setTimeout(()=>{UI.undo=null;if(UI.pm===m.id)refreshPult()},30000)},
   sc(el){const {T,b}=CUR;const m=b.all.find(x=>x.id===el.dataset.mid);if(!m||!m.res)return;const r=T.results[m.id];if(r.paused||r.done)return;const k='s'+el.dataset.side;const R=r.race||T.raceTo;const prev=Object.assign({},r);if(r.call){r.call=false;r.live=true}
     r[k]=Math.max(0,Math.min(R,r[k]+(+el.dataset.d)));r.et=Date.now();if(!isCont(T)){syncFr(r);if(+el.dataset.d>0){r.ba=0;r.bb=0}}
     save();render();refreshPult()},
@@ -3015,7 +3022,7 @@ const A={
   zoom(el){const d=+el.dataset.d;setZoom(d?ZOOM+d*.1:1)},
   uniGo(el){const u=document.querySelector('.uni');if(!u)return;const v=el.dataset.v,ub=u.querySelector('.ub'),po=u.querySelector('.po-start');const X=e=>e.getBoundingClientRect().left-u.getBoundingClientRect().left+u.scrollLeft-20;u.scrollTo({left:v==='lb'?0:v==='wb'?X(ub):X(po),behavior:'smooth'})},
   deView(el){UI.de[el.dataset.id]=el.dataset.v;render()},
-  match(el){if(el.classList.contains('hid'))return;openMatch(el.dataset.mid)},
+  match(el){UI.justDone=null;if(el.classList.contains('hid'))return;openMatch(el.dataset.mid)},
   prepFo(el){const T=CUR&&CUR.T;if(!T||!isOwner(T)||T.status!=='reg')return;const v=foOk(el.value)||FBX;el.value=v;T.foP=T.foP||{};T.foP[el.dataset.pid]=v;save();toast('Фора: '+T.players.map(p=>(T.foP[p.id]||FBX)).join(':'))},
   obsMatch(){if(!CUR||!isOwner(CUR.T))return;const T=CUR.T;const u=location.origin+'/#tablo-m-'+T.id;const t=`Табло счёта для трансляции — ${T.title}\n${u}\n\nКак добавить в OBS Studio:\n1. Внизу, в окне «Источники», нажмите «+» и выберите «Браузер».\n2. Назовите, например «Табло встречи», нажмите ОК.\n3. В поле «URL» вставьте ссылку выше.\n4. Ширина — 1920, высота — 1080. Нажмите ОК.\n5. В списке источников перетащите табло выше камеры, чтобы оно было поверх видео.\n\nСчёт на табло меняется сам, когда судья вносит его на kazbilliard. Нажимать ничего не нужно.`;
     const ok=()=>toast('Ссылка для OBS скопирована — с инструкцией');if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok,()=>prompt('Ссылка для OBS',u));else prompt('Ссылка для OBS',u)},
