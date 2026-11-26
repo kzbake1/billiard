@@ -1466,7 +1466,7 @@ function renderHome(){
   const spons=`<section class="hsp"><p class="hsp-h">Спонсоры</p><div class="hsp-row"><img src="/sponsors/chimba.svg" alt="Chimba" loading="lazy"><img src="/sponsors/pro-billiards-kazakhstan.png" alt="Pro Billiards Kazakhstan" loading="lazy"></div></section>`;
   if(!all.length)return hero+rkBanner()+`<div class="empty">${S.session?'Турниров пока нет.<br><br><button class="btn blue big" data-act="newT">+ Создать первый турнир</button>':'Турниров пока нет. Они появятся здесь, когда клубы их создадут.'}</div>`+(S.session?'':join)+spons;
   const cols=[soon.length?sec('Скоро',soon.length,`<div class="hlist">${hHead('',1)}${soon.map(x=>hSoon(x.T)).join('')}</div>`):'',
-    done.length?sec('Недавно завершились','',`<div class="hlist">${hHead('Победитель',0)}${dn.map(x=>hDone(x.T,x.b)).join('')}</div>${done.length>4?`<button class="btn ghost hs-more" data-act="homeMore">${more?'Свернуть':'Показать все · '+done.length}</button>`:''}`):''].filter(Boolean);
+    done.length?sec('Завершённые','',`<div class="hlist">${hHead('Победитель',0)}${dn.map(x=>hDone(x.T,x.b)).join('')}</div>${done.length>4?`<button class="btn ghost hs-more" data-act="homeMore">${more?'Свернуть':'Показать все · '+done.length}</button>`:''}`):''].filter(Boolean);
   return hero+rkBanner()+(live.length?sec('Сейчас идут',live.length,`<div class="hlist">${hHead('Статус',1)}${live.map(x=>hLiveRow(x.T,x.b)).join('')}</div>`):'')+
     (cols.length?`<div class="hcols${cols.length===1?' one':''}">${cols.join('')}</div>`:'')+(S.session?'':join)+spons;
 }
