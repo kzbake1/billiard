@@ -997,6 +997,23 @@ html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:10
 .tp-f{list-style:none;margin:0;padding:12px 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}.tp-f li{display:flex;justify-content:space-between;gap:10px;font-size:14px}.tp-f span{color:var(--muted)}.tp-f b{font-weight:500;font-variant-numeric:tabular-nums}
 .tp-c .btn{margin-top:auto;width:100%;justify-content:center}
 .adm-tabs a.rk,body.admv .adm-tabs a.rk{align-self:center;height:36px;padding:0 12px;margin:0 0 0 4px;border-bottom:0;border-radius:10px;background:var(--accent-soft);color:var(--accent-ink);font-weight:600}
+.xseg{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:10px;padding:3px;margin-bottom:14px;gap:2px}.xseg button{border:0;background:none;font:inherit;font-size:14px;font-weight:600;color:var(--sub);padding:8px 14px;border-radius:8px;cursor:pointer}.xseg button.on{background:var(--accent-soft);color:var(--accent-ink)}
+.xt-w{overflow:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:10px;max-height:78vh}
+.xt{border-collapse:separate;border-spacing:0;font-size:13px;font-variant-numeric:tabular-nums;min-width:100%}
+.xt th,.xt td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:0;height:34px;text-align:center;white-space:nowrap;background:#fff}
+.xt thead th{position:sticky;top:0;z-index:2;background:#FAFAFA;font-size:11px;font-weight:700;color:var(--muted);height:30px}
+.xt .xn{position:sticky;left:0;z-index:1;width:36px;min-width:36px;color:var(--muted);background:#FAFAFA}
+.xt .xp{position:sticky;left:36px;z-index:1;text-align:left;padding:0 12px;font-weight:600;font-size:14px;min-width:180px;box-shadow:1px 0 0 var(--line)}
+.xt thead .xn,.xt thead .xp{z-index:3}.xt thead .xp{background:#FAFAFA;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.xt td[data-c],.xt .xc{min-width:52px;width:52px}
+.xt td[data-act]{cursor:pointer}.xt td[data-act]:hover{outline:2px solid var(--accent);outline-offset:-2px}
+.xt .xd{background:var(--soft);color:var(--muted)}
+.xt .xw{background:var(--ok-soft);color:var(--ok);font-weight:600}.xt .xs{color:var(--sub)}
+.xt .xl i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--live)}
+.xt .xr{padding:0 10px;color:var(--sub)}.xt .xm{color:var(--ink)}
+.xt tbody tr:hover td{background:#F7F9FF}.xt tbody tr:hover .xw{background:#D6EEDF}.xt tbody tr:hover .xd{background:var(--soft)}
+.xt thead th{text-transform:uppercase;letter-spacing:.04em}@media(max-width:640px){.xt .xp{min-width:0;max-width:128px;overflow:hidden;text-overflow:ellipsis;font-size:13px;padding:0 8px}.xt td[data-c],.xt .xc{min-width:46px;width:46px}.xt .xn{width:28px;min-width:28px}.xt .xp{left:28px}}
+.xt-lg{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)}.xt-lg span{display:inline-flex;align-items:center;gap:6px}.xt-lg i{width:12px;height:12px;border-radius:3px;border:1px solid var(--line);display:inline-block}.xt-lg i.xw{background:var(--ok-soft);border-color:var(--ok-soft)}.xt-lg i.xs{background:#fff}.xt-lg i.xl{background:var(--live);border-radius:50%;width:8px;height:8px;border:0}
 </style>
 </head>
 <body>
@@ -1715,6 +1732,18 @@ function mRow(T,m){
   const r=m.res,done=m.state==='done';const w=s=>done&&m.winner.id===s.id?'w':'';
   return`<div class="mr s-${m.state}" data-act="match" data-mid="${m.id}"><span class="no">№${m.no}</span><span class="a ${w(m.a)}">${esc(pname(T,m.a))}${vfS(T,m.a)}</span><span class="s">${r?`${r.sa} : ${r.sb}`:'<span class="vs">—</span>'}</span><span class="b ${w(m.b)}">${esc(pname(T,m.b))}${vfS(T,m.b)}</span></div>`;
 }
+// шахматка круговой системы: строка — игрок, столбец — соперник, в клетке счёт с точки зрения игрока в строке
+function crossHTML(T,g){const ids=g.ids,n=ids.length,pos={};g.standings.forEach((r,i)=>pos[r.id]=i+1);const st={};g.standings.forEach(r=>st[r.id]=r);
+  const M={};g.matches.forEach(m=>{M[m.a.id+'|'+m.b.id]=m;M[m.b.id+'|'+m.a.id]=m});
+  const cell=(ri,ci)=>{if(ri===ci)return`<td class="xd" data-c="${ci}">×</td>`;const a=ids[ri],b=ids[ci],m=M[a+'|'+b];if(!m)return`<td data-c="${ci}"></td>`;
+    const ttl=esc(pname(T,P(a))+' / '+pname(T,P(b)));const at=` data-act="match" data-mid="${m.id}" data-c="${ci}" title="${ttl}"`;
+    if(m.state==='live')return`<td class="xl"${at}><i></i></td>`;
+    if(m.state!=='done'||!m.res)return`<td class="xe"${at}></td>`;
+    const r=m.res,me=m.a.id===a,x=me?r.sa:r.sb,y=me?r.sb:r.sa,won=m.winner&&m.winner.id===a;
+    return`<td class="${won?'xw':'xs'}"${at}>${r.tp?(won?'+ : −':'− : +'):x+' : '+y}</td>`};
+  return`<div class="xt-w"><table class="xt"><thead><tr><th class="xn">№</th><th class="xp">Игрок</th>${ids.map((_,i)=>`<th class="xc" data-c="${i}">${i+1}</th>`).join('')}<th class="xr">И</th><th class="xr">В</th><th class="xr">П</th><th class="xr">Партии</th><th class="xr xm">Место</th></tr></thead><tbody>
+  ${ids.map((id,ri)=>{const r=st[id]||{pl:0,w:0,l:0,ff:0,fa:0};return`<tr><td class="xn">${ri+1}</td><td class="xp">${esc(pname(T,P(id)))}${vfS(T,P(id))}</td>${ids.map((_,ci)=>cell(ri,ci)).join('')}<td class="xr">${r.pl}</td><td class="xr"><b>${r.w}</b></td><td class="xr">${r.l}</td><td class="xr">${r.ff}:${r.fa}</td><td class="xr xm"><b>${r.pl?pos[id]:'—'}</b></td></tr>`}).join('')}
+  </tbody></table></div><div class="xt-lg"><span><i class="xw"></i>победа</span><span><i class="xs"></i>поражение</span><span><i class="xl"></i>идёт</span><span>пусто — ещё не играли</span></div>`}
 function standingsHTML(T,g,K){
   return`<table class="tb"><thead><tr><th class="pos">#</th><th>Игрок</th><th class="c">И</th><th class="c">В</th><th class="c">П</th><th class="c">Партии</th><th class="c">±</th></tr></thead><tbody>
   ${g.standings.map((r,i)=>`<tr class="${K&&i<K?'q':''}"><td class="pos">${i+1}</td><td>${esc(pname(T,P(r.id)))}${vfS(T,P(r.id))}</td><td class="c">${r.pl}</td><td class="c"><b>${r.w}</b></td><td class="c">${r.l}</td><td class="c">${r.ff}:${r.fa}</td><td class="c">${r.ff-r.fa>0?'+':''}${r.ff-r.fa}</td></tr>`).join('')}</tbody></table>`;
@@ -1787,10 +1816,12 @@ function renderGridTab(T,b){
     const fin=`<div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start"><div class="final-box" style="flex:0 1 260px"><div class="round-title">Финал</div><div style="padding-top:8px">${mCard(T,b.gf)}</div></div>${b.gf2?`<div class="final-box" style="flex:0 1 260px"><div class="round-title">Повторный финал</div><div style="padding-top:8px">${mCard(T,b.gf2)}</div></div>`:''}</div>`;
     return`<div class="withside"><div class="wm"><div style="display:flex;justify-content:flex-end;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px"><div class="lz">${LEGEND}${zoomCtl()}</div></div>
     ${hd('Верхняя сетка')}${bracketHTML(T,b.wb)}${hd('Нижняя сетка')}${bracketHTML(T,b.lb)}${hd('Финал')}${fin}</div></div>`;}
-  if(T.format==='rr'){const g=b.groups[0];return`<div class="two"><div class="panel"><h3>Таблица</h3>${standingsHTML(T,g)}</div><div>${g.rounds.map(rd=>`<div class="panel" style="margin-bottom:12px"><h3>${rd.title}</h3><div class="mlist" style="margin:0">${rd.matches.map(m=>mRow(T,m)).join('')}</div></div>`).join('')}</div></div>`}
+  if(T.format==='rr'){const g=b.groups[0];const v=UI.rrv||'cross';const seg=`<div class="xseg"><button class="${v==='cross'?'on':''}" data-act="rrView" data-v="cross">Шахматка</button><button class="${v==='table'?'on':''}" data-act="rrView" data-v="table">Таблица и туры</button></div>`;
+    if(v==='cross')return seg+`<div class="panel">${crossHTML(T,g)}</div>`;
+    return seg+`<div class="two"><div class="panel"><h3>Таблица</h3>${standingsHTML(T,g)}</div><div>${g.rounds.map(rd=>`<div class="panel" style="margin-bottom:12px"><h3>${rd.title}</h3><div class="mlist" style="margin:0">${rd.matches.map(m=>mRow(T,m)).join('')}</div></div>`).join('')}</div></div>`}
   return`<div class="sec"><div class="sec-h"><h2>Группы</h2><span class="muted">в плей-офф выходят ${b.K} из каждой группы</span></div>
   <div class="groups">${b.groups.map(g=>`<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0">${g.name}</h3>${g.complete?'<span class="st done">сыграна</span>':`<span class="muted" style="font-size:12px">${g.matches.filter(m=>m.state==='done').length}/${g.matches.length} матчей</span>`}</div>
-  ${standingsHTML(T,g,g.matches.some(m=>m.state==='done')?b.K:0)}<details class="more" ${g.matches.some(m=>m.state==='live')?'open':''}><summary>Матчи группы</summary><div class="mlist">${g.matches.map(m=>mRow(T,m)).join('')}</div></details></div>`).join('')}</div></div>
+  ${standingsHTML(T,g,g.matches.some(m=>m.state==='done')?b.K:0)}<details class="more"><summary>Шахматка</summary>${crossHTML(T,g)}</details><details class="more" ${g.matches.some(m=>m.state==='live')?'open':''}><summary>Матчи группы</summary><div class="mlist">${g.matches.map(m=>mRow(T,m)).join('')}</div></details></div>`).join('')}</div></div>
   <div class="sec"><div class="sec-h"><h2>Плей-офф</h2><span class="muted">соперники появляются, когда группа сыграна</span></div>${bracketHTML(T,b.rounds,Object.assign(capSE(b.rounds),{extra:thirdBox(T,b)}))}</div>`;
 }
 function clubLive(clubId,exceptMid){const out=[];S.tournaments.filter(t=>t.clubId===clubId&&t.status!=='reg').forEach(t=>build(t).all.forEach(m=>{if((m.state==='live'||m.state==='call')&&m.res.table&&!(CUR&&t===CUR.T&&m.id===exceptMid))out.push({t,m})}));return out}
@@ -3023,6 +3054,7 @@ const A={
     const n=Object.assign({},p,{last,first,name:last+' '+first,sex:v('ep-sex'),birth:yb?String(y):'',country:v('ep-country'),city:v('ep-city'),club:v('ep-club'),rank:v('ep-rank'),lvl:v('ep-lvl')});el.disabled=true;
     const r=await sb.from('player').update({data:pub(n)}).eq('id',p.id).select('id');el.disabled=false;if(r.error||!r.data||!r.data.length){e.textContent='Не получилось сохранить';return}
     Object.assign(p,n);closeModal();render();toast('Игрок сохранён')},
+  rrView(el){UI.rrv=el.dataset.v;render()},
   async adVf(el){const id=el.dataset.id,on=!VF.has(id);el.disabled=true;const r=await sb.rpc('admin_verify_player',{p_id:id,p_on:on});el.disabled=false;
     if(r.error){toast('Не получилось: '+(r.error.message||''));return}on?VF.add(id):VF.delete(id);render();toast(on?'Игрок подтверждён':'Галочка снята')},
   async adRate(el){const id=el.dataset.id,on=!RATED.has(id);el.disabled=true;const r=await sb.rpc('admin_set_rating',{p_id:id,p_on:on});el.disabled=false;
