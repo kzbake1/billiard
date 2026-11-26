@@ -9,7 +9,7 @@ ad={'id':'11111111-1111-1111-1111-111111111111','advertiser':P('adv'),'eyebrow':
 mock=open('/home/claude/test/mock.js').read()
 mock=mock.replace("promo_use:[]};","promo_use:[],ad:["+json.dumps(ad)+"],ad_stat:[{ad_id:'11111111-1111-1111-1111-111111111111',day:\"2026<img src=x onerror=__h('day')>\",views:'1<b>',clicks:'x'}]};",1)
 mock=mock.replace(" if(!isA)return{data:null,error:{message:'Только для администратора'}};",
- " if(n==='current_ad')return{data:window.__AD?[window.__AD]:[]};if(n==='ad_hit')return{data:null};\n if(!isA)return{data:null,error:{message:'Только для администратора'}};",1)
+ " if(n==='current_ad_v2')return{data:window.__AD?[window.__AD]:[]};if(n==='ad_hit')return{data:null};\n if(!isA)return{data:null,error:{message:'Только для администратора'}};",1)
 hits=[];bad=[]
 with sync_playwright() as p:
     b=p.chromium.launch(executable_path='/usr/bin/google-chrome')

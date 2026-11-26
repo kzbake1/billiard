@@ -5,7 +5,7 @@ U='https://dhsrklircobualygdacz.supabase.co/storage/v1/object/public/ad-image/11
 mock=open('/home/claude/test/mock.js').read()
 mock=mock.replace("promo_use:[]};","promo_use:[],ad:[],ad_stat:[{ad_id:'11111111-1111-1111-1111-111111111111',day:'2026-11-20',views:100,clicks:3}]};",1)
 mock=mock.replace(" if(!isA)return{data:null,error:{message:'Только для администратора'}};",
- " if(n==='current_ad'){window.__hits=window.__hits||[];return{data:window.__AD?[window.__AD]:[]}}if(n==='ad_hit'){(window.__hits=window.__hits||[]).push(a.p_kind);return{data:null}}\n if(!isA)return{data:null,error:{message:'Только для администратора'}};",1)
+ " if(n==='current_ad_v2'){window.__hits=window.__hits||[];return{data:window.__AD?[window.__AD]:[]}}if(n==='ad_hit'){(window.__hits=window.__hits||[]).push(a.p_kind);return{data:null}}\n if(!isA)return{data:null,error:{message:'Только для администратора'}};",1)
 assert 'current_ad' in mock
 AD="{id:'11111111-1111-1111-1111-111111111111',advertiser:'Кий-Мастер',link:'https://example.kz/kiy',eyebrow:'КИЙ-МАСТЕР · АЛМАТЫ',title:'Наклейки <b>и</b> ремонт',subtitle:'За один день',button:'Подробнее'}"
 bad=[]
@@ -48,6 +48,21 @@ with sync_playwright() as p:
     pg.close()
     pg=page(AD.replace("title:'Наклейки <b>и</b> ремонт'","title:''"));pg.goto('file:///home/claude/site_t/index.html');pg.wait_for_timeout(900)
     if pg.query_selector('.hads'):bad.append('empty title shown')
+    pg.close()
+    # 3б. картинка только для телефона: на телефоне картинка с «Реклама», на компьютере жёлтая полоса
+    IMG=AD.replace("title:'Наклейки <b>и</b> ремонт'","title:'',img_mobile:'/ads/chimba-m.webp'")
+    for w,want in ((390,'img'),(1280,'free')):
+        pg=page(IMG,w);pg.goto('file:///home/claude/site_t/index.html');pg.wait_for_timeout(900)
+        vi=pg.evaluate("(()=>{const v=s=>{const e=document.querySelector(s);return !!e&&e.getBoundingClientRect().height>0};return{img:v('.hads-img'),free:v('a.hfree')}})()")
+        if want=='img' and not (vi['img'] and not vi['free']):bad.append('phone img %r'%vi)
+        if want=='free' and not (vi['free'] and not vi['img']):bad.append('desktop free %r'%vi)
+        if want=='img':
+            if 'Реклама' not in pg.inner_text('.hads-img'):bad.append('img label')
+            bx=pg.query_selector('.hads-img').bounding_box()
+            if abs(bx['width']/bx['height']-4.5)>0.1:bad.append('img ratio')
+        pg.close()
+    pg=page(IMG.replace("img_mobile:'/ads/chimba-m.webp'","img_mobile:'https://evil.kz/x.webp'"),390);pg.goto('file:///home/claude/site_t/index.html');pg.wait_for_timeout(900)
+    if pg.query_selector('.hads-img'):bad.append('foreign img shown')
     pg.close()
     # 4. телефон: баннер на всю ширину, текст в столбик
     pg=page(AD,390);pg.goto('file:///home/claude/site_t/index.html');pg.wait_for_timeout(900)
