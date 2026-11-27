@@ -1059,6 +1059,18 @@ body:has(.ld) .top .logo{visibility:hidden}
 @media(prefers-reduced-motion:reduce){.rt-badge i{animation:none}}
 html,body{overflow-x:clip}
 @media(max-width:640px){.ch-row{margin:0 -16px 16px;padding:0 16px}}
+.cc{padding:0!important;gap:0!important;overflow:hidden}
+.cc-top{background:var(--accent-soft);padding:18px 18px 16px;align-items:center}
+.cc-top:hover{background:#DCE7FF}
+.cc-av{width:60px!important;height:60px!important;box-shadow:0 0 0 3px #fff}
+.cc-t{gap:8px!important}.cc-t b{font-size:19px!important;font-weight:700!important}
+.cc-ch{display:flex;flex-wrap:wrap;gap:6px}
+.cc-ch em{font-style:normal;display:inline-flex;align-items:center;gap:4px;background:#fff;color:var(--sub);font-size:12.5px;font-weight:600;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.cc-ch em svg{width:13px;height:13px;color:var(--accent)}
+.cc-ad{padding:14px 18px 0}
+.cc-nx{margin:12px 18px 0}
+.cc-acts{margin:16px 0 0!important;padding:14px 18px 18px!important}
+.cc>.cc-top+.cc-acts{border-top:0}
 .xt-lg{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:0 0 14px;font-size:12px;color:var(--muted)}.xt-lg span{display:inline-flex;align-items:center;gap:8px}.xt-lg b{display:inline-block;padding:2px 7px;border-radius:6px;font-weight:600;font-variant-numeric:tabular-nums}.xt-lg b.w{background:var(--ok-soft);color:var(--ok)}.xt-lg b.s{color:var(--muted);font-weight:500;border:1px solid var(--line)}.xt-lg b.e{width:30px;height:22px;padding:0;vertical-align:middle}.xt-lg i{display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--line2)}.xt-lg i.l{width:8px;height:8px;background:var(--live)}.xt-lg .hint{margin-left:auto}@media(max-width:640px){.xt-lg .hint{display:none}}
 @media print{#printbox .xt-w{max-height:none;overflow:visible;border:0}#printbox .xt{font-size:10.5px}#printbox .xt .xp{position:static;min-width:0;font-size:11px;box-shadow:none}#printbox .xt .xn,#printbox .xt thead th{position:static}#printbox .xt td[data-c],#printbox .xt .xc{min-width:30px;width:30px}#printbox .xt th,#printbox .xt td{height:22px}#printbox .xt-lg{display:none}#printbox .xt .xw,#printbox .xt .xd{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 .hl-wl svg{width:14px;height:14px;vertical-align:-2px;margin-right:4px;color:var(--gold,#8A6100)}
@@ -1669,9 +1681,9 @@ function clubCard(c){const ts=S.tournaments.filter(t=>t.clubId===c.id&&!t.parent
   const nx=ts.filter(t=>t.status==='reg'||(t.status==='live'&&!build(t).finished)).sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0];
   const nDone=ts.filter(t=>t.status==='done'||build(t).finished).length;
   const act=(href,ic,t,cls,ext)=>`<a class="cc-b ${cls||''}" href="${href}"${ext?' target="_blank" rel="noopener"':''}>${ic}<span>${t}</span></a>`;
-  return`<div class="cc"><a class="cc-top" href="#c-${c.id}"><i class="cc-av${c.logo?' im':''}">${avHTML(c)}</i><div class="cc-t"><b>${esc(c.name)}</b><span>${esc([c.city,c.tables?c.tables+' стол'+plural(c.tables):''].filter(Boolean).join(' · '))}</span></div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>
+  return`<div class="cc"><a class="cc-top" href="#c-${c.id}"><i class="cc-av${c.logo?' im':''}">${avHTML(c)}</i><div class="cc-t"><b>${esc(c.name)}</b><span class="cc-ch">${[c.city?`<em>${esc(c.city)}</em>`:'',c.tables?`<em>${esc(c.tables+' стол'+plural(c.tables))}</em>`:'',nDone?`<em>${nDone} ${nDone%10===1&&nDone%100!==11?'турнир':(nDone%10>=2&&nDone%10<=4&&(nDone%100<10||nDone%100>=20))?'турнира':'турниров'}</em>`:''].join('')}</span></div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>
   ${c.address?`<div class="cc-ad">${IC.pin}<span>${esc(c.address)}</span></div>`:''}
-  ${nx?`<a class="cc-nx ${nx.status==='live'?'live':''}" href="#t-${nx.id}"><em>${nx.status==='live'?'Идёт':'Скоро'}</em><span>${esc(nx.title)}</span><small>${esc(fdate(nx.date))}</small></a>`:nDone?`<div class="cc-st">Проведено турниров: ${nDone}</div>`:''}
+  ${nx?`<a class="cc-nx ${nx.status==='live'?'live':''}" href="#t-${nx.id}"><em>${nx.status==='live'?'Идёт':'Скоро'}</em><span>${esc(nx.title)}</span><small>${esc(fdate(nx.date))}</small></a>`:''}
   ${c.phone||c.address||c.instagram?`<div class="cc-acts">${c.phone?act(waLink(c.phone),IC.wa,'WhatsApp','wa',1)+act('tel:'+esc(c.phone.replace(/[^+\d]/g,'')),IC.phone,'Позвонить'):''}${c.address?act(gisLink(c),IC.pin,'Маршрут','opt',1):''}${c.instagram?`<a class="cc-b ico" href="${esc(instaLink(c.instagram))}" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram">${IC.ig}</a>`:''}</div>`:''}</div>`}
 // порядок клубов: Chimba первым, дальше — кто раньше подключился
 const CHIMBA='2232f5f8-8bc4-4486-9187-def4c532a528';const clubOrd=a=>[...a].sort((x,y)=>(y.id===CHIMBA)-(x.id===CHIMBA)||String(x.created_at||'9').localeCompare(String(y.created_at||'9')));
