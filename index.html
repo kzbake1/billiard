@@ -1017,6 +1017,11 @@ html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:10
 @media print{#printbox .xt-w{max-height:none;overflow:visible;border:0}#printbox .xt{font-size:10.5px}#printbox .xt .xp{position:static;min-width:0;font-size:11px;box-shadow:none}#printbox .xt .xn,#printbox .xt thead th{position:static}#printbox .xt td[data-c],#printbox .xt .xc{min-width:30px;width:30px}#printbox .xt th,#printbox .xt td{height:22px}#printbox .xt-lg{display:none}#printbox .xt .xw,#printbox .xt .xd{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 .hl-wl svg{width:14px;height:14px;vertical-align:-2px;margin-right:4px;color:var(--gold,#8A6100)}
 @media(max-width:760px){.hrow .hl-r:has(.hl-wl){flex:1 1 100%;margin:2px 0 0!important;padding:8px 12px!important;background:var(--soft);border-radius:8px;flex-direction:row;align-items:center!important;gap:8px}.hl-wl{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}.hl-wl svg{width:15px;height:15px;color:var(--gold,#8A6100)}.hrow .hl-r:has(.hl-wl) em{font-style:normal;font-weight:600;color:var(--ink);margin-left:auto}}
+.ptabs{background:var(--bg-deep,#ECECEC);border-bottom:1px solid var(--line)}.ptabs-in{margin:0 auto;padding:0 6px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}.ptabs-in::-webkit-scrollbar{display:none}
+.ptabs a{position:relative;padding:12px 14px;font-size:15px;font-weight:600;color:var(--sub);text-decoration:none;white-space:nowrap}.ptabs a:hover{color:var(--ink)}.ptabs a.on{color:var(--accent)}.ptabs a.on::after{content:'';position:absolute;left:14px;right:14px;bottom:-1px;height:2px;background:var(--accent);border-radius:2px}
+@media(max-width:640px){.ptabs-in{padding:0 4px}.ptabs a{padding:11px 12px}.ptabs a.on::after{left:12px;right:12px}}
+.pg-h{margin:8px 0 20px}.pg-h h1{margin:0 0 6px}.rt-q{margin-bottom:14px}.rt-tb td,.rt-tb th{white-space:nowrap}.rt-tb td:nth-child(2){white-space:normal}.rt-n{color:var(--muted);font-variant-numeric:tabular-nums}.rt-note{font-size:12.5px;margin-top:10px}.rt-p{overflow-x:auto;padding:0}
+.ch-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.cl-cta{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:20px}.cl-cta>div{display:flex;flex-direction:column;gap:4px}
 </style>
 </head>
 <body>
@@ -1024,6 +1029,7 @@ html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:10
   <a class="logo" href="#home"><img class="lg-f" src="/logo.svg" alt="kazbilliard — турнирная платформа" width="167" height="40"><img class="lg-s" src="/logo-short.svg" alt="kazbilliard" width="117" height="28"></a>
   <nav class="main" id="nav"></nav>
 </div></header>
+<nav id="ptabs" class="ptabs" aria-label="Разделы"></nav>
 <div id="ticker"></div>
 <main id="app"></main>
 <footer><span>kazbilliard — турнирная платформа</span></footer>
@@ -1450,6 +1456,8 @@ function render(){RENDER_N++;syncPath();setTimeout(()=>{tabsIntoView();addEyes()
   nav.innerHTML=`${me?`<div class="acc-w"><button class="acc" data-act="accMenu" aria-expanded="${UI.acc?'true':'false'}"><i class="${me.logo?'im':''}">${avHTML(me)}</i><span class="acc-t">${esc(me.name)}</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>${UI.acc?`<div class="acc-dd"><a href="#cabinet" data-act="accGo" data-to="">Профиль клуба</a><button class="r" data-act="logout">Выйти</button></div>`:''}</div>`:`<a href="${S.admin?'#admin':'#cabinet'}" class="cta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg><span>${S.admin?'Админ<span class="lg">истратор</span>':'Вход<span class="lg"> для клубов</span>'}</span></a>`}`;
   if(ADM){nav.innerHTML='';const lg=document.querySelector('a.logo');if(lg)lg.setAttribute('href','#admin')}
   renderTicker(false);
+  {const pt=document.getElementById('ptabs');const cur=(h===''||h==='home')?'home':h;const on=!ADM&&['home','rating','clubs'].includes(cur);
+   pt.innerHTML=on?`<div class="ptabs-in">${[['home','Турниры'],['rating','Рейтинг'],['clubs','Клубы']].map(([k,t])=>`<a href="#${k}" class="${cur===k?'on':''}"${cur===k?' aria-current="page"':''}>${t}</a>`).join('')}</div>`:'';pt.style.display=on?'':'none'}
   const app=document.getElementById('app');
   document.body.classList.remove('gonly','sbd','ctb','obs','admv');document.documentElement.classList.remove('obs');
   if(h.startsWith('tablo-')){app.innerHTML=renderObs(h.slice(6));setTimeout(fitObs,0);return}
@@ -1457,6 +1465,8 @@ function render(){RENDER_N++;syncPath();setTimeout(()=>{tabsIntoView();addEyes()
   if(h.startsWith('g-')){const T=tById(h.slice(2));if(T){app.innerHTML=renderGridOnly(T);return}}
   if(h.startsWith('t-')){const T=tById(h.slice(2));if(T&&!isPub(T)&&!isOwner(T)){app.innerHTML='<div class="empty">Турнир ещё не опубликован. <a href="#home">Все турниры</a></div>';return}if(T){app.innerHTML=renderT(T);renderRoster();if(isOwner(T))refreshPlayers();return}}
   if(h.startsWith('c-')){const c=S.clubs.find(x=>x.id===h.slice(2));if(c){app.innerHTML=renderClub(c);return}}
+  if(h==='rating'){app.innerHTML=renderRating();return}
+  if(h==='clubs'){app.innerHTML=renderClubs();return}
   if(h==='price'){app.innerHTML=renderPrice();loadPlans();return}
   if(h==='schet'){app.innerHTML=renderCounter();ctWake();return}
   if(/access_token=|type=recovery/.test(h)){app.innerHTML='<div class="empty">Открываем смену пароля…</div>';return}
@@ -1557,7 +1567,26 @@ function renderClub(c){
   (live.length?sec('Сейчас идут',live.length,`<div class="hlist">${hHead('Статус',1)}${live.map(x=>hLiveRow(x.T,x.b)).join('')}</div>`):'')+
   (cols.length?`<div class="hcols${cols.length===1?' one':''}">${cols.join('')}</div>`:'')+
   (all.length?'':`<div class="empty">Клуб пока не проводил турниров на kazbilliard.</div>`)}
-function homeClubs(){const cs=S.clubs.filter(c=>c.name&&!testHidden(c.id));if(!cs.length)return'';
+function renderRating(){
+  const L=S.tournaments.filter(T=>RATED.has(T.id)&&!T.parent&&isPub(T));const R={};let nDone=0;
+  L.forEach(T=>{const b=build(T);if(!b.places||!b.finished)return;nDone++;b.places.forEach(p=>p.ids.forEach(id=>{const pl=T.players.find(x=>x.id===id)||{};const x=R[id]||(R[id]={id,name:pl.name||pname(T,P(id)),city:pl.city||'',n:0,g:0,pod:0,best:999});
+    x.n++;if(p.from===1)x.g++;if(p.from<=3)x.pod++;x.best=Math.min(x.best,p.from)}))});
+  const rows=Object.values(R).sort((a,b)=>b.g-a.g||b.pod-a.pod||a.best-b.best||b.n-a.n||a.name.localeCompare(b.name,'ru'));
+  const q=(UI.rq||'').toLowerCase().trim();const V=rows.map((r,i)=>Object.assign({pos:i+1},r)).filter(r=>!q||(r.name+' '+r.city).toLowerCase().includes(q));
+  return`<div class="pg-h"><h1>Рейтинг</h1><p class="muted">Результаты игроков в рейтинговых турнирах ФБС РК${nDone?` · турниров: ${nDone}`:''}</p></div>
+  ${rows.length?`<div class="cb-q rt-q">${IC.srch}<input id="rt-q" placeholder="Найти игрока или город" autocomplete="off" value="${esc(UI.rq||'')}" oninput="UI.rq=this.value;clearTimeout(UI._rq);UI._rq=setTimeout(()=>{render();const i=document.getElementById('rt-q');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},250)"></div>
+  <div class="panel rt-p"><table class="tb rt-tb"><thead><tr><th class="c">№</th><th>Игрок</th><th>Город</th><th class="c">Турниров</th><th class="c">1 мест</th><th class="c">Призовых</th><th class="c">Лучшее</th></tr></thead><tbody>
+  ${V.map(r=>`<tr><td class="c rt-n">${r.pos}</td><td><b>${esc(r.name)}</b>${VF.has(r.id)?VFI:''}</td><td class="muted">${esc(r.city||'—')}</td><td class="c">${r.n}</td><td class="c"><b>${r.g||'—'}</b></td><td class="c">${r.pod||'—'}</td><td class="c">${r.best} место</td></tr>`).join('')||'<tr><td colspan="7" class="muted" style="padding:16px">Ничего не найдено</td></tr>'}
+  </tbody></table></div><p class="muted rt-note">Порядок: больше первых мест, затем больше призовых, затем лучшее место. Призовые — 1–3 места.</p>`
+  :`<div class="panel empty">Пока нет завершённых рейтинговых турниров ФБС РК.<br>Как только первый закончится, здесь появится таблица игроков.</div>`}`}
+function renderClubs(){const all=S.clubs.filter(c=>c.name&&!testHidden(c.id));const cities=[...new Set(all.map(c=>c.city).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
+  const cf=UI.ccity&&cities.includes(UI.ccity)?UI.ccity:'';const cs=all.filter(c=>!cf||c.city===cf);
+  const body=cs.length?homeClubs(cs).replace(/<section class="hs"><div class="hs-h"><h2>Клубы<\/h2><span>\d+<\/span><\/div>/,'<section class="hs">'):'<div class="panel empty">Клубов пока нет</div>';
+  return`<div class="pg-h"><h1>Клубы</h1><p class="muted">Бильярдные клубы на kazbilliard${all.length?` · ${all.length}`:''}</p></div>
+  ${cities.length>1?`<div class="ch-row"><button class="chip ${cf?'':'on'}" data-act="cCity" data-v="">Все города</button>${cities.map(x=>`<button class="chip ${cf===x?'on':''}" data-act="cCity" data-v="${esc(x)}">${esc(x)}</button>`).join('')}</div>`:''}
+  ${body}
+  <div class="panel cl-cta"><div><b>Вашего клуба нет в списке?</b><span class="muted">Подключите клуб — сетка, счёт и столы онлайн. Первый месяц бесплатно.</span></div><a class="btn blue" href="https://wa.me/77764308322" target="_blank" rel="noopener">${IC.wa||''}Написать в WhatsApp</a></div>`}
+function homeClubs(list){const cs=list||S.clubs.filter(c=>c.name&&!testHidden(c.id));if(!cs.length)return'';
   return`<section class="hs"><div class="hs-h"><h2>Клубы</h2><span>${cs.length}</span></div><div class="hlist">${cs.map(c=>{
     const nx=S.tournaments.filter(t=>inList(t)&&t.clubId===c.id&&(t.status==='reg'||(t.status==='live'&&!build(t).finished))).sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0];
     return`<div class="hclub"><div class="hcl-m"><b>${cLink(c)}</b><span>${esc([c.city,c.address].filter(Boolean).join(', '))}${c.tables?` · ${c.tables} стол${plural(c.tables)}`:''}</span>${nx?`<a class="hc-nx" href="#t-${nx.id}">${nx.status==='live'?'Идёт':'Скоро'}: ${esc(nx.title)} · ${esc(fdate(nx.date))}</a>`:''}</div>
@@ -3100,6 +3129,7 @@ const A={
     const n=Object.assign({},p,{last,first,name:last+' '+first,sex:v('ep-sex'),birth:yb?String(y):'',country:v('ep-country'),city:v('ep-city'),club:v('ep-club'),rank:v('ep-rank'),lvl:v('ep-lvl')});el.disabled=true;
     const r=await sb.from('player').update({data:pub(n)}).eq('id',p.id).select('id');el.disabled=false;if(r.error||!r.data||!r.data.length){e.textContent='Не получилось сохранить';return}
     Object.assign(p,n);closeModal();render();toast('Игрок сохранён')},
+  cCity(el){UI.ccity=el.dataset.v;render()},
   rrView(el){UI.rrv=el.dataset.v;render()},
   async adVf(el){const id=el.dataset.id,on=!VF.has(id);el.disabled=true;const r=await sb.rpc('admin_verify_player',{p_id:id,p_on:on});el.disabled=false;
     if(r.error){toast('Не получилось: '+(r.error.message||''));return}on?VF.add(id):VF.delete(id);render();toast(on?'Игрок подтверждён':'Галочка снята')},
