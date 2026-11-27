@@ -1804,7 +1804,7 @@ addEventListener('scroll',hide,true);document.addEventListener('mousedown',hide)
 function crossHTML(T,g){const ids=g.ids,n=ids.length,pos={};g.standings.forEach((r,i)=>pos[r.id]=i+1);const st={};g.standings.forEach(r=>st[r.id]=r);
   const M={};g.matches.forEach(m=>{M[m.a.id+'|'+m.b.id]=m;M[m.b.id+'|'+m.a.id]=m});
   const cell=(ri,ci)=>{if(ri===ci)return`<td class="xd" data-c="${ci}">×</td>`;const a=ids[ri],b=ids[ci],m=M[a+'|'+b];if(!m)return`<td data-c="${ci}"></td>`;
-    const sn=x=>{const q=P(x)||{};const f=(q.first||'').trim(),l=(q.last||'').trim();return f&&l?f+' '+l[0]+'.':pname(T,q)},na=sn(a),nb=sn(b),rr=m.res,sub=m.state==='live'?'Идёт сейчас':m.state==='done'&&rr?(rr.tp?'Техническая победа':(m.a.id===a?rr.sa:rr.sb)+' : '+(m.a.id===a?rr.sb:rr.sa))+' · победил '+(m.winner&&m.winner.id===a?na:nb):'Ещё не играли';const at=` data-act="match" data-mid="${m.id}" data-c="${ci}" data-tip="${esc(na+' — '+nb)}" data-tip2="${esc(sub)}"`;
+    const sn=x=>{const q=T.players.find(p=>p.id===x)||{};const f=(q.first||'').trim(),l=(q.last||'').trim();return f&&l?f+' '+l[0]+'.':pname(T,P(x))},na=sn(a),nb=sn(b),rr=m.res,sub=m.state==='live'?'Идёт сейчас':m.state==='done'&&rr?(rr.tp?'Техническая победа':(m.a.id===a?rr.sa:rr.sb)+' : '+(m.a.id===a?rr.sb:rr.sa))+' · победил '+(m.winner&&m.winner.id===a?na:nb):'Ещё не играли';const at=` data-act="match" data-mid="${m.id}" data-c="${ci}" data-tip="${esc(na+' — '+nb)}" data-tip2="${esc(sub)}"`;
     if(m.state==='live')return`<td class="xl"${at}><i></i></td>`;
     if(m.state!=='done'||!m.res)return`<td class="xe"${at}></td>`;
     const r=m.res,me=m.a.id===a,x=me?r.sa:r.sb,y=me?r.sb:r.sa,won=m.winner&&m.winner.id===a;
