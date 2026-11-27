@@ -1046,6 +1046,16 @@ body:has(.cb-bb) .foot,body:has(.cb-bb) footer{padding-bottom:84px}body:has(.cb-
 @keyframes ldDraw{0%{stroke-dashoffset:1}45%,75%{stroke-dashoffset:0}100%{stroke-dashoffset:-1}}
 @keyframes ldIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.ld-c,.ld-w,.ld-t{animation:none}.ld-k path{animation:none;stroke-dashoffset:0}}
+.rt-soon{gap:12px}.rt-soon b{font-size:24px!important;line-height:1.25}
+.rt-badge{display:inline-flex;align-items:center;gap:8px;font-style:normal;background:var(--accent);color:#fff;font-weight:700;font-size:15px;letter-spacing:.02em;padding:8px 16px;border-radius:999px;margin-bottom:4px}
+.rt-badge i{width:8px;height:8px;border-radius:50%;background:#fff;animation:rtP 1.6s ease-in-out infinite}
+@keyframes rtP{0%,100%{opacity:1}50%{opacity:.3}}
+.rt-sk{position:relative;width:100%;max-width:420px;margin:6px 0 10px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.rt-sk>div{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line)}.rt-sk>div:last-of-type{border-bottom:0}
+.rt-sk em{font-style:normal;width:28px;height:24px;border-radius:6px;display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--muted);background:var(--soft)}.rt-sk em.g{background:var(--gold-bg);color:var(--gold)}
+.rt-sk i{height:10px;border-radius:5px;background:var(--soft)}.rt-sk u{margin-left:auto;width:36px;height:10px;border-radius:5px;background:var(--soft)}
+.rt-sk p{position:absolute;inset:0;margin:0;display:grid;place-items:center;background:rgba(255,255,255,.55);backdrop-filter:blur(1.5px);font-size:32px;font-weight:700;color:var(--accent);letter-spacing:-.01em}
+@media(prefers-reduced-motion:reduce){.rt-badge i{animation:none}}
 .xt-lg{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:0 0 14px;font-size:12px;color:var(--muted)}.xt-lg span{display:inline-flex;align-items:center;gap:8px}.xt-lg b{display:inline-block;padding:2px 7px;border-radius:6px;font-weight:600;font-variant-numeric:tabular-nums}.xt-lg b.w{background:var(--ok-soft);color:var(--ok)}.xt-lg b.s{color:var(--muted);font-weight:500;border:1px solid var(--line)}.xt-lg b.e{width:30px;height:22px;padding:0;vertical-align:middle}.xt-lg i{display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--line2)}.xt-lg i.l{width:8px;height:8px;background:var(--live)}.xt-lg .hint{margin-left:auto}@media(max-width:640px){.xt-lg .hint{display:none}}
 @media print{#printbox .xt-w{max-height:none;overflow:visible;border:0}#printbox .xt{font-size:10.5px}#printbox .xt .xp{position:static;min-width:0;font-size:11px;box-shadow:none}#printbox .xt .xn,#printbox .xt thead th{position:static}#printbox .xt td[data-c],#printbox .xt .xc{min-width:30px;width:30px}#printbox .xt th,#printbox .xt td{height:22px}#printbox .xt-lg{display:none}#printbox .xt .xw,#printbox .xt .xd{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 .hl-wl svg{width:14px;height:14px;vertical-align:-2px;margin-right:4px;color:var(--gold,#8A6100)}
@@ -1636,7 +1646,9 @@ function renderClub(c){
   (cols.length?`<div class="hcols${cols.length===1?' one':''}">${cols.join('')}</div>`:'')+
   (all.length?'':`<div class="empty">Клуб пока не проводил турниров на kazbilliard.</div>`)}
 function renderRating(){if(!UI.rtFull)return`<div class="pg-h"><h1>Рейтинг</h1><p class="muted">Лучшие игроки Казахстана по рейтинговым турнирам</p></div>
-  <div class="rt-soon"><i class="rt-ic">${IC.trophy||''}</i><b>Рейтинг игроков скоро здесь</b><span>Таблица лучших игроков по рейтинговым турнирам: место, очки и история результатов каждого игрока.</span><a class="btn ghost" href="#home">Смотреть турниры</a></div>`;
+  <div class="rt-soon"><em class="rt-badge"><i></i>Скоро</em><b>Здесь скоро будет рейтинг игроков</b><span>Место, очки и история результатов каждого игрока по рейтинговым турнирам.</span>
+  <div class="rt-sk" aria-hidden="true">${[1,2,3,4,5].map(n=>`<div><em class="${n<4?'g':''}">${n}</em><i style="width:${[62,54,70,48,58][n-1]}%"></i><u></u></div>`).join('')}<p></p></div>
+  <a class="btn ghost" href="#home">Смотреть турниры</a></div>`;
   const L=S.tournaments.filter(T=>RATED.has(T.id)&&!T.parent&&isPub(T));const R={};let nDone=0;
   L.forEach(T=>{const b=build(T);if(!b.places||!b.finished)return;nDone++;b.places.forEach(p=>p.ids.forEach(id=>{const pl=T.players.find(x=>x.id===id)||{};const x=R[id]||(R[id]={id,name:pl.name||pname(T,P(id)),city:pl.city||'',n:0,g:0,pod:0,best:999});
     x.n++;if(p.from===1)x.g++;if(p.from<=3)x.pod++;x.best=Math.min(x.best,p.from)}))});
