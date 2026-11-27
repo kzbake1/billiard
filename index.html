@@ -1034,6 +1034,7 @@ html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:10
 @media(max-width:640px){.cc-g{grid-template-columns:1fr}.cc-b span{display:none}.cc-acts .cc-b{flex:1 1 0}}
 @media(max-width:640px) and (min-width:360px){.cc-b span{display:inline}.cc-b{font-size:13px;gap:6px;padding:0 8px}}@media(max-width:640px){.cc-acts .cc-b.opt{flex:0 0 44px;padding:0}.cc-acts .cc-b.opt span{display:none}.cc-acts .cc-b.ico{flex:0 0 44px}}
 .cl-cta{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:24px;background:var(--accent);color:#fff;border-radius:14px;padding:22px}.cl-cta>div{display:flex;flex-direction:column;gap:4px}.cl-cta b{font-size:17px}.cl-cta span{opacity:.85;font-size:14px}
+.rt-soon{background:#fff;border:1px solid var(--line);border-radius:14px;padding:40px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;max-width:560px;margin:0 auto}.rt-soon b{font-size:20px;font-weight:600}.rt-soon span{color:var(--muted);font-size:15px;line-height:1.5;margin-bottom:8px}.rt-ic{width:56px;height:56px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin-bottom:6px}.rt-ic svg{width:26px;height:26px}
 </style>
 </head>
 <body>
@@ -1579,7 +1580,8 @@ function renderClub(c){
   (live.length?sec('Сейчас идут',live.length,`<div class="hlist">${hHead('Статус',1)}${live.map(x=>hLiveRow(x.T,x.b)).join('')}</div>`):'')+
   (cols.length?`<div class="hcols${cols.length===1?' one':''}">${cols.join('')}</div>`:'')+
   (all.length?'':`<div class="empty">Клуб пока не проводил турниров на kazbilliard.</div>`)}
-function renderRating(){
+function renderRating(){if(!UI.rtFull)return`<div class="pg-h"><h1>Рейтинг</h1><p class="muted">Рейтинг игроков по турнирам ФБС РК</p></div>
+  <div class="rt-soon"><i class="rt-ic">${IC.trophy||''}</i><b>Рейтинг ФБС РК готовится</b><span>Здесь будет таблица игроков по очкам за рейтинговые турниры ФБС РК: место, очки, турниры и история результатов каждого игрока.</span><a class="btn ghost" href="#home">Смотреть турниры</a></div>`;
   const L=S.tournaments.filter(T=>RATED.has(T.id)&&!T.parent&&isPub(T));const R={};let nDone=0;
   L.forEach(T=>{const b=build(T);if(!b.places||!b.finished)return;nDone++;b.places.forEach(p=>p.ids.forEach(id=>{const pl=T.players.find(x=>x.id===id)||{};const x=R[id]||(R[id]={id,name:pl.name||pname(T,P(id)),city:pl.city||'',n:0,g:0,pod:0,best:999});
     x.n++;if(p.from===1)x.g++;if(p.from<=3)x.pod++;x.best=Math.min(x.best,p.from)}))});
