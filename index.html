@@ -1015,6 +1015,8 @@ html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:10
 .xt thead th{text-transform:uppercase;letter-spacing:.04em}@media(max-width:640px){.xt .xp{min-width:0;max-width:128px;overflow:hidden;text-overflow:ellipsis;font-size:13px;padding:0 8px}.xt td[data-c],.xt .xc{min-width:46px;width:46px}.xt .xn{width:28px;min-width:28px}.xt .xp{left:28px}}
 .xt-lg{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)}.xt-lg span{display:inline-flex;align-items:center;gap:6px}.xt-lg i{width:12px;height:12px;border-radius:3px;border:1px solid var(--line);display:inline-block}.xt-lg i.xw{background:var(--ok-soft);border-color:var(--ok-soft)}.xt-lg i.xs{background:#fff}.xt-lg i.xl{background:var(--live);border-radius:50%;width:8px;height:8px;border:0}
 @media print{#printbox .xt-w{max-height:none;overflow:visible;border:0}#printbox .xt{font-size:10.5px}#printbox .xt .xp{position:static;min-width:0;font-size:11px;box-shadow:none}#printbox .xt .xn,#printbox .xt thead th{position:static}#printbox .xt td[data-c],#printbox .xt .xc{min-width:30px;width:30px}#printbox .xt th,#printbox .xt td{height:22px}#printbox .xt-lg{display:none}#printbox .xt .xw,#printbox .xt .xd{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+.hl-wl svg{width:14px;height:14px;vertical-align:-2px;margin-right:4px;color:var(--gold,#8A6100)}
+@media(max-width:760px){.hrow .hl-r:has(.hl-wl){flex:1 1 100%;margin:2px 0 0!important;padding:8px 12px!important;background:var(--soft);border-radius:8px;flex-direction:row;align-items:center!important;gap:8px}.hl-wl{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}.hl-wl svg{width:15px;height:15px;color:var(--gold,#8A6100)}.hrow .hl-r:has(.hl-wl) em{font-style:normal;font-weight:600;color:var(--ink);margin-left:auto}}
 </style>
 </head>
 <body>
@@ -1563,7 +1565,7 @@ function homeClubs(){const cs=S.clubs.filter(c=>c.name&&!testHidden(c.id));if(!c
 function hSoon(T){const c=club(T.clubId);
   const ph=T.orgPhone||c.phone;return`<div class="hrow-o">`+hRow(T,'',``)+`<div class="hl-bt"><a class="btn sm ghost" href="#t-${T.id}">Подробнее</a></div></div>`}
 function hDone(T,b){const c=club(T.clubId);const w=b.places&&b.places[0]&&b.places[0].ids[0];
-  return hRow(T,`${hCat(T)}${esc(c.name)} · ${esc(T.city)} · ${esc(T.discipline)}`,b.stop?'':w?`<span>победитель</span><em>${esc(pname(T,P(w)))}${vfS(T,P(w))}</em>`:'')}
+  return hRow(T,`${hCat(T)}${esc(c.name)} · ${esc(T.city)} · ${esc(T.discipline)}`,b.stop?'':w?`<span class="hl-wl">${IC.trophy||''}победитель</span><em>${esc(pname(T,P(w)))}${vfS(T,P(w))}</em>`:'')}
 function renderFind(){const el=document.getElementById('find-res');if(!el)return;const q=(UI.pq||'').trim().toLowerCase();
   if(q.length<2){el.innerHTML='';return}
   const out=[];
