@@ -1000,21 +1000,36 @@ html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:10
 .xseg{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:10px;padding:3px;margin-bottom:14px;gap:2px}.xseg button{border:0;background:none;font:inherit;font-size:14px;font-weight:600;color:var(--sub);padding:8px 14px;border-radius:8px;cursor:pointer}.xseg button.on{background:var(--accent-soft);color:var(--accent-ink)}
 .xt-w{overflow:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:10px;max-height:78vh}
 .xt{border-collapse:separate;border-spacing:0;font-size:13px;font-variant-numeric:tabular-nums;min-width:100%}
-.xt th,.xt td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:0;height:34px;text-align:center;white-space:nowrap;background:#fff}
-.xt thead th{position:sticky;top:0;z-index:2;background:#FAFAFA;font-size:11px;font-weight:700;color:var(--muted);height:30px}
-.xt .xn{position:sticky;left:0;z-index:1;width:36px;min-width:36px;color:var(--muted);background:#FAFAFA}
-.xt .xp{position:sticky;left:36px;z-index:1;text-align:left;padding:0 12px;font-weight:600;font-size:14px;min-width:180px;box-shadow:1px 0 0 var(--line)}
-.xt thead .xn,.xt thead .xp{z-index:3}.xt thead .xp{background:#FAFAFA;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-.xt td[data-c],.xt .xc{min-width:52px;width:52px}
-.xt td[data-act]{cursor:pointer}.xt td[data-act]:hover{outline:2px solid var(--accent);outline-offset:-2px}
-.xt .xd{background:var(--soft);color:var(--muted)}
-.xt .xw{background:var(--ok-soft);color:var(--ok);font-weight:600}.xt .xs{color:var(--sub)}
-.xt .xl i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--live)}
-.xt .xr{padding:0 10px;color:var(--sub)}.xt .xm{color:var(--ink)}
-.xt tbody tr:hover td{background:#F7F9FF}.xt tbody tr:hover .xw{background:#D6EEDF}.xt tbody tr:hover .xd{background:var(--soft)}
-.xt thead th{text-transform:uppercase;letter-spacing:.04em}@media(max-width:640px){.xt .xp{min-width:0;max-width:128px;overflow:hidden;text-overflow:ellipsis;font-size:13px;padding:0 8px}.xt td[data-c],.xt .xc{min-width:46px;width:46px}.xt .xn{width:28px;min-width:28px}.xt .xp{left:28px}}
+.xt-w{overflow:auto;-webkit-overflow-scrolling:touch;max-height:78vh;border-radius:10px}
+.xt{border-collapse:separate;border-spacing:0;font-size:13px;font-variant-numeric:tabular-nums;min-width:100%}
+.xt th,.xt td{border-bottom:1px solid var(--line);padding:0;height:44px;text-align:center;white-space:nowrap;background:#fff;transition:background .12s}
+.xt thead th{position:sticky;top:0;z-index:2;height:36px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--line2)}
+.xt .xn{position:sticky;left:0;z-index:1;width:40px;min-width:40px;color:var(--muted);font-size:12px}
+.xt .xp{position:sticky;left:40px;z-index:1;text-align:left;padding:0 16px 0 4px;font-weight:600;font-size:14px;min-width:190px;box-shadow:inset -1px 0 0 var(--line)}
+.xt thead .xn,.xt thead .xp{z-index:3}
+.xt td[data-c],.xt .xc{min-width:50px;width:50px}
+.xt td[data-act]{cursor:pointer}
+
+.xt td.xr1,.xt th.xr1{box-shadow:inset 1px 0 0 var(--line)}
+.xt .xd{background:var(--soft)}
+.xt .xd::after{content:'';display:inline-block;width:14px;height:1px;background:var(--line2);vertical-align:middle;transform:rotate(-45deg)}
+.xt .xw b,.xt .xs b{display:inline-block;min-width:36px;padding:4px 0;border-radius:6px;font-weight:600}
+.xt .xw b{background:var(--ok-soft);color:var(--ok)}
+.xt .xs b{color:var(--muted);font-weight:500}
+.xt .xl i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--live);box-shadow:0 0 0 4px var(--live-soft,#FDECEA)}
+.xt .xr{padding:0 12px;color:var(--sub);font-size:13px}.xt .xr b{color:var(--ink)}
+.xt .xm b{display:inline-block;min-width:28px;padding:3px 0;border-radius:6px;color:var(--ink)}
+.xt .xm b.g{background:var(--gold-bg);color:var(--gold)}
+.xt tbody tr:hover td,.xt td.xhc,.xt th.xhc{background:#F5F8FF}
+.xt tbody tr:hover .xd,.xt .xd.xhc{background:var(--soft)}
+.xt th.xhc{color:var(--accent)}
+.xt tbody tr:hover .xp,.xt tbody tr:hover .xn{color:var(--accent)}
+.xt td[data-act]:hover b,.xt td[data-act].xe:hover{box-shadow:0 0 0 2px var(--accent)}
+.xt td[data-act].xe:hover{box-shadow:inset 0 0 0 2px var(--accent);border-radius:6px}
+.xt tbody tr:last-child td{border-bottom:0}
+@media(max-width:640px){.xt th,.xt td{height:40px}.xt .xp{min-width:0;max-width:128px;overflow:hidden;text-overflow:ellipsis;font-size:13px;padding:0 8px 0 2px}.xt td[data-c],.xt .xc{min-width:44px;width:44px}.xt .xn{width:28px;min-width:28px}.xt .xp{left:28px}.xt .xw b,.xt .xs b{min-width:32px}}
 #tip{position:fixed;z-index:9999;pointer-events:none;background:#fff;color:var(--ink);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.35;box-shadow:0 10px 28px rgba(16,24,40,.14);max-width:340px;opacity:0;transform:translateY(4px);transition:opacity .15s,transform .15s}#tip.on{opacity:1;transform:none}#tip b{display:block;font-weight:600}#tip span{display:block;color:var(--muted);font-size:12px;margin-top:2px}@media print{#tip{display:none}}
-.xt-lg{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)}.xt-lg span{display:inline-flex;align-items:center;gap:6px}.xt-lg i{width:12px;height:12px;border-radius:3px;border:1px solid var(--line);display:inline-block}.xt-lg i.xw{background:var(--ok-soft);border-color:var(--ok-soft)}.xt-lg i.xs{background:#fff}.xt-lg i.xl{background:var(--live);border-radius:50%;width:8px;height:8px;border:0}
+.xt-lg{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:0 0 14px;font-size:12px;color:var(--muted)}.xt-lg span{display:inline-flex;align-items:center;gap:8px}.xt-lg b{display:inline-block;padding:2px 7px;border-radius:6px;font-weight:600;font-variant-numeric:tabular-nums}.xt-lg b.w{background:var(--ok-soft);color:var(--ok)}.xt-lg b.s{color:var(--muted);font-weight:500;border:1px solid var(--line)}.xt-lg b.e{width:30px;height:22px;padding:0;vertical-align:middle}.xt-lg i{display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--line2)}.xt-lg i.l{width:8px;height:8px;background:var(--live)}.xt-lg .hint{margin-left:auto}@media(max-width:640px){.xt-lg .hint{display:none}}
 @media print{#printbox .xt-w{max-height:none;overflow:visible;border:0}#printbox .xt{font-size:10.5px}#printbox .xt .xp{position:static;min-width:0;font-size:11px;box-shadow:none}#printbox .xt .xn,#printbox .xt thead th{position:static}#printbox .xt td[data-c],#printbox .xt .xc{min-width:30px;width:30px}#printbox .xt th,#printbox .xt td{height:22px}#printbox .xt-lg{display:none}#printbox .xt .xw,#printbox .xt .xd{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 .hl-wl svg{width:14px;height:14px;vertical-align:-2px;margin-right:4px;color:var(--gold,#8A6100)}
 @media(max-width:760px){.hrow .hl-r:has(.hl-wl){flex:1 1 100%;margin:2px 0 0!important;padding:8px 12px!important;background:var(--soft);border-radius:8px;flex-direction:row;align-items:center!important;gap:8px}.hl-wl{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}.hl-wl svg{width:15px;height:15px;color:var(--gold,#8A6100)}.hrow .hl-r:has(.hl-wl) em{font-style:normal;font-weight:600;color:var(--ink);margin-left:auto}}
@@ -1801,17 +1816,18 @@ document.addEventListener('mouseover',e=>{const el=e.target.closest&&e.target.cl
 tmr=setTimeout(()=>{if(!tip){tip=document.createElement('div');tip.id='tip';document.body.appendChild(tip)}tip.innerHTML='<b></b><span></span>';tip.firstChild.textContent=el.dataset.tip;tip.lastChild.textContent=el.dataset.tip2||'';
 const r=el.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;let x=r.left+r.width/2-w/2,y=r.bottom+8;x=Math.max(8,Math.min(x,innerWidth-w-8));if(y+h>innerHeight-8)y=r.top-h-8;tip.style.left=x+'px';tip.style.top=y+'px';tip.classList.add('on')},500)});
 addEventListener('scroll',hide,true);document.addEventListener('mousedown',hide)})();
+document.addEventListener('mouseover',e=>{const c=e.target.closest&&e.target.closest('.xt [data-c]');const t=e.target.closest&&e.target.closest('.xt');document.querySelectorAll('.xt .xhc').forEach(x=>{if(!c||x.dataset.c!==c.dataset.c)x.classList.remove('xhc')});if(c&&t)t.querySelectorAll('[data-c="'+c.dataset.c+'"]').forEach(x=>x.classList.add('xhc'))});
 function crossHTML(T,g){const ids=g.ids,n=ids.length,pos={};g.standings.forEach((r,i)=>pos[r.id]=i+1);const st={};g.standings.forEach(r=>st[r.id]=r);
   const M={};g.matches.forEach(m=>{M[m.a.id+'|'+m.b.id]=m;M[m.b.id+'|'+m.a.id]=m});
-  const cell=(ri,ci)=>{if(ri===ci)return`<td class="xd" data-c="${ci}">×</td>`;const a=ids[ri],b=ids[ci],m=M[a+'|'+b];if(!m)return`<td data-c="${ci}"></td>`;
+  const cell=(ri,ci)=>{if(ri===ci)return`<td class="xd" data-c="${ci}"></td>`;const a=ids[ri],b=ids[ci],m=M[a+'|'+b];if(!m)return`<td data-c="${ci}"></td>`;
     const sn=x=>{const q=T.players.find(p=>p.id===x)||{};const f=(q.first||'').trim(),l=(q.last||'').trim();return f&&l?f+' '+l[0]+'.':pname(T,P(x))},na=sn(a),nb=sn(b),rr=m.res,sub=m.state==='live'?'Идёт сейчас':m.state==='done'&&rr?(rr.tp?'Техническая победа':(m.a.id===a?rr.sa:rr.sb)+' : '+(m.a.id===a?rr.sb:rr.sa))+' · победил '+(m.winner&&m.winner.id===a?na:nb):'Ещё не играли';const at=` data-act="match" data-mid="${m.id}" data-c="${ci}" data-tip="${esc(na+' — '+nb)}" data-tip2="${esc(sub)}"`;
     if(m.state==='live')return`<td class="xl"${at}><i></i></td>`;
     if(m.state!=='done'||!m.res)return`<td class="xe"${at}></td>`;
     const r=m.res,me=m.a.id===a,x=me?r.sa:r.sb,y=me?r.sb:r.sa,won=m.winner&&m.winner.id===a;
-    return`<td class="${won?'xw':'xs'}"${at}>${r.tp?(won?'+ : −':'− : +'):x+' : '+y}</td>`};
-  return`<div class="xt-w"><table class="xt"><thead><tr><th class="xn">№</th><th class="xp">Игрок</th>${ids.map((_,i)=>`<th class="xc" data-c="${i}">${i+1}</th>`).join('')}<th class="xr">И</th><th class="xr">В</th><th class="xr">П</th><th class="xr">Партии</th><th class="xr xm">Место</th></tr></thead><tbody>
-  ${ids.map((id,ri)=>{const r=st[id]||{pl:0,w:0,l:0,ff:0,fa:0};return`<tr><td class="xn">${ri+1}</td><td class="xp">${esc(pname(T,P(id)))}${vfS(T,P(id))}</td>${ids.map((_,ci)=>cell(ri,ci)).join('')}<td class="xr">${r.pl}</td><td class="xr"><b>${r.w}</b></td><td class="xr">${r.l}</td><td class="xr">${r.ff}:${r.fa}</td><td class="xr xm"><b>${r.pl?pos[id]:'—'}</b></td></tr>`}).join('')}
-  </tbody></table></div><div class="xt-lg"><span><i class="xw"></i>победа</span><span><i class="xs"></i>поражение</span><span><i class="xl"></i>идёт</span><span>пусто — ещё не играли</span></div>`}
+    return`<td class="${won?'xw':'xs'}"${at}><b>${r.tp?(won?'+ : −':'− : +'):x+' : '+y}</b></td>`};
+  return`<div class="xt-lg"><span><b class="w">2 : 0</b>победа</span><span><b class="s">0 : 2</b>поражение</span><span><i class="l"></i>идёт</span><span><b class="s e"></b>ещё не играли</span><span class="hint">Строка — результаты игрока</span></div><div class="xt-w"><table class="xt"><thead><tr><th class="xn">№</th><th class="xp">Игрок</th>${ids.map((_,i)=>`<th class="xc" data-c="${i}">${i+1}</th>`).join('')}<th class="xr xr1">И</th><th class="xr">В</th><th class="xr">П</th><th class="xr">Партии</th><th class="xr xm">Место</th></tr></thead><tbody>
+  ${ids.map((id,ri)=>{const r=st[id]||{pl:0,w:0,l:0,ff:0,fa:0};return`<tr><td class="xn">${ri+1}</td><td class="xp">${esc(pname(T,P(id)))}${vfS(T,P(id))}</td>${ids.map((_,ci)=>cell(ri,ci)).join('')}<td class="xr xr1">${r.pl}</td><td class="xr"><b>${r.w}</b></td><td class="xr">${r.l}</td><td class="xr">${r.ff}:${r.fa}</td><td class="xr xm"><b class="${r.pl&&pos[id]<=3?'g':''}">${r.pl?pos[id]:'—'}</b></td></tr>`}).join('')}
+  </tbody></table></div>`}
 function standingsHTML(T,g,K){
   return`<table class="tb"><thead><tr><th class="pos">#</th><th>Игрок</th><th class="c">И</th><th class="c">В</th><th class="c">П</th><th class="c">Партии</th><th class="c">±</th></tr></thead><tbody>
   ${g.standings.map((r,i)=>`<tr class="${K&&i<K?'q':''}"><td class="pos">${i+1}</td><td>${esc(pname(T,P(r.id)))}${vfS(T,P(r.id))}</td><td class="c">${r.pl}</td><td class="c"><b>${r.w}</b></td><td class="c">${r.l}</td><td class="c">${r.ff}:${r.fa}</td><td class="c">${r.ff-r.fa>0?'+':''}${r.ff-r.fa}</td></tr>`).join('')}</tbody></table>`;
