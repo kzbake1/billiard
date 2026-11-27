@@ -1103,6 +1103,8 @@ const tpOf=(r,side)=>r&&r.tp&&(r.tp==='both'||r.tp===side);
 const scTxt=(r,side)=>r&&r.tp?(tpOf(r,side)?'<em class="tp">ТП</em>':''):(r?r['s'+side]:'');
 function nextPow2(n){let p=1;while(p<n)p*=2;return p}
 function seedOrder(N){let a=[1];while(a.length<N){const L=a.length*2,b=[];for(const x of a)b.push(x,L+1-x);a=b}return a}
+// опоздавшие: игрок с seat встаёт в свободное место сетки (номер посева), остальные — по порядку списка
+function seatSlots(T){const base=T.players.filter(p=>!p.seat).map(p=>P(p.id));T.players.filter(p=>p.seat).forEach(p=>{base[p.seat-1]=P(p.id)});for(let i=0;i<base.length;i++)if(!base[i])base[i]=BYE;return base}
 function placeSeeds(slots){const N=nextPow2(Math.max(2,slots.length));return seedOrder(N).map(s=>slots[s-1]||BYE)}
 
 function mk(ctx,id,a,b,meta){
@@ -1132,7 +1134,7 @@ function buildSE(ctx,slots,prefix){
 }
 function playoffK(T,n){const N=nextPow2(Math.max(2,n));let K=T.playoff==null?0:T.playoff;if(K==='auto')K=N>=32?8:4;K=+K||0;while(K>N/2)K/=2;return K>=4?K:0}
 function buildDE(ctx,ids){
-  const slots=placeSeeds(ids.map(P));const N=slots.length,R=Math.log2(N);const K=playoffK(ctx.T,ids.length);
+  const slots=placeSeeds(seatSlots(ctx.T));const N=slots.length,R=Math.log2(N);const K=playoffK(ctx.T,ids.length);
   const Wr=K?R-Math.log2(K)+1:R;
   const compact=N>=16&&ids.length<=N*3/4,sd=seedOrder(N),kept=[];
   const wb=[],losers=[];let cur=slots;
@@ -1174,7 +1176,7 @@ function deName(n,po){n=Math.max(2,n);const N=nextPow2(n),K=playoffK({playoff:po
 function buildRR(ctx,ids,prefix){
   let arr=ids.slice();if(arr.length%2)arr.push(null);const n=arr.length;const rounds=[],matches=[];
   for(let r=0;r<n-1;r++){const ms=[];
-    for(let i=0;i<n/2;i++){const a=arr[i],b=arr[n-1-i];if(a&&b){const m=mk(ctx,prefix+a+'-'+b,P(a),P(b));ms.push(m);matches.push(m)}}
+    for(let i=0;i<n/2;i++){let a=arr[i],b=arr[n-1-i];if(a&&b){if(!ctx.T.results[prefix+a+'-'+b]&&ctx.T.results[prefix+b+'-'+a]){const t=a;a=b;b=t}const m=mk(ctx,prefix+a+'-'+b,P(a),P(b));ms.push(m);matches.push(m)}}
     rounds.push({title:'Тур '+(r+1),matches:ms});arr=[arr[0],arr[n-1],...arr.slice(1,n-1)]}
   const st={};ids.forEach(id=>st[id]={id,pl:0,w:0,l:0,ff:0,fa:0});
   for(const m of matches)if(m.state==='done'){const r=m.res,A=st[m.a.id],B=st[m.b.id];
@@ -1186,7 +1188,7 @@ function buildRR(ctx,ids,prefix){
 function buildGP(ctx,T,ids){
   const G=T.groups.count,K=T.groups.advance;
   const gIds=Array.from({length:G},()=>[]);
-  ids.forEach((id,i)=>{const row=Math.floor(i/G);const g=row%2===0?i%G:G-1-i%G;gIds[g].push(id)});
+  const gx={};T.players.forEach(p=>{if(typeof p.lgrp==='number'&&p.lgrp<G)gx[p.id]=p.lgrp});ids.filter(id=>gx[id]==null).forEach((id,i)=>{const row=Math.floor(i/G);const g=row%2===0?i%G:G-1-i%G;gIds[g].push(id)});ids.filter(id=>gx[id]!=null).forEach(id=>gIds[gx[id]].push(id));
   const groups=gIds.map((gi,k)=>Object.assign({name:'Группа '+LETTERS[k],letter:LETTERS[k]},buildRR(ctx,gi,'g'+k+'-')));
   const labels=[];for(let p=1;p<=K;p++){const ord=[...Array(G).keys()];if(p%2===0)ord.reverse();ord.forEach(g=>labels.push({g,p}))}
   const N=nextPow2(Math.max(2,labels.length));const placed=seedOrder(N).map(s=>labels[s-1]||null);
@@ -1198,12 +1200,34 @@ function buildGP(ctx,T,ids){
   const se=buildSE(ctx,slots,'p');
   return{groups,rounds:se.rounds,champ:se.champ,third:se.third,K};
 }
+// куда можно поставить опоздавшего, не трогая уже сыгранное и идущее
+function lateSpots(T){
+  if(T.status!=='live'||T.stages||T.match||T.pair)return{why:'В этом формате добавить игрока после старта нельзя'};
+  const b0=build(T);if(b0.finished)return{why:'Турнир уже закончен'};
+  const kept=b0.all.filter(m=>m.state==='done'||m.state==='live');
+  const tryT=extra=>{const t2=Object.assign({},T,{players:[...T.players,Object.assign({id:'__late',name:'?'},extra)]});const b=build(t2);const by={};b.all.forEach(m=>by[m.id]=m);
+    for(const m of kept){const x=by[m.id];if(!x||x.state!==m.state||x.a.id!==m.a.id||x.b.id!==m.b.id)return null}
+    const my=b.all.find(m=>(m.a.id==='__late'||m.b.id==='__late')&&m.state==='ready');if(!my)return null;
+    const op=my.a.id==='__late'?my.b:my.a;return{extra,op:op.t==='p'?op.id:null}};
+  const out=[];const n=T.players.length;
+  if(T.format==='se'||T.format==='de'){
+    if(T.format==='de'&&deName(n,T.playoff)!==deName(n+1,T.playoff))return{why:'Схема сетки изменится — добавить нельзя'};
+    const N=nextPow2(Math.max(2,n)),used=new Set(seatSlots(T).map((s,i)=>s.t==='p'?i+1:0));
+    for(let sd=1;sd<=N;sd++)if(!used.has(sd)){const r=tryT({seat:sd});if(r)out.push(r)}
+    if(!out.length)return{why:'Свободных мест нет или соперники на этих местах уже сыграли дальше'};
+  }else if(T.format==='rr'){const r=tryT({});if(r)out.push(r);else return{why:'Не получилось добавить без изменения сыгранных встреч'}}
+  else if(T.format==='gp'){const g=b0.groups;if(b0.rounds&&b0.rounds.some(rd=>rd.matches.some(m=>m.state==='done'||m.state==='live')))return{why:'Группы закончились, идёт плей-офф'};
+    const mn=Math.min(...g.map(x=>x.ids.length));g.forEach((x,k)=>{if(x.ids.length===mn){const r=tryT({lgrp:k});if(r)out.push(r)}});
+    if(!out.length)return{why:'Не получилось добавить без изменения сыгранных встреч'}}
+  else return{why:'В этом формате добавить игрока после старта нельзя'};
+  return{spots:out};
+}
 function build(T){
   if(T.stages)return stagesBuild(T);
   const ctx={T,no:0,all:[]};const out={all:ctx.all,match:!!T.match};
   if(T.status==='reg'){out.finished=false;return out}
   const ids=T.players.map(p=>p.id);
-  if(T.format==='se'){const se=buildSE(ctx,placeSeeds(ids.map(P)),'s');out.rounds=se.rounds;out.champ=se.champ;out.third=se.third;out.finished=se.champ.t==='p'}
+  if(T.format==='se'){const se=buildSE(ctx,placeSeeds(seatSlots(T)),'s');out.rounds=se.rounds;out.champ=se.champ;out.third=se.third;out.finished=se.champ.t==='p'}
   else if(T.format==='de'){Object.assign(out,buildDE(ctx,ids));out.finished=out.stop?(out.q||[...out.up,...out.low]).every(s=>s.t==='p'):out.K?out.champ.t==='p':out.final.winner.t==='p'}
   else if(T.format==='rr'){const g=buildRR(ctx,ids,'r');out.groups=[Object.assign({name:'Таблица'},g)];out.finished=g.complete}
   else{Object.assign(out,buildGP(ctx,T,ids));out.finished=out.champ.t==='p'}
@@ -1869,7 +1893,7 @@ function hlPlayer(pid){if(pid===HL)return;HL=pid;
   document.addEventListener('click',e=>{if(hov())return;if(CUR&&CUR.T&&isOwner(CUR.T)){if(HL)hlPlayer(null);return}const n=e.target.closest&&e.target.closest('.zm .m .row[data-pid] .n');if(n){e.stopPropagation();e.preventDefault();const p=n.parentElement.dataset.pid;hlPlayer(HL===p?null:p)}else if(HL&&!(e.target.closest&&e.target.closest('.zoomer')))hlPlayer(null)},true);
 })();
 const FLOW={};
-function flow(T){const key=T.id+'|'+T.players.map(p=>p.id).join(',')+'|'+T.playoff+'|'+(T.poPerm||'');if(FLOW[T.id]&&FLOW[T.id].key===key)return FLOW[T.id];
+function flow(T){const key=T.id+'|'+T.players.map(p=>p.id+(p.seat?':'+p.seat:'')+(typeof p.lgrp==='number'?'g'+p.lgrp:'')).join(',')+'|'+T.playoff+'|'+(T.poPerm||'');if(FLOW[T.id]&&FLOW[T.id].key===key)return FLOW[T.id];
   const b=build(Object.assign({},T,{results:{},status:'live'}));const w={},l={};
   b.all.forEach(m=>[m.a,m.b].forEach(x=>{if(x.t!=='tbd')return;const k=/^(Поб|Пр)\. №(\d+)$/.exec(x.label||'');if(k)(k[1]==='Поб'?w:l)[k[2]]=m.no}));
   return FLOW[T.id]={key,w,l,full:!b.all.some(m=>m.state==='bye')}}
@@ -1964,7 +1988,11 @@ function renderPeople(T,b){
   const f=T.players.filter(p=>p.sex==='Ж').length;
   const tools=`<div class="ptools">${isOwner(T)?`<button data-act="printList">${IC.print}Печать</button><button data-act="xlsList">${IC.xls}Excel</button>`:''}${ed?`<button data-act="impList">${IC.up}Загрузить из Excel</button><input type="file" id="imp-file" accept=".xlsx" hidden>`:''}</div>`;
   const list=`<div class="panel"><div class="ph"><h3>Участники · ${T.players.length}${f?` <span class="muted" style="font-weight:400;font-size:13px">из них женщин ${f}</span>`:''}</h3>${T.players.length?tools:''}</div>${T.players.length?`<div class="tb-wrap"><table class="tb"><thead><tr>${th('pos',T.drawn?'№':'#','pos')}${th('name','Игрок')}${th('lvl','Уровень','c')}${th('sex','Пол','c')}${th('birth','Г.р.','c')}${th('country','Страна')}${th('city','Город')}${th('club','Клуб')}${th('rank','Звание')}${ed?'<th></th>':''}</tr></thead><tbody>${rows}</tbody></table></div>`:(ed?`<div class="pempty sm"><b>Пока никого</b><span>Добавьте участников в форме «Новый участник».</span><div class="pe-l">Список уже есть в Excel? <button data-act="impList">Загрузить</button> · <button data-act="tplList">шаблон</button></div><input type="file" id="imp-file" accept=".xlsx" hidden></div>`:'<div class="muted">Участники появятся, когда клуб их зарегистрирует.</div>')}</div>`;
-  if(!ed)return list;
+  if(!ed){if(!(own&&T.status==='live'&&!T.pair&&!T.match&&!T.stages&&!build(T).finished))return list;
+    const lp=`<div class="panel"><h3>Опоздавший игрок</h3><p class="muted" style="margin:-4px 0 12px;font-size:13px">Если в сетке есть свободное место и судья согласен — игрок встанет туда по жребию.</p>
+     <div class="row2"><div class="field"><label>Фамилия</label><input id="lt-last" autocomplete="off"></div><div class="field"><label>Имя</label><input id="lt-first" autocomplete="off"></div></div><div id="lt-sim"></div>
+     <button class="btn blue" data-act="lateFind">Найти место</button><div class="err" id="lt-err"></div></div>`;
+    return`<div class="two">${list}<div>${lp}</div></div>`}
   const c=club(T.clubId);
   const side=`<div class="panel" style="margin-bottom:14px"><h3>Новый участник</h3>
    <div class="row2"><div class="field"><label>Фамилия</label><input id="np-last" autocomplete="off"></div><div class="field"><label>Имя</label><input id="np-first" autocomplete="off"></div></div><div id="np-sim"></div>
@@ -3340,6 +3368,25 @@ const A={
   addJ(){const T=CUR.T;const n=document.getElementById('j-name').value.trim();if(!n){document.getElementById('j-err').textContent='Введите фамилию и имя';return}
     T.judges=T.judges||[];T.judges.push({id:uid(),name:n.slice(0,80),role:document.getElementById('j-role').value});save();render();toast('Судья добавлен')},
   rmJ(el){const T=CUR.T;T.judges=(T.judges||[]).filter(j=>j.id!==el.dataset.id);save();render()},
+  lateSim(){const el=document.getElementById('lt-sim');if(!el||!CUR)return;const T=CUR.T,c=club(T.clubId);const l=(document.getElementById('lt-last').value||'').trim().toLowerCase(),f=(document.getElementById('lt-first').value||'').trim().toLowerCase();if((l+f).length<2){el.innerHTML='';return}
+    const inT=new Set(T.players.map(p=>p.id));const L=(c.roster||[]).filter(p=>!inT.has(p.id)&&pMatch(p,l+' '+f)).slice(0,5);
+    el.innerHTML=L.length?`<div class="np-sim"><b>Похожие в общей базе — выберите, если это он:</b>${L.map(p=>`<div class="np-sr"><span><b>${esc(p.name)}${vfP(p)}</b><small>${esc([byear(p),p.city,p.club,p.rank].filter(Boolean).join(' · '))||'без данных'}</small></span><button class="btn sm ghost" data-act="lateFind" data-id="${p.id}">Это он</button></div>`).join('')}</div>`:''},
+  lateFind(el){const T=CUR.T,c=club(T.clubId);if(!isOwner(T))return;const e=document.getElementById('lt-err')||{};e.textContent='';
+    let p=null;const rid=el&&el.dataset&&el.dataset.id;
+    if(rid){p=(c.roster||[]).find(x=>x.id===rid);if(!p)return}
+    else{const v=id=>(document.getElementById(id).value||'').trim();const last=v('lt-last'),first=v('lt-first');if(!last||!first){e.textContent='Введите фамилию и имя';return}
+      p=(c.roster||[]).find(r=>(r.last||'').toLowerCase()===last.toLowerCase()&&(r.first||'').toLowerCase()===first.toLowerCase())||{_new:true,first,last,name:last+' '+first}}
+    if(p.id&&T.players.some(q=>q.id===p.id)){e.textContent='Этот игрок уже в турнире';return}
+    const r=lateSpots(T);if(!r.spots){e.textContent=r.why;return}
+    const sp=r.spots[Math.floor(Math.random()*r.spots.length)];UI.late={p,sp};
+    const op=sp.op?pname(T,P(sp.op)):'';
+    const where=sp.extra.seat?`место №${sp.extra.seat} в сетке`:sp.extra.lgrp!=null?`группа ${LETTERS[sp.extra.lgrp]}`:'круговая таблица';
+    openModal(`<h3>Добавить опоздавшего?</h3><p><b>${esc(p.name)}</b> — ${where}${r.spots.length>1?` <span class="muted">(жребий среди ${r.spots.length} свободных мест)</span>`:''}.</p>${op?`<p>Первая встреча — с <b>${esc(op)}</b>.</p>`:''}<p class="muted" style="font-size:13px">Сыгранные встречи не меняются. Убрать игрока после добавления нельзя.</p><div class="pm-acts"><button class="btn blue" data-act="lateOk">Добавить</button><button class="btn ghost" data-act="close">Отмена</button></div>`)},
+  lateOk(){const T=CUR.T,c=club(T.clubId),L=UI.late;if(!L||!isOwner(T))return;const r=lateSpots(T);
+    const ok=r.spots&&r.spots.some(s=>JSON.stringify(s.extra)===JSON.stringify(L.sp.extra));if(!ok){closeModal();toast('Место уже занято — попробуйте ещё раз');return}
+    let p=L.p;if(p._new){p=mkPlayer(p.first,p.last,'',c.city||'','',{});c.roster=c.roster||[];c.roster.push(p)}
+    const no=L.sp.extra.seat||(Math.max(0,...T.players.map(x=>+x.no||0))+1);
+    T.players.push(Object.assign(pub(Object.assign({country:'Казахстан',club:c.name},p)),L.sp.extra,{no}));UI.late=null;closeModal();save();render();toast(p.name+' добавлен в турнир')},
   addR(el){const T=CUR.T,c=club(T.clubId);const p=c.roster.find(x=>x.id===el.dataset.id);if(!p)return;if(T.players.some(q=>q.id===p.id)){toast('Уже в турнире');return}if(T.match&&T.players.length>=2){toast('Во встрече только два игрока');return}T.players.push(pub(Object.assign({country:'Казахстан',club:c.name},p)));save();render();toast(p.name+' в турнире')},
   pairPick(el){const c=club(CUR.T.clubId);const p=(c.roster||[]).find(x=>x.id===el.dataset.id);if(!p)return;const pp=UI.pp||(UI.pp=[{},{}]);let i=pp.findIndex(x=>!x||!(x.last||'').trim());if(i<0||i>1)i=1;pp[i]={id:p.id,last:p.last,first:p.first};if(i===0&&!pp.cityTouched&&p.city)pp.city=p.city;render();const q=document.getElementById('rs-q');if(q)q.focus()},
   addPair(){const T=CUR.T,c=club(T.clubId);const e=document.getElementById('pp-err');const v=id=>(document.getElementById(id).value||'').trim();
@@ -3382,7 +3429,7 @@ document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.ct=
 document.addEventListener('pointerdown',e=>{const r=document.getElementById('find-res');if(!r||!r.innerHTML)return;if(e.target.closest('#find-res')||e.target.id==='pq')return;r.innerHTML=''});
 document.addEventListener('focusin',e=>{if(e.target.id==='pq')renderFind()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&e.target.id==='pq'){const r=document.getElementById('find-res');if(r)r.innerHTML='';e.target.blur()}});
-document.addEventListener('input',e=>{if(e.target.dataset&&e.target.dataset.dn!=null&&UI.dm){UI.dm.nums[e.target.dataset.dn]=e.target.value;drawCheck();return}if(e.target.id==='sch-race'&&UI.sch){UI.sch.race=Math.max(1,Math.min(999,Math.floor(+e.target.value||0)||1))}if(e.target.id==='ad-promo'){adPromoCheck();return}if(e.target.id==='cpr-in'){const er=document.getElementById('cpr-err');if(er)er.textContent=''}if(e.target.id==='ac-promo'){const h=document.getElementById('ac-phint'),c=e.target.value.trim().toUpperCase(),p=AD.promos.find(x=>x.code===c);if(h)h.textContent=!c?'':!p?'Такого промокода нет':!p.active?'Промокод выключен':p.kind==='months'?`${promoWhat(p)} к бесплатному периоду сразу`:`${promoWhat(p)} — применится к первой оплате`;return}if(e.target.id==='ad-q'){AD.q=e.target.value;const t=document.getElementById('ad-tbl');if(t)t.innerHTML=adClubsTable()}if(e.target.id==='pq'){UI.pq=e.target.value;renderFind()}if(e.target.id==='q'){UI.filter.q=e.target.value;renderGrid()}if(e.target.id==='rs-q')renderRoster();if(e.target.id==='np-last'||e.target.id==='np-first')A.npSim();if(e.target.id==='wq'&&UI.wiz){UI.wiz.q=e.target.value;renderWizRoster()}if(e.target.dataset&&e.target.dataset.w&&UI.wiz){UI.wiz[e.target.dataset.w]=e.target.value;const t=document.getElementById('ws-title');if(t&&e.target.dataset.w==='title')t.textContent=e.target.value||'Без названия'}});
+document.addEventListener('input',e=>{if(e.target.dataset&&e.target.dataset.dn!=null&&UI.dm){UI.dm.nums[e.target.dataset.dn]=e.target.value;drawCheck();return}if(e.target.id==='sch-race'&&UI.sch){UI.sch.race=Math.max(1,Math.min(999,Math.floor(+e.target.value||0)||1))}if(e.target.id==='ad-promo'){adPromoCheck();return}if(e.target.id==='cpr-in'){const er=document.getElementById('cpr-err');if(er)er.textContent=''}if(e.target.id==='ac-promo'){const h=document.getElementById('ac-phint'),c=e.target.value.trim().toUpperCase(),p=AD.promos.find(x=>x.code===c);if(h)h.textContent=!c?'':!p?'Такого промокода нет':!p.active?'Промокод выключен':p.kind==='months'?`${promoWhat(p)} к бесплатному периоду сразу`:`${promoWhat(p)} — применится к первой оплате`;return}if(e.target.id==='ad-q'){AD.q=e.target.value;const t=document.getElementById('ad-tbl');if(t)t.innerHTML=adClubsTable()}if(e.target.id==='pq'){UI.pq=e.target.value;renderFind()}if(e.target.id==='q'){UI.filter.q=e.target.value;renderGrid()}if(e.target.id==='rs-q')renderRoster();if(e.target.id==='np-last'||e.target.id==='np-first')A.npSim();if(e.target.id==='lt-last'||e.target.id==='lt-first')A.lateSim();if(e.target.id==='wq'&&UI.wiz){UI.wiz.q=e.target.value;renderWizRoster()}if(e.target.dataset&&e.target.dataset.w&&UI.wiz){UI.wiz[e.target.dataset.w]=e.target.value;const t=document.getElementById('ws-title');if(t&&e.target.dataset.w==='title')t.textContent=e.target.value||'Без названия'}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='Enter'&&e.target.id==='cpr-in'){const b=document.querySelector('[data-act=cprApply]');if(b)b.click();return}if(e.key==='Enter'&&e.target.id==='lg-pass'){const b=document.querySelector('[data-act=login]');b&&b.click()}if(e.key==='Enter'&&document.getElementById('sa')&&document.getElementById('modal').classList.contains('open')){const b=document.querySelector('[data-act=saveRes]');b&&b.click()}});
 window.addEventListener('hashchange',()=>{closeModal();UI.confirm=null;render();window.scrollTo(0,0)});
 Object.assign(A,CT_ACTS);
