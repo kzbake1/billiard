@@ -1360,12 +1360,12 @@ async function loadSession(){
   const [mc,ad]=await Promise.all([sb.rpc('my_club'),sb.rpc('is_admin')]);
   S.admin=!!ad.data;if(S.admin&&PUB_KB&&!mc.data){S.admin=false;S.adminOff=true;await sb.auth.signOut({scope:'local'});S.email='';return}
   S.sub=null;if(mc.data){sb.rpc('my_subscription').then(r=>{S.sub=r.data?cleanData(r.data):null;if(location.hash==='#cabinet'||location.hash==='#price')render()});}
-  if(mc.data){let c=S.clubs.find(x=>x.id===mc.data);if(!c){const q=await sb.from('club').select('id,name,city,tables,floors,address,phone,instagram,tiktok,logo,is_test').eq('id',mc.data).maybeSingle();if(q.data){c=Object.assign({roster:[]},cleanData(q.data));S.clubs.push(c)}}if(c){S.session=c.id;const pl=await loadPlayers();PL_T=Date.now();c.roster=pl||[];SNAP.players=pl?Object.fromEntries(pl.map(p=>[p.id,JSON.stringify(pub(p))])):null;
+  if(mc.data){let c=S.clubs.find(x=>x.id===mc.data);if(!c){const q=await sb.from('club').select('id,name,city,tables,floors,address,phone,instagram,tiktok,logo,is_test,created_at').eq('id',mc.data).maybeSingle();if(q.data){c=Object.assign({roster:[]},cleanData(q.data));S.clubs.push(c)}}if(c){S.session=c.id;const pl=await loadPlayers();PL_T=Date.now();c.roster=pl||[];SNAP.players=pl?Object.fromEntries(pl.map(p=>[p.id,JSON.stringify(pub(p))])):null;
     SNAP.club=JSON.stringify([c.name,c.city,c.tables,c.address,c.phone,c.instagram,c.tiktok,c.logo,c.floors||[]]);}}
   SNAP.own={};S.tournaments.forEach(T=>{if(T.clubId===S.session)SNAP.own[T.id]=1});
 }
 async function load(){
-  const [c,t,ae]=await Promise.all([sb.from('club').select('id,name,city,tables,floors,address,phone,instagram,tiktok,logo,is_test').is('deleted_at',null).order('created_at'),sb.from('tournament').select('id,club_id,data,rating').is('deleted_at',null).order('created_at',{ascending:false}).limit(300),sb.rpc('admin_exists')]);
+  const [c,t,ae]=await Promise.all([sb.from('club').select('id,name,city,tables,floors,address,phone,instagram,tiktok,logo,is_test,created_at').is('deleted_at',null).order('created_at'),sb.from('tournament').select('id,club_id,data,rating').is('deleted_at',null).order('created_at',{ascending:false}).limit(300),sb.rpc('admin_exists')]);
   if(c.error||t.error)throw (c.error||t.error);
   TESTC=new Set(c.data.filter(x=>x.is_test===true).map(x=>x.id));sb.rpc('current_ad_v2').then(r=>{if(r&&Array.isArray(r.data)){S.rk=r.data[0]||null;softRender()}}).catch(()=>{});svHit();sb.rpc('verified_players').then(r=>{if(r&&Array.isArray(r.data)){VF=new Set(r.data);softRender()}}).catch(()=>{});S.clubs=c.data.map(x=>Object.assign({roster:[]},cleanData(x)));S.tournaments=t.data.map(tFromRow);S.adminExists=ae.data!==false;
   SNAP.t={};S.tournaments.forEach(T=>SNAP.t[T.id]=jsq(tData(T)));
@@ -1639,13 +1639,15 @@ function clubCard(c){const ts=S.tournaments.filter(t=>t.clubId===c.id&&!t.parent
   ${c.address?`<div class="cc-ad">${IC.pin}<span>${esc(c.address)}</span></div>`:''}
   ${nx?`<a class="cc-nx ${nx.status==='live'?'live':''}" href="#t-${nx.id}"><em>${nx.status==='live'?'Идёт':'Скоро'}</em><span>${esc(nx.title)}</span><small>${esc(fdate(nx.date))}</small></a>`:nDone?`<div class="cc-st">Проведено турниров: ${nDone}</div>`:''}
   ${c.phone||c.address||c.instagram?`<div class="cc-acts">${c.phone?act(waLink(c.phone),IC.wa,'WhatsApp','wa',1)+act('tel:'+esc(c.phone.replace(/[^+\d]/g,'')),IC.phone,'Позвонить'):''}${c.address?act(gisLink(c),IC.pin,'Маршрут','opt',1):''}${c.instagram?`<a class="cc-b ico" href="${esc(instaLink(c.instagram))}" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram">${IC.ig}</a>`:''}</div>`:''}</div>`}
-function renderClubs(){const all=S.clubs.filter(c=>c.name&&!testHidden(c.id));const cities=[...new Set(all.map(c=>c.city).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
+// порядок клубов: Chimba первым, дальше — кто раньше подключился
+const CHIMBA='2232f5f8-8bc4-4486-9187-def4c532a528';const clubOrd=a=>[...a].sort((x,y)=>(y.id===CHIMBA)-(x.id===CHIMBA)||String(x.created_at||'9').localeCompare(String(y.created_at||'9')));
+function renderClubs(){const all=clubOrd(S.clubs.filter(c=>c.name&&!testHidden(c.id)));const cities=[...new Set(all.map(c=>c.city).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
   const cf=UI.ccity&&cities.includes(UI.ccity)?UI.ccity:'';const cs=all.filter(c=>!cf||c.city===cf);
   return`<div class="pg-h"><h1>Клубы</h1><p class="muted">${all.length} ${['клуб','клуба','клубов'][all.length%10===1&&all.length%100!==11?0:all.length%10>=2&&all.length%10<=4&&(all.length%100<10||all.length%100>=20)?1:2]} на kazbilliard</p></div>
   ${cities.length>1?`<div class="ch-row">${['',...cities].map(x=>`<button class="chip ${cf===x?'on':''}" data-act="cCity" data-v="${esc(x)}">${x?esc(x):'Все города'}</button>`).join('')}</div>`:''}
   ${cs.length?`<div class="cc-g">${cs.map(clubCard).join('')}</div>`:'<div class="panel empty">Клубов пока нет</div>'}
   <div class="cl-cta"><div><b>Вашего клуба нет в списке?</b><span>Подключите клуб — сетка, счёт и столы онлайн. Первый месяц бесплатно.</span></div><a class="btn light" href="https://wa.me/77764308322" target="_blank" rel="noopener">${IC.wa||''}Написать в WhatsApp</a></div>`}
-function homeClubs(list){const cs=list||S.clubs.filter(c=>c.name&&!testHidden(c.id));if(!cs.length)return'';
+function homeClubs(list){const cs=clubOrd(list||S.clubs.filter(c=>c.name&&!testHidden(c.id)));if(!cs.length)return'';
   return`<section class="hs"><div class="hs-h"><h2>Клубы</h2><span>${cs.length}</span></div><div class="hlist">${cs.map(c=>{
     const nx=S.tournaments.filter(t=>inList(t)&&t.clubId===c.id&&(t.status==='reg'||(t.status==='live'&&!build(t).finished))).sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0];
     return`<div class="hclub"><div class="hcl-m"><b>${cLink(c)}</b><span>${esc([c.city,c.address].filter(Boolean).join(', '))}${c.tables?` · ${c.tables} стол${plural(c.tables)}`:''}</span>${nx?`<a class="hc-nx" href="#t-${nx.id}">${nx.status==='live'?'Идёт':'Скоро'}: ${esc(nx.title)} · ${esc(fdate(nx.date))}</a>`:''}</div>
