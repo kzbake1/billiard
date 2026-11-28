@@ -1644,11 +1644,11 @@ const hCat=T=>(T.match?'Встреча · ':'')+(T.pair?'Парный · ':'')+(
 const hTv=T=>T.video?`<span class="hl-tv">${IC.play}трансляция</span>`:'';
 const hHead=(st,bt)=>`<div class="hhead${bt?' bt':''}"><span>Турнир</span><span>Дата</span><span>Участники</span><span>${st}</span>${bt?'<span></span>':''}</div>`;
 function mScoreH(T){const m=build(T).all[0];const r=m&&m.res;return r&&!r.tp?`<span class="hl-sc" title="Счёт">${r.sa||0} : ${r.sb||0}</span>`:'<span class="hl-sc">—</span>'}
-// долгий турнир (идёт не первый день, без даты окончания): «с 19 октября» и «41-й день» вместо даты и дня недели
+// долгий турнир (идёт не первый день, без даты окончания): «с 19 октября» вместо даты и дня недели
 function liveSince(T){const t=almatyToday();if(!T.date||T.date>=t||(T.dateEnd&&T.dateEnd!==T.date)||tStatus(T)!=='live')return null;
   const y=T.date.slice(0,4)===t.slice(0,4);const d=fdate(T.date);return{since:'с '+(y?d.replace(/ \d{4}$/,''):d),day:(dDiff(T.date,t)+1)+'-й день'}}
 function hRow(T,meta,right){const n=T.players.length;const wd=T.date?WD[new Date(T.date+'T00:00').getDay()]:'';const c=club(T.clubId);
-  return`<a class="hrow" href="#t-${T.id}"><div class="hl-m">${rTag(T)?`<div class="hl-tt"><b>${esc(T.title||'Без названия')}</b>${rTag(T)}</div>`:`<b>${esc(T.title||'Без названия')}</b>`}<span>${esc([T.match?'Встреча':'',(T.city||c.city)?'г. '+(T.city||c.city):'',c.name,T.discipline].filter(Boolean).join(' · '))}</span></div>${(()=>{const ls=liveSince(T);return ls?`<div class="hl-dt"><b>${esc(ls.since)}</b><span>${esc(ls.day)}</span></div>`:`<div class="hl-dt"><b>${T.date?esc(fdates(T)):'—'}</b><span>${esc([T.time,T.dateEnd&&T.dateEnd!==T.date?(Math.round((new Date(T.dateEnd)-new Date(T.date))/864e5)+1)+' дн.':wd].filter(Boolean).join(' · '))}</span></div>`})()}<div class="hl-n">${T.match&&T.status!=='reg'?mScoreH(T):`<span title="Участники">${n}${IC.ppl}</span>`}</div><div class="hl-r">${right}</div></a>`}
+  return`<a class="hrow" href="#t-${T.id}"><div class="hl-m">${rTag(T)?`<div class="hl-tt"><b>${esc(T.title||'Без названия')}</b>${rTag(T)}</div>`:`<b>${esc(T.title||'Без названия')}</b>`}<span>${esc([T.match?'Встреча':'',(T.city||c.city)?'г. '+(T.city||c.city):'',c.name,T.discipline].filter(Boolean).join(' · '))}</span></div>${(()=>{const ls=liveSince(T);return ls?`<div class="hl-dt"><b>${esc(ls.since)}</b></div>`:`<div class="hl-dt"><b>${T.date?esc(fdates(T)):'—'}</b><span>${esc([T.time,T.dateEnd&&T.dateEnd!==T.date?(Math.round((new Date(T.dateEnd)-new Date(T.date))/864e5)+1)+' дн.':wd].filter(Boolean).join(' · '))}</span></div>`})()}<div class="hl-n">${T.match&&T.status!=='reg'?mScoreH(T):`<span title="Участники">${n}${IC.ppl}</span>`}</div><div class="hl-r">${right}</div></a>`}
 function hLive(T,b){const c=club(T.clubId);const lv=b.liveN!=null?b.liveN:b.all.filter(m=>m.state==='live').length;
   return hRow(T,`${hCat(T)}${esc(c.name)} · ${esc(T.city)} · ${esc(tFmt(T,b))} · до ${raceW(T,T.raceTo)}`,`<em class="lv"><i></i>идёт</em>${lv?`<span>${lv} за столами</span>`:''}`)}
 const gisLink=c=>'https://2gis.kz/search/'+encodeURIComponent([c.city,c.address].filter(Boolean).join(' '));
@@ -1787,7 +1787,7 @@ function renderT(T){
   const done=b.all.filter(m=>m.state==='done').length,tot=b.all.filter(m=>m.state!=='bye').length;
   const fmt=tFmt(T,b);
   const n=T.players.length,pw=T.pair?pairW(n).replace(/^\d+ /,''):n%10===1&&n%100!==11?'игрок':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?'игрока':'игроков');
-  const facts=[(liveSince(T)?'Идёт '+liveSince(T).since+' · '+liveSince(T).day:fdates(T)+(T.time?' · '+esc(T.time):'')),...(T.match?[]:T.status==='reg'?[]:[fmt])];
+  const facts=[(liveSince(T)?'Идёт '+liveSince(T).since:fdates(T)+(T.time?' · '+esc(T.time):'')),...(T.match?[]:T.status==='reg'?[]:[fmt])];
   const champ=b.finished&&!b.stop&&b.places&&b.places[0]&&b.places[0].ids[0]?pname(T,P(b.places[0].ids[0])):'';
   const place=[c.city,c.address].filter(Boolean).map(esc).join(', ');
   const cl=[`<b>${esc(c.name)}</b>`,place,c.phone?`<a href="tel:${esc(c.phone.replace(/[^+\d]/g,''))}">${esc(c.phone)}</a>`:'',c.instagram?`<a href="https://instagram.com/${encodeURIComponent(c.instagram)}" target="_blank" rel="noopener">@${esc(c.instagram)}</a>`:'',c.tiktok?`<a href="${esc(ttLink(c.tiktok))}" target="_blank" rel="noopener">TikTok @${esc(c.tiktok)}</a>`:''].filter(Boolean);
