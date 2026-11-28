@@ -1687,10 +1687,10 @@ function clubCard(c){const ts=S.tournaments.filter(t=>t.clubId===c.id&&!t.parent
   const nDone=ts.filter(t=>t.status==='done'||build(t).finished).length;
   const act=(href,ic,t,cls,ext)=>`<a class="cc-b ${cls||''}" href="${href}"${ext?' target="_blank" rel="noopener"':''}>${ic}<span>${t}</span></a>`;
   const pl=(n,f)=>n+' '+f[n%10===1&&n%100!==11?0:n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?1:2];
-  const chips=[c.city,c.tables?pl(c.tables,['стол','стола','столов']):'',nDone?pl(nDone,['турнир','турнира','турниров']):''].filter(Boolean);
+  const chips=[c.tables?pl(c.tables,['стол','стола','столов']):'',nDone?pl(nDone,['турнир','турнира','турниров']):''].filter(Boolean);
   const tel=c.phone?'tel:'+esc(c.phone.replace(/[^+\d]/g,'')):'';
   return`<div class="cc"><a class="cc-top" href="#c-${c.id}"><i class="cc-av${c.logo?' im':''}">${avHTML(c)}</i><span class="cc-tt"><b class="cc-n">${esc(c.name)}</b>${chips.length?`<span class="cc-m">${esc(chips.join(' · '))}</span>`:''}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>
-  ${c.address?`<a class="cc-ad" href="${gisLink(c)}" target="_blank" rel="noopener">${IC.pin}<span>${esc(c.address)}</span></a>`:''}
+  ${c.address||c.city?`<a class="cc-ad" href="${gisLink(c)}" target="_blank" rel="noopener">${IC.pin}<span>${esc([c.city,c.address].filter(Boolean).join(', '))}</span></a>`:''}
   ${nx?`<a class="cc-nx ${nx.status==='live'?'live':''}" href="#t-${nx.id}"><em>${nx.status==='live'?'<i></i>Идёт':'Скоро'}</em><span>${esc(nx.title)}</span><small>${esc(fdate(nx.date))}</small></a>`:''}
   ${c.phone||c.instagram||c.address?`<div class="cc-acts">${c.phone?`<a class="cc-wa" href="${waLink(c.phone)}" target="_blank" rel="noopener">${IC.wa}<span>WhatsApp</span></a><a class="cc-i" href="${tel}" aria-label="Позвонить" title="Позвонить">${IC.phone}</a>`:''}${c.address?`<a class="cc-i cc-2g" href="${gisLink(c)}" target="_blank" rel="noopener" aria-label="Открыть в 2ГИС" title="Открыть в 2ГИС">2ГИС</a>`:''}${c.instagram?`<a class="cc-i" href="${esc(instaLink(c.instagram))}" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram">${IC.ig}</a>`:''}</div>`:''}</div>`}
 // порядок клубов: Chimba первым, дальше — кто раньше подключился
