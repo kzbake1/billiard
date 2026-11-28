@@ -2840,9 +2840,21 @@ function editTHTML(T){const pub=UI.ePub===undefined?isPub(T):UI.ePub;const kind=
   </details>
   <div class="wz-pub"><button class="pm-sw${pub?' on':''}" data-act="ePub" data-v="${pub?0:1}" role="switch" aria-checked="${!!pub}"><i></i>Показывать на сайте</button><span class="mut2">${pub?`Игроки видят ${kind} на сайте.`:`Черновик: ${kind} видите только вы.`}</span></div>
   <div class="err" id="e-err"></div><div class="pm-acts"><button class="btn blue" data-act="saveT">Сохранить</button><button class="btn ghost" data-act="close">Отмена</button></div></div>`}
-function addPlayer(T,c,first,last,birth,city,rank,x){
+const nmEq=(a,b)=>String(a||'').trim().toLowerCase().replace(/ё/g,'е')===String(b||'').trim().toLowerCase().replace(/ё/g,'е');
+// перед созданием игрока ищем его в общей базе: сначала в загруженном списке, потом на сервере (вдруг его только что внесли с другого устройства)
+async function baseFind(c,first,last,birth){const by=String(birth||'').slice(0,4);const ok=r=>nmEq(r.last,last)&&nmEq(r.first,first)&&(!by||!byear(r)||byear(r)===by);
+  let hit=(c.roster||[]).find(ok);if(hit||typeof sb==='undefined'||!sb)return hit||null;
+  try{const q=x=>String(x).trim().replace(/[%_\\]/g,'\\$&');const r=await sb.from('player').select('id,data,created_by').is('merged_into',null).ilike('data->>last',q(last)).ilike('data->>first',q(first)).limit(10);
+    const L=(r.data||[]).map(x=>cleanData(Object.assign({},x.data,{id:x.id,_by:x.created_by||''})));hit=L.find(ok)||null;
+    if(hit&&!(c.roster||[]).some(p=>p.id===hit.id)){c.roster=c.roster||[];c.roster.push(hit);if(SNAP.players)SNAP.players[hit.id]=JSON.stringify(pub(hit))}}catch(e){hit=null}
+  return hit}
+function askSame(p){return new Promise(res=>{window.__askR=v=>{window.__askR=null;closeModal();res(v)};const info=[p.city,byear(p)?byear(p)+' г.р.':'',p.club].filter(Boolean).join(' · ');
+  openModal(`<h3>Этот игрок уже есть в базе</h3><p><b>${esc(p.name)}</b>${info?` <span class="muted">· ${esc(info)}</span>`:''}</p><p class="muted">Это он? Тогда возьмём его запись — дубля не будет.</p><div class="pm-acts"><button class="btn blue" onclick="__askR&&__askR(true)">Да, это он</button><button class="btn ghost" onclick="__askR&&__askR(false)">Нет, другой человек</button></div>`)})}
+// выбор: существующая запись, false — «другой человек», null — нет в базе
+async function pickBase(c,first,last,birth){const h=await baseFind(c,first,last,birth);if(!h)return null;const by=String(birth||'').slice(0,4);if(by&&byear(h)===by)return h;return(await askSame(h))?h:false}
+function addPlayer(T,c,first,last,birth,city,rank,x,pre){
   if(T.match&&T.players.length>=2)return'Во встрече только два игрока';
-  let p=(c.roster||[]).find(r=>r.last.toLowerCase()===last.toLowerCase()&&r.first.toLowerCase()===first.toLowerCase()&&byear(r)===String(birth).slice(0,4));
+  let p=pre?pre:pre===false?null:(c.roster||[]).find(r=>r.last.toLowerCase()===last.toLowerCase()&&r.first.toLowerCase()===first.toLowerCase()&&byear(r)===String(birth).slice(0,4));
   if(p){if(T.players.some(q=>q.id===p.id))return'Этот игрок уже в турнире';Object.assign(p,Object.fromEntries(Object.entries(x||{}).filter(([k,v])=>v)))}
   else{p=mkPlayer(first,last,birth,city,rank,x);c.roster=c.roster||[];c.roster.push(p)}
   T.players.push(pub(Object.assign({},p,{city:city||p.city,rank:rank||p.rank})));return''}
@@ -3166,9 +3178,10 @@ const A={
   wNext(){const w=UI.wiz;if(w.step===1){const e=document.getElementById('w-err');const er=tErr(w.date,w.dateEnd,w.link,w.video);if(er){e.textContent=er;return}}if(w.step===1&&!w.title.trim())w.title=w.disc+' · '+fdate(w.date).replace(/ \d{4}$/,'');w.step++;render();window.scrollTo(0,0)},
   wBack(){UI.wiz.step--;render();window.scrollTo(0,0)},
   wAddR(el){const w=UI.wiz;const p=club(S.session).roster.find(x=>x.id===el.dataset.id);if(p)w.players.push(Object.assign({},p));render();const q=document.getElementById('wq');q&&q.focus()},
-  wAddP(){const w=UI.wiz,c=club(S.session);const v=id=>document.getElementById(id).value.trim();const e=document.getElementById('wn-err');
+  async wAddP(){const w=UI.wiz,c=club(S.session);const v=id=>document.getElementById(id).value.trim();const e=document.getElementById('wn-err');
     const last=v('wn-last'),first=v('wn-first'),birth=v('wn-birth');if(!last||!first){e.textContent='Введите фамилию и имя';return}if(!birth){e.textContent='Укажите дату рождения — по ней отличаем однофамильцев';return}
-    let p=(c.roster||[]).find(x=>x.last.toLowerCase()===last.toLowerCase()&&x.first.toLowerCase()===first.toLowerCase()&&x.birth===birth);
+    if(UI.adding)return;UI.adding=1;let pre;try{pre=await pickBase(c,first,last,birth)}finally{UI.adding=0}
+    let p=pre||(pre===false?null:(c.roster||[]).find(x=>x.last.toLowerCase()===last.toLowerCase()&&x.first.toLowerCase()===first.toLowerCase()&&x.birth===birth));
     if(!p){p=mkPlayer(first,last,birth,v('wn-city'),v('wn-rank'));c.roster=c.roster||[];c.roster.push(p)}
     if(w.players.some(x=>x.id===p.id)){e.textContent='Этот игрок уже в списке';return}
     w.players.push(Object.assign({},p));save();render();toast('Игрок добавлен и сохранён в базе')},
@@ -3355,11 +3368,12 @@ const A={
     const gc=Math.max(2,Math.floor(+g('f-gc')||2)),ga=Math.max(1,Math.floor(+g('f-ga')||1));
     const T={id:uid(),title,clubId:S.session,city:g('f-city'),discipline:g('f-disc'),format,raceTo,date:g('f-date'),status:'reg',players:[],applications:[],results:{},seedMode:'list',groups:{count:gc,advance:ga},createdAt:Date.now()};
     S.tournaments.unshift(T);save();UI.tab[T.id]='people';go('t-'+T.id);toast('Турнир создан — добавьте игроков')},
-  addP(){const T=CUR.T,c=club(T.clubId);if(T.status!=='reg'){toast('Турнир уже идёт — состав менять нельзя');return}const v=id=>document.getElementById(id).value.trim();const e=document.getElementById('np-err');
+  async addP(){const T=CUR.T,c=club(T.clubId);if(T.status!=='reg'){toast('Турнир уже идёт — состав менять нельзя');return}const v=id=>document.getElementById(id).value.trim();const e=document.getElementById('np-err');
     const last=v('np-last'),first=v('np-first'),birth=v('np-birth'),y=+birth;
     if(!last||!first){e.textContent='Введите фамилию и имя';return}if(birth&&!(y>=1920&&y<=new Date().getFullYear())){e.textContent='Проверьте год рождения';return}
     const x={sex:v('np-sex'),country:v('np-country'),club:v('np-club'),lvl:v('np-lvl')};
-    const r=addPlayer(T,c,first,last,birth?String(y):'',normCity(v('np-city')),v('np-rank'),x);if(r){e.textContent=r;return}
+    if(UI.adding)return;UI.adding=1;let pre;try{pre=await pickBase(c,first,last,birth?String(y):'')}finally{UI.adding=0}if(pre&&T.players.some(q=>q.id===pre.id)){e.textContent='Этот игрок уже в турнире';return}
+    const r=addPlayer(T,c,first,last,birth?String(y):'',normCity(v('np-city')),v('np-rank'),x,pre===null?undefined:pre);if(r){e.textContent=r;return}
     save();render();toast('Участник зарегистрирован');const f=document.getElementById('np-last');f&&f.focus()},
   npSim(){const el=document.getElementById('np-sim');if(!el||!CUR)return;const T=CUR.T,c=club(T.clubId);const l=(document.getElementById('np-last').value||'').trim().toLowerCase(),f=(document.getElementById('np-first').value||'').trim().toLowerCase();if((l+f).length<2){el.innerHTML='';return}
     const inT=new Set(T.players.map(p=>p.id));const L=(c.roster||[]).filter(p=>!inT.has(p.id)&&pMatch(p,l+' '+f)).slice(0,5);
@@ -3432,7 +3446,7 @@ const A={
     ws.columns=[['№',6],['Фамилия',18],['Имя',14],['Пол',6],['Год',8],['Страна',14],['Город',14],['Клуб',18],['Звание',10]].map(([header,width])=>({header,width}));ws.getRow(1).font={bold:true};
     [...T.players].sort((a,b)=>(a.no||1e9)-(b.no||1e9)).forEach((p,i)=>ws.addRow([T.drawn?(p.no||''):i+1,p.last,p.first,p.sex||'',byear(p),p.country||'',p.city||'',p.club||'',p.rank||'']));
     const buf=await wb.xlsx.writeBuffer();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));a.download=('Участники '+T.title).replace(/[\\/:*?"<>|]/g,'')+'.xlsx';a.click()}catch(err){toast('Не удалось сохранить файл')}})},
-  impList(){const f=document.getElementById('imp-file');if(!f)return;f.value='';f.onchange=()=>{const file=f.files[0];if(!file)return;withExcel(async()=>{try{const T=CUR.T,c=club(T.clubId);if(T.status!=='reg'){toast('Турнир уже идёт — состав менять нельзя');return}const wb=new ExcelJS.Workbook();await wb.xlsx.load(await file.arrayBuffer());const ws=wb.worksheets[0];
+  impList(){const f=document.getElementById('imp-file');if(!f)return;f.value='';f.onchange=()=>{const file=f.files[0];if(!file)return;withExcel(async()=>{try{const T=CUR.T,c=club(T.clubId);if(T.status!=='reg'){toast('Турнир уже идёт — состав менять нельзя');return}PL_T=0;try{await refreshPlayers()}catch(_){}const wb=new ExcelJS.Workbook();await wb.xlsx.load(await file.arrayBuffer());const ws=wb.worksheets[0];
       const hdr={};ws.getRow(1).eachCell((cell,i)=>{const h=String(cell.text||'').toLowerCase();[['last','фамил'],['first','имя'],['sex','пол'],['birth','год'],['birth','рожд'],['country','стран'],['city','город'],['club','клуб'],['rank','звани']].forEach(([k,w])=>{if(h.includes(w)&&!hdr[k])hdr[k]=i})});
       if(!hdr.last||!hdr.first){toast('В первой строке нужны колонки «Фамилия» и «Имя»');return}let ok=0,skip=0;
       ws.eachRow((row,ri)=>{if(ri===1)return;const g=k=>hdr[k]?String(row.getCell(hdr[k]).text||'').trim():'';const last=g('last'),first=g('first');if(!last||!first)return;
@@ -3448,11 +3462,11 @@ const A={
   lateSim(){const el=document.getElementById('lt-sim');if(!el||!CUR)return;const T=CUR.T,c=club(T.clubId);const l=(document.getElementById('lt-last').value||'').trim().toLowerCase(),f=(document.getElementById('lt-first').value||'').trim().toLowerCase();if((l+f).length<2){el.innerHTML='';return}
     const inT=new Set(T.players.map(p=>p.id));const L=(c.roster||[]).filter(p=>!inT.has(p.id)&&pMatch(p,l+' '+f)).slice(0,5);
     el.innerHTML=L.length?`<div class="np-sim"><b>Похожие в общей базе — выберите, если это он:</b>${L.map(p=>`<div class="np-sr"><span><b>${esc(p.name)}${vfP(p)}</b><small>${esc([byear(p),p.city,p.club,p.rank].filter(Boolean).join(' · '))||'без данных'}</small></span><button class="btn sm ghost" data-act="lateFind" data-id="${p.id}">Это он</button></div>`).join('')}</div>`:''},
-  lateFind(el){const T=CUR.T,c=club(T.clubId);if(!isOwner(T))return;const e=document.getElementById('lt-err')||{};e.textContent='';
+  async lateFind(el){const T=CUR.T,c=club(T.clubId);if(!isOwner(T))return;const e=document.getElementById('lt-err')||{};e.textContent='';
     let p=null;const rid=el&&el.dataset&&el.dataset.id;
     if(rid){p=(c.roster||[]).find(x=>x.id===rid);if(!p)return}
     else{const v=id=>(document.getElementById(id).value||'').trim();const last=v('lt-last'),first=v('lt-first');if(!last||!first){e.textContent='Введите фамилию и имя';return}
-      p=(c.roster||[]).find(r=>(r.last||'').toLowerCase()===last.toLowerCase()&&(r.first||'').toLowerCase()===first.toLowerCase())||{_new:true,first,last,name:last+' '+first}}
+      const pre=await pickBase(c,first,last,'');p=pre||{_new:true,first,last,name:last+' '+first}}
     if(p.id&&T.players.some(q=>q.id===p.id)){e.textContent='Этот игрок уже в турнире';return}
     const r=lateSpots(T);if(!r.spots){e.textContent=r.why;return}
     const sp=r.spots[Math.floor(Math.random()*r.spots.length)];UI.late={p,sp};
@@ -3466,7 +3480,7 @@ const A={
     T.players.push(Object.assign(pub(Object.assign({country:'Казахстан',club:c.name},p)),L.sp.extra,{no}));UI.late=null;closeModal();save();render();toast(p.name+' добавлен в турнир')},
   addR(el){const T=CUR.T,c=club(T.clubId);const p=c.roster.find(x=>x.id===el.dataset.id);if(!p)return;if(T.players.some(q=>q.id===p.id)){toast('Уже в турнире');return}if(T.match&&T.players.length>=2){toast('Во встрече только два игрока');return}T.players.push(pub(Object.assign({country:'Казахстан',club:c.name},p)));save();render();toast(p.name+' в турнире')},
   pairPick(el){const c=club(CUR.T.clubId);const p=(c.roster||[]).find(x=>x.id===el.dataset.id);if(!p)return;const pp=UI.pp||(UI.pp=[{},{}]);let i=pp.findIndex(x=>!x||!(x.last||'').trim());if(i<0||i>1)i=1;pp[i]={id:p.id,last:p.last,first:p.first};if(i===0&&!pp.cityTouched&&p.city)pp.city=p.city;render();const q=document.getElementById('rs-q');if(q)q.focus()},
-  addPair(){const T=CUR.T,c=club(T.clubId);const e=document.getElementById('pp-err');const v=id=>(document.getElementById(id).value||'').trim();
+  async addPair(){const T=CUR.T,c=club(T.clubId);PL_T=0;try{await refreshPlayers()}catch(_){}const e=document.getElementById('pp-err');const v=id=>(document.getElementById(id).value||'').trim();
     const raw=[1,2].map(i=>({last:v('pp-last'+i),first:v('pp-first'+i),id:((UI.pp||[])[i-1]||{}).id||''}));if(raw.some(x=>!x.last||!x.first)){e.textContent='Введите фамилию и имя обоих игроков';return}
     const city=normCity(v('pp-city'));const lc=x=>x.toLowerCase().replace(/ё/g,'е');
     const ms=raw.map(x=>{let p=x.id&&(c.roster||[]).find(r=>r.id===x.id);if(p&&(lc(p.last)!==lc(x.last)||lc(p.first)!==lc(x.first)))p=null;if(!p)p=(c.roster||[]).find(r=>lc(r.last||'')===lc(x.last)&&lc(r.first||'')===lc(x.first));return p?{p,isNew:false}:{p:mkPlayer(x.first,x.last,'',city),isNew:true}});
