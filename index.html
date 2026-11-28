@@ -280,6 +280,7 @@ details.more summary{cursor:pointer;color:var(--muted);font-weight:700;font-size
 .x:hover{background:var(--soft);color:var(--live)}
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
 .field label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.kc{position:relative}.kc-l{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:60;background:#fff;border:1px solid var(--line2);border-radius:10px;padding:4px;max-height:280px;overflow-y:auto}.kc-o{padding:10px 12px;border-radius:8px;font-size:15px;color:var(--ink);cursor:pointer;line-height:1.3}.kc-o b{font-weight:600}.kc-o.on,.kc-o:hover{background:var(--accent-soft)}.kc-h{padding:8px 12px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .field input[type=search]{-webkit-appearance:none;appearance:none}.field input[type=search]::-webkit-search-cancel-button,.field input[type=search]::-webkit-search-decoration{display:none;-webkit-appearance:none}
 .field input,.field select,.field textarea{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;outline:none;width:100%}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -2058,7 +2059,7 @@ function renderPeople(T,b){
    <div class="row2"><div class="field"><label>Фамилия</label><input id="np-last" autocomplete="off"></div><div class="field"><label>Имя</label><input id="np-first" autocomplete="off"></div></div><div id="np-sim"></div>
    <details class="wz-more np-more" ${UI.npMore?'open':''} ontoggle="UI.npMore=this.open"><summary>Дополнительно<span>пол, год рождения, город, клуб, звание</span></summary>
    <div class="row2"><div class="field"><label>Пол</label><select id="np-sex"><option>М</option><option>Ж</option></select></div><div class="field"><label>Год рождения <small>необязательно</small></label><input id="np-birth" type="number" inputmode="numeric" min="1920" max="2025" placeholder="1990"></div></div>
-   <div class="row2"><div class="field"><label>Страна</label><input id="np-country" type="search" value="Казахстан" list="ctry-l" autocomplete="off">${ctryList()}</div><div class="field"><label>Город <small>необязательно</small></label>${cityList()}<input id="np-city" type="search" list="city-l" autocomplete="off" value="${esc(c.city)}"></div></div>
+   <div class="row2"><div class="field"><label>Страна</label><div class="kc"><input data-src="ctry" role="combobox" aria-autocomplete="list" spellcheck="false" id="np-country" type="search" value="Казахстан" autocomplete="off"><div class="kc-l" role="listbox" hidden></div></div></div><div class="field"><label>Город <small>необязательно</small></label><div class="kc"><input data-src="city" role="combobox" aria-autocomplete="list" spellcheck="false" id="np-city" type="search" autocomplete="off" value="${esc(c.city)}"><div class="kc-l" role="listbox" hidden></div></div></div></div>
    <div class="row2"><div class="field"><label>Клуб <small>необязательно</small></label><input id="np-club" value="${esc(c.name)}"></div><div class="field"><label>Звание <small>необязательно</small></label><select id="np-rank"><option value="">—</option>${RANKS.map(r=>`<option>${r}</option>`).join('')}</select></div></div>
    <div class="row2"><div class="field"><label>Уровень <small>необязательно</small></label><select id="np-lvl"><option value="">—</option>${LVLS.map(l=>`<option value="${l}" >${l} · ${LVL_T[l]}</option>`).join('')}</select></div><div></div></div>
    </details>
@@ -2075,7 +2076,7 @@ function renderPairs(T,list0,own,ed){const c=club(T.clubId);
   const side=`<div class="panel" style="margin-bottom:14px"><h3>Новая пара</h3><p class="muted" style="font-size:13px;margin:-6px 0 12px">Фамилия и имя обоих игроков. Пара может меняться от турнира к турниру.</p>
    <div class="pp-l">Игрок 1</div><div class="row2">${f('last',1,'Фамилия')}${f('first',1,'Имя')}</div>
    <div class="pp-l">Игрок 2</div><div class="row2">${f('last',2,'Фамилия')}${f('first',2,'Имя')}</div>
-   <div class="field"><label>Город <small>необязательно</small></label>${cityList()}<input id="pp-city" type="search" list="city-l" autocomplete="off" value="${esc(pp.city!=null?pp.city:c.city)}" oninput="UI.pp.city=this.value;UI.pp.cityTouched=1"></div>
+   <div class="field"><label>Город <small>необязательно</small></label><div class="kc"><input data-src="city" role="combobox" aria-autocomplete="list" spellcheck="false" id="pp-city" type="search" autocomplete="off" value="${esc(pp.city!=null?pp.city:c.city)}" oninput="UI.pp.city=this.value;UI.pp.cityTouched=1"><div class="kc-l" role="listbox" hidden></div></div></div>
    <button class="btn blue" data-act="addPair">+ Зарегистрировать пару</button><div class="err" id="pp-err"></div></div>
   <div class="panel"><h3>Из общей базы</h3><p class="muted" style="font-size:13px;margin:-6px 0 10px">Нажмите «В пару» — игрок встанет в первое свободное место.</p><input id="rs-q" class="search" style="width:100%;min-width:0" placeholder="Фамилия или имя"><div id="rs-list" class="mlist"></div></div>`;
   return`<div class="two">${list}<div>${side}</div></div>`}
@@ -2127,7 +2128,7 @@ function editPHTML(T,p){const reg=T.status==='reg';
   return`<div class="ed"><div class="pm-h"><div class="pm-ti"><b>Участник</b>${p.no?`<span>жребий №${p.no}</span>`:''}</div><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
   <div class="wz-row2"><div class="field"><label>Фамилия</label><input id="ep-last" value="${esc(p.last||p.name.split(' ')[0])}"></div><div class="field"><label>Имя</label><input id="ep-first" value="${esc(p.first||p.name.split(' ').slice(1).join(' '))}"></div></div>
   <div class="wz-row2"><div class="field"><label>Пол</label><select id="ep-sex"><option ${p.sex!=='Ж'?'selected':''}>М</option><option ${p.sex==='Ж'?'selected':''}>Ж</option></select></div><div class="field"><label>Год рождения</label><input id="ep-birth" type="number" inputmode="numeric" value="${esc(byear(p))}"></div></div>
-  <div class="wz-row2"><div class="field"><label>Страна</label><input id="ep-country" type="search" value="${esc(p.country||'')}" list="ctry-l" autocomplete="off">${ctryList()}</div><div class="field"><label>Город</label>${cityList()}<input id="ep-city" type="search" list="city-l" autocomplete="off" value="${esc(p.city||'')}"></div></div>
+  <div class="wz-row2"><div class="field"><label>Страна</label><div class="kc"><input data-src="ctry" role="combobox" aria-autocomplete="list" spellcheck="false" id="ep-country" type="search" value="${esc(p.country||'')}" autocomplete="off"><div class="kc-l" role="listbox" hidden></div></div></div><div class="field"><label>Город</label><div class="kc"><input data-src="city" role="combobox" aria-autocomplete="list" spellcheck="false" id="ep-city" type="search" autocomplete="off" value="${esc(p.city||'')}"><div class="kc-l" role="listbox" hidden></div></div></div></div>
   <div class="wz-row2"><div class="field"><label>Клуб</label><input id="ep-club" value="${esc(p.club||'')}"></div><div class="field"><label>Звание</label><select id="ep-rank"><option value="" ${!p.rank?'selected':''}>—</option>${RANKS.map(r=>`<option ${p.rank===r?'selected':''}>${r}</option>`).join('')}</select></div></div>
   <div class="wz-row2"><div class="field"><label>Уровень</label><select id="ep-lvl"><option value="">—</option>${LVLS.map(l=>`<option value="${l}" ${p.lvl===l?'selected':''}>${l} · ${LVL_T[l]}</option>`).join('')}</select></div><div></div></div>
   <div class="err" id="ep-err"></div><div class="pm-acts"><button class="btn blue" data-act="saveP" data-id="${p.id}">Сохранить</button>${reg?`<button class="btn ghost" data-act="rmP" data-id="${p.id}">Удалить</button>`:'<button class="btn ghost" data-act="close">Отмена</button>'}</div></div>`}
@@ -2764,7 +2765,7 @@ Object.assign(AA,{adXls(el){const kind=el.dataset.v;withExcel(async()=>{try{cons
 
 /* кабинет клуба: подписка */
 function cabBody(c,mine){const roster=c.roster||[];const tab=UI.cabTab||'t',ed=UI.cabEdit;
-  const sec=(h,top,blocks)=>`<section class="cb-sec">${h?`<div class="cb-h"><h2>${h}</h2>${top||''}</div>`:''}${blocks.filter(Boolean).join('')}</section>`;
+  const sec=(h,top,blocks)=>`<section class="cb-sec">${h?`<div class="kc-h"><h2>${h}</h2>${top||''}</div>`:''}${blocks.filter(Boolean).join('')}</section>`;
   const blk=(h,d,body,acts)=>`<div class="cb-b">${h?`<h3>${h}</h3>`:''}${d?`<p class="cb-d">${d}</p>`:''}${body||''}${acts?`<div class="cb-fa">${acts}</div>`:''}</div>`;
   const kv=rows=>`<div class="cb-kv">${rows.map(([k,v])=>`<span>${k}</span><div class="${v?'':'mut2'}">${v||'не указано'}</div>`).join('')}</div>`;
   let body='';
@@ -2798,7 +2799,7 @@ function adPEditHTML(p){const nw=!p;p=p||{country:'Казахстан',sex:'М'}
   return`<div class="dlg-h"><h3>${nw?'Новый игрок':'Игрок'}${!nw&&VF.has(p.id)?VFI:''}</h3><button class="x" data-act="close" aria-label="Закрыть">×</button></div>
   <div class="wz-row2"><div class="field"><label>Фамилия</label><input id="ep-last" value="${esc(p.last||'')}"></div><div class="field"><label>Имя</label><input id="ep-first" value="${esc(p.first||'')}"></div></div>
   <div class="wz-row2"><div class="field"><label>Пол</label><select id="ep-sex"><option ${p.sex!=='Ж'?'selected':''}>М</option><option ${p.sex==='Ж'?'selected':''}>Ж</option></select></div><div class="field"><label>Год рождения</label><input id="ep-birth" type="number" inputmode="numeric" value="${esc(byear(p))}" placeholder="1990"></div></div>
-  <div class="wz-row2"><div class="field"><label>Страна</label><input id="ep-country" type="search" value="${esc(p.country||'')}" list="ctry-l" autocomplete="off">${ctryList()}</div><div class="field"><label>Город</label>${cityList()}<input id="ep-city" type="search" list="city-l" autocomplete="off" value="${esc(p.city||'')}"></div></div>
+  <div class="wz-row2"><div class="field"><label>Страна</label><div class="kc"><input data-src="ctry" role="combobox" aria-autocomplete="list" spellcheck="false" id="ep-country" type="search" value="${esc(p.country||'')}" autocomplete="off"><div class="kc-l" role="listbox" hidden></div></div></div><div class="field"><label>Город</label><div class="kc"><input data-src="city" role="combobox" aria-autocomplete="list" spellcheck="false" id="ep-city" type="search" autocomplete="off" value="${esc(p.city||'')}"><div class="kc-l" role="listbox" hidden></div></div></div></div>
   <div class="wz-row2"><div class="field"><label>Клуб</label><input id="ep-club" value="${esc(p.club||'')}"></div><div class="field"><label>Звание</label><select id="ep-rank"><option value="" ${!p.rank?'selected':''}>—</option>${sel(p.rank,RANKS)}</select></div></div>
   <div class="wz-row2"><div class="field"><label>Уровень</label><select id="ep-lvl"><option value="">—</option>${sel(p.lvl,LVLS,l=>l+' · '+LVL_T[l])}</select></div><div></div></div>
   ${nw?`<label class="chk" style="margin:4px 0 14px;display:flex;gap:8px;align-items:center"><input type="checkbox" id="ep-vf"> Проверенный игрок — поставить галочку ${VFI}</label><p class="mut2" style="margin:0 0 12px">Игрок появится в общей базе — клубы смогут сразу добавлять его в турниры.</p>`:'<p class="mut2" style="margin:0 0 12px">Изменения увидят все клубы.</p>'}<div class="err" id="ep-err"></div><button class="btn blue big" style="width:100%" data-act="${nw?'adPAdd':'adPSave'}" data-id="${esc(p.id||'')}">${nw?'Добавить в базу':'Сохранить'}</button>`}
@@ -2989,6 +2990,28 @@ const CITY_IX=(()=>{const m={};KZ_CITIES.forEach(c=>m[cFold(c)]=c);Object.entrie
 function normCity(x){const s=String(x||'').trim().replace(/\s+/g,' ');if(!s)return'';return CITY_IX[cFold(s)]||s}
 const cityList=()=>`<datalist id="city-l">${KZ_CITIES.map(x=>`<option value="${x}">`).join('')}</datalist>`;
 function citySel(id,val){const v=normCity(val);const o=x=>`<option${x===v?' selected':''}>${esc(x)}</option>`;const extra=v&&!KZ_CITIES.includes(v)?`<option selected>${esc(v)}</option>`:'';return`<select id="${id}">${v?'':'<option value="" selected disabled>Выберите город</option>'}${extra}<optgroup label="Крупные города">${KZ_BIG.map(o).join('')}</optgroup><optgroup label="Города и посёлки">${KZ_OTHER.map(o).join('')}</optgroup></select>`}
+
+// выпадающий список города/страны — свой, вместо браузерного: под полем, с поиском и стрелками
+const CB_SRC={city:()=>KZ_CITIES,ctry:()=>CTRY_LIST};
+function cbOpts(src,q){const L=CB_SRC[src]();const f=cFold(q);if(!f)return(src==='city'?KZ_BIG:L).slice(0,40);const a=[],b=[];
+  L.forEach(x=>{const k=cFold(x);if(k.startsWith(f))a.push(x);else if(k.includes(' '+f)||k.includes('-'+f))b.push(x)});
+  if(src==='city')Object.keys(CITY_IX).forEach(k=>{if(k.startsWith(f))a.push(CITY_IX[k])});return[...new Set([...a,...b])].slice(0,8)}
+function cbMark(x,q){const f=cFold(q);if(f&&cFold(x).startsWith(f))return`<b>${esc(x.slice(0,f.length))}</b>${esc(x.slice(f.length))}`;return esc(x)}
+function cbShow(inp){const box=inp.parentNode.querySelector('.kc-l');if(!box)return;const o=cbOpts(inp.dataset.src,inp.value);
+  if(!o.length||(o.length===1&&o[0]===inp.value.trim())){cbHide(inp);return}
+  box.innerHTML=(inp.value.trim()?'':`<div class="kc-h">${inp.dataset.src==='city'?'Крупные города':'Страны'}</div>`)+o.map((x,i)=>`<div class="kc-o${i===0&&inp.value.trim()?' on':''}" role="option" data-v="${esc(x)}">${cbMark(x,inp.value)}</div>`).join('');
+  box.hidden=false;inp.setAttribute('aria-expanded','true')}
+function cbHide(inp){const box=inp&&inp.parentNode&&inp.parentNode.querySelector('.kc-l');if(box)box.hidden=true;inp&&inp.setAttribute('aria-expanded','false')}
+function cbPick(inp,v){inp.value=v;inp._pick=1;inp.dispatchEvent(new Event('input',{bubbles:true}));inp._pick=0;cbHide(inp)}
+document.addEventListener('focusin',e=>{const i=e.target;if(i.matches&&i.matches('.kc input'))cbShow(i)});
+document.addEventListener('input',e=>{const i=e.target;if(i.matches&&i.matches('.kc input')&&!i._pick)cbShow(i)});
+document.addEventListener('focusout',e=>{const i=e.target;if(i.matches&&i.matches('.kc input'))setTimeout(()=>{if(document.activeElement!==i)cbHide(i)},120)});
+document.addEventListener('mousedown',e=>{const o=e.target.closest&&e.target.closest('.kc-o');if(!o)return;e.preventDefault();cbPick(o.closest('.kc').querySelector('input'),o.dataset.v)});
+document.addEventListener('keydown',e=>{const i=e.target;if(!(i.matches&&i.matches('.kc input')))return;const box=i.parentNode.querySelector('.kc-l');const open=box&&!box.hidden;
+  if(e.key==='Escape'&&open){e.preventDefault();e.stopPropagation();cbHide(i);return}
+  if((e.key==='ArrowDown'||e.key==='ArrowUp')){e.preventDefault();if(!open){cbShow(i);return}const L=[...box.querySelectorAll('.kc-o')];if(!L.length)return;let k=L.findIndex(x=>x.classList.contains('on'));L.forEach(x=>x.classList.remove('on'));
+    k=e.key==='ArrowDown'?(k+1)%L.length:(k<=0?L.length-1:k-1);L[k].classList.add('on');L[k].scrollIntoView({block:'nearest'});return}
+  if(e.key==='Enter'&&open){const on=box.querySelector('.kc-o.on');if(on){e.preventDefault();e.stopPropagation();cbPick(i,on.dataset.v)}}},true);
 const ctryList=()=>`<datalist id="ctry-l">${CTRY_LIST.map(x=>`<option value="${x}">`).join('')}</datalist>`;
 const flagOf=p=>{const k=CTRY[String(p&&p.country||'').trim().toLowerCase()];return k?`<img class="ob-f" src="/flags/${k}.svg" alt="${esc(p.country)}">`:''};
 const obsUrl=(cid,k)=>location.origin+'/#tablo-'+cid+'-'+k;
