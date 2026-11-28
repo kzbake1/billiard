@@ -1067,7 +1067,6 @@ body:has(.cc-g){background:var(--bg-deep,#ECECEC)}body:has(.cc-g) .ch-row .chip:
 .cc-tt{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
 .cc-n{font-size:21px;font-weight:600;line-height:1.2;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cc-m{font-size:14px;color:var(--sub)}
-.cc .cc-nx{margin:-18px -18px 0;border-radius:0;padding:12px 18px}
 .cc .cc-ad{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--sub);text-decoration:none;min-width:0;padding-top:14px;border-top:1px solid var(--line)}.cc .cc-ad svg{width:16px;height:16px;margin:0;color:var(--muted)}.cc-ad span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.cc-ad em{font-style:normal;margin-left:auto;color:var(--accent-ink,#0F4FD9);font-weight:600;font-size:14px;flex:none;padding-left:8px}
 .cc-nx em{display:inline-flex;align-items:center;gap:6px}.cc-nx em i{width:7px;height:7px;border-radius:50%;background:var(--live)}
 .cc-acts{display:grid!important;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:8px!important;margin:auto 0 0!important;padding:0!important;border-top:0!important}
@@ -1690,8 +1689,9 @@ function clubCard(c){const ts=S.tournaments.filter(t=>t.clubId===c.id&&!t.parent
   const pl=(n,f)=>n+' '+f[n%10===1&&n%100!==11?0:n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?1:2];
   const chips=[c.city,c.tables?pl(c.tables,['стол','стола','столов']):'',nDone?pl(nDone,['турнир','турнира','турниров']):''].filter(Boolean);
   const tel=c.phone?'tel:'+esc(c.phone.replace(/[^+\d]/g,'')):'';
-  return`<div class="cc">${nx?`<a class="cc-nx ${nx.status==='live'?'live':''}" href="#t-${nx.id}"><em>${nx.status==='live'?'<i></i>Идёт':'Скоро'}</em><span>${esc(nx.title)}</span><small>${esc(fdate(nx.date))}</small></a>`:''}<a class="cc-top" href="#c-${c.id}"><i class="cc-av${c.logo?' im':''}">${avHTML(c)}</i><span class="cc-tt"><b class="cc-n">${esc(c.name)}</b>${chips.length?`<span class="cc-m">${esc(chips.join(' · '))}</span>`:''}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>
+  return`<div class="cc"><a class="cc-top" href="#c-${c.id}"><i class="cc-av${c.logo?' im':''}">${avHTML(c)}</i><span class="cc-tt"><b class="cc-n">${esc(c.name)}</b>${chips.length?`<span class="cc-m">${esc(chips.join(' · '))}</span>`:''}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>
   ${c.address?`<a class="cc-ad" href="${gisLink(c)}" target="_blank" rel="noopener">${IC.pin}<span>${esc(c.address)}</span><em>Маршрут</em></a>`:''}
+  ${nx?`<a class="cc-nx ${nx.status==='live'?'live':''}" href="#t-${nx.id}"><em>${nx.status==='live'?'<i></i>Идёт':'Скоро'}</em><span>${esc(nx.title)}</span><small>${esc(fdate(nx.date))}</small></a>`:''}
   ${c.phone||c.instagram?`<div class="cc-acts">${c.phone?`<a class="cc-wa" href="${waLink(c.phone)}" target="_blank" rel="noopener">${IC.wa}<span>WhatsApp</span></a><a class="cc-call" href="${tel}">${IC.phone}<span>Позвонить</span></a>`:''}${c.instagram?`<a class="cc-i" href="${esc(instaLink(c.instagram))}" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram">${IC.ig}</a>`:''}</div>`:''}</div>`}
 // порядок клубов: Chimba первым, дальше — кто раньше подключился
 const CHIMBA='2232f5f8-8bc4-4486-9187-def4c532a528';const clubOrd=a=>[...a].sort((x,y)=>(y.id===CHIMBA)-(x.id===CHIMBA)||String(x.created_at||'9').localeCompare(String(y.created_at||'9')));
